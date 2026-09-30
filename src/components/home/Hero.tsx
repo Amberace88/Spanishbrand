@@ -60,7 +60,7 @@ export function Hero({ foundedYear }: { foundedYear: number | null }) {
 
         <h1 className="display text-[22vw] sm:text-[17vw] lg:text-[13.5vw]">
           {[t("hero.title.a"), t("hero.title.b")].map((w, k) => (
-            <span key={k} className="block overflow-hidden pb-[0.04em]">
+            <span key={k} className="-mt-[0.2em] block overflow-hidden pb-[0.04em] pt-[0.2em]">
               <motion.span className={`block ${k === 1 ? "text-transparent [-webkit-text-stroke:1.5px_var(--color-bone)] sm:[-webkit-text-stroke:2px_var(--color-bone)]" : ""}`} initial={reduce ? false : { y: "110%" }} animate={{ y: "0%" }} transition={{ delay: 0.45 + k * 0.12, duration: 1.3, ease }}>
                 {w}
               </motion.span>
@@ -71,16 +71,19 @@ export function Hero({ foundedYear }: { foundedYear: number | null }) {
         <div className="mt-4 flex flex-col gap-8 sm:mt-6 lg:flex-row lg:items-end lg:justify-between">
           <motion.p initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 1.2 }} className="serif max-w-xl text-3xl italic leading-[1.05] text-bone/90 sm:text-5xl">
             {t("hero.title.c")}{" "}
-            <span className="relative inline-block h-[1.1em] min-w-[5ch] overflow-hidden align-bottom not-italic text-oro-2">
-              <AnimatePresence mode="popLayout">
-                <motion.span key={words[i]} className="block" initial={{ y: "100%" }} animate={{ y: "0%" }} exit={{ y: "-100%" }} transition={{ duration: 0.7, ease }}>
+            <span className="relative inline-grid overflow-hidden align-bottom not-italic text-oro-2" style={{ height: "1.18em" }}>
+              <span className="invisible col-start-1 row-start-1 whitespace-nowrap" aria-hidden>
+                {words.reduce((a, b) => (b.length > a.length ? b : a), "")}
+              </span>
+              <AnimatePresence initial={false}>
+                <motion.span key={words[i]} className="col-start-1 row-start-1 whitespace-nowrap" initial={{ y: "110%" }} animate={{ y: "0%" }} exit={{ y: "-110%" }} transition={{ duration: 0.7, ease }}>
                   {words[i]}
                 </motion.span>
               </AnimatePresence>
             </span>
           </motion.p>
 
-          <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15, duration: 1, ease }} className="flex flex-wrap gap-3">
+          <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15, duration: 1, ease }} className="flex flex-col gap-3 sm:flex-row">
             <Link href="/collections" className="btn btn-primary">
               {t("hero.cta.primary")} <span aria-hidden>→</span>
             </Link>

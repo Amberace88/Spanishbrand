@@ -34,7 +34,7 @@ export function MaskLines({ lines, className, delay = 0 }: { lines: ReactNode[];
   return (
     <motion.span className={`block ${className ?? ""}`} initial={reduce ? false : "hidden"} whileInView="show" viewport={{ once: true, amount: 0.1 }} transition={{ delayChildren: delay }}>
       {lines.map((l, i) => (
-        <span key={i} className="block overflow-hidden pb-[0.06em]">
+        <span key={i} className="-mt-[0.2em] block overflow-hidden pb-[0.06em] pt-[0.2em]">
           <motion.span className="block" variants={line} custom={i}>
             {l}
           </motion.span>

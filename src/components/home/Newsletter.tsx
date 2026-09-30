@@ -30,7 +30,7 @@ export function Newsletter({ dark = false, source = "site" }: { dark?: boolean; 
           aria-label="Email"
           className={`field ${dark ? "field-dark" : ""} flex-1`}
         />
-        <button type="submit" disabled={!consent || state === "loading"} className="btn btn-primary shrink-0">
+        <button type="submit" disabled={state === "loading"} className="btn btn-primary shrink-0">
           {t("newsletter.submit")}
         </button>
       </div>
