@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HISPANIA — Spanish Identity & Lifestyle Brand OS
 
-## Getting Started
+API-first, headless POD commerce cloud. **Only products that can be fulfilled automatically through a connected API provider can be sold** — enforced in the database, backend, admin, checkout and order processing.
 
-First, run the development server:
+> Brand name is a working name stored in `brand_settings` (Admin → Ajustes). Nothing is hard-coded.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+Next.js 16 (App Router, TypeScript strict) · Tailwind v4 · Supabase (Postgres, Auth, RLS) · Stripe Checkout · Printful v1 + Gelato v4 adapters · Resend · Anthropic API (AI studio) · Netlify or Vercel.
+
+## Architecture
+```
+Customer → Storefront → Cart → Stripe → Webhook (verified, idempotent)
+  → PAYMENT_CONFIRMED → Fulfillment Router (primary / approved backup, multi-provider groups)
+  → Provider API (Printful | Gelato) → provider webhooks (token + re-fetch) → tracking → email → account
+```
+| Layer | Where |
+|---|---|
+| Provider abstraction (`FulfillmentProvider`, factory) | `src/lib/fulfillment/` |
+| Printful / Gelato adapters | `src/lib/fulfillment/printful/*`, `gelato/*` |
+| Eligibility engine (TS) + DB guard (`product_eligibility`, publish/order triggers) | `src/lib/products/eligibility.ts`, `supabase/migrations/*02*`, `*03*` |
+| Router, status aggregation, retry/backoff, sweeper | `src/lib/orders/*` |
+| Stripe checkout & webhook | `src/lib/payments/*`, `src/app/api/webhooks/stripe` |
+| Automation events → handlers (email, analytics, fulfillment) | `src/lib/events/*` |
+| Cost engine, TaxService, shipping rules | `src/lib/pricing`, `src/lib/tax`, `src/lib/shipping` |
+| AI (never publishes) | `src/lib/ai/client.ts`, Admin → AI Creator / Content Studio |
+| Admin (RBAC) | `src/app/admin/*` |
+| Cron jobs | `src/app/api/cron/[job]` + `netlify/functions/scheduler.mts` / `vercel.json` |
+
+## Setup
+1. `cp .env.example .env.local` and fill in values (see below). **Never commit secrets.**
+2. Database — run in Supabase SQL Editor, in order (or `supabase db push`):
+   - `supabase/migrations/20260930000001_core_schema.sql` ✅ applied
+   - `supabase/migrations/20260930000002_rules_rls.sql` ✅ applied
+   - `supabase/seed.sql` ✅ applied
+   - `supabase/migrations/20260930000003_hardening.sql` ⏳ **run this next**
+3. `npm install && npm run dev`
+4. Sign in at `/admin/login` with an email listed in `ADMIN_EMAILS` → becomes SUPER_ADMIN.
+
+### Environment variables
+| Var | Notes |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | production URL |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | publishable key (browser-safe) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only** (Supabase → Settings → API Keys → secret) |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | webhook: `/api/webhooks/stripe` — events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded` |
+| `PRINTFUL_API_KEY` (+ `PRINTFUL_STORE_ID` for account-level tokens), `PRINTFUL_WEBHOOK_SECRET` | register webhook from Admin → Proveedores |
+| `GELATO_API_KEY`, `GELATO_WEBHOOK_SECRET` | register in Gelato portal: `/api/webhooks/gelato?token=<secret>` |
+| `RESEND_API_KEY`, `EMAIL_FROM` | transactional email |
+| `AI_PROVIDER_API_KEY`, `AI_MODEL` | AI creator / assistant |
+| `CRON_SECRET` | protects `/api/cron/*` |
+| `ADMIN_EMAILS` | first-login SUPER_ADMIN bootstrap |
+
+## Launch workflow (first product)
+Admin → **Proveedores** → Sync catalog → **Aprobar** provider product → Crear producto → add print file URLs + approve mapping → **Ejecutar test de fulfillment** (non-charging estimate/quote) → add images, description, price → **Aprobar marca** → **Publicar** (blocked by the DB unless eligible).
+
+## Tests
+```
+npm test          # 40 unit tests: eligibility, router & fallback, statuses, retries, error classes, cost/tax/shipping, provider mappers & webhook auth, security invariants
+npm run test:db   # migrations + 8 database rule tests on a throwaway Postgres (PGHOST/PGPORT/PGUSER)
+npm run typecheck
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Before production (not automatable)
+- Legal/accounting validation of VAT, privacy, terms, returns (pages marked *Borrador*).
+- Complete a real end-to-end test order (spec §92) with Stripe test mode + provider draft/test.
+- Canarias/Ceuta/Melilla orders are held for manual review (different tax regime).
+- Gelato has no documented order lookup by reference: ambiguous create failures are sent to review instead of auto-retry (prevents duplicate production).
