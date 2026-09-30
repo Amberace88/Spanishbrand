@@ -1,26 +1,178 @@
 @import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* =====================================================================
+   DESIGN SYSTEM — premium · editorial · European · Spanish
+   ===================================================================== */
+@theme {
+  --color-ink: #0b0b0c;
+  --color-ink-2: #161618;
+  --color-ink-3: #232326;
+  --color-bone: #f4efe6;
+  --color-warm: #fbf8f3;
+  --color-sand: #e6ded0;
+  --color-stone: #8a8378;
+  --color-stone-2: #6b645a;
+  --color-rojo: #b3122e;
+  --color-rojo-2: #8e0e24;
+  --color-oro: #a8894f;
+  --color-oro-2: #c9ad76;
+  --color-navy: #1b2a4a;
+  --color-navy-2: #0f1a31;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-marquee-rev: marquee-rev 44s linear infinite;
+  --animate-spin-slow: spin 60s linear infinite;
+  --animate-rise: rise 1.1s var(--ease-out-expo) both;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes marquee-rev {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root {
+  color-scheme: light;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-warm);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 100;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-rojo);
+  color: #fff;
+}
+
+/* Editorial display type: condensed, heavy, tight */
+.display {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 62;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.86;
+}
+.display-wide {
+  font-variation-settings: "wdth" 125;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 1.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: background-color 0.35s var(--ease-out-expo), color 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo), border-color 0.35s;
+  will-change: transform;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--color-rojo); color: #fff; }
+.btn-primary:hover { background: var(--color-rojo-2); }
+.btn-ink { background: var(--color-ink); color: var(--color-bone); }
+.btn-ink:hover { background: var(--color-ink-3); }
+.btn-ghost-light { border: 1px solid rgb(244 239 230 / 0.35); color: var(--color-bone); }
+.btn-ghost-light:hover { border-color: var(--color-bone); background: rgb(244 239 230 / 0.06); }
+.btn-ghost { border: 1px solid rgb(11 11 12 / 0.2); color: var(--color-ink); }
+.btn-ghost:hover { border-color: var(--color-ink); }
+.btn:disabled { opacity: 0.45; pointer-events: none; }
+
+/* Underline link */
+.link-u {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.5s var(--ease-out-expo);
+}
+.link-u:hover { background-size: 100% 1px; }
+
+/* Inputs */
+.field {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgb(11 11 12 / 0.18);
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  border-radius: 0;
+}
+.field:focus { border-color: var(--color-ink); }
+.field-dark { border-color: rgb(244 239 230 / 0.25); color: var(--color-bone); }
+.field-dark::placeholder { color: rgb(244 239 230 / 0.4); }
+.field-dark:focus { border-color: var(--color-bone); }
+
+/* Hide scrollbars on horizontal rails */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Reveal fallback (when JS disabled, content stays visible) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Admin tables */
+.admin-table { width: 100%; font-size: 0.8125rem; border-collapse: collapse; }
+.admin-table th { text-align: left; font-weight: 600; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-stone-2); padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--color-sand); white-space: nowrap; }
+.admin-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid #efe9df; vertical-align: top; }
+.admin-table tr:hover td { background: #faf6ef; }
