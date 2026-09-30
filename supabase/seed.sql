@@ -109,7 +109,7 @@ insert into public.provider_capabilities (provider_id, capability, supported, no
   ('gelato','webhook_signature',false,'No signing — secret token in URL + re-fetch order'),
   ('gelato','stock_api',true,'POST /v3/stock/region-availability'),
   ('gelato','mockup_api',false,'No standalone mockup API'),
-  ('gelato','product_creation_api',true,'Only from UI-made templates (ecommerce API)')
+  ('gelato','product_creation_api',false,'Template-only (templates made in Gelato UI) — generic creation unsupported')
 on conflict (provider_id, capability) do nothing;
 
 -- VAT (standard rates). Legal/accounting validation required before production.
