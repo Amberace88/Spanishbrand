@@ -25,6 +25,12 @@ export default async function OrderAdmin({ params, searchParams }: { params: Pro
   if (!o) notFound();
   const addr = o.shipping_address as Record<string, string> | null;
   const hidden = (name: string, value: string) => <input type="hidden" name={name} value={value} />;
+  const ambiguous = (groups ?? []).some((g) => g.last_error?.startsWith("AMBIGUOUS"));
+  const confirmBox = ambiguous ? (
+    <label className="flex items-center gap-1 text-xs text-rojo">
+      <input type="checkbox" name="confirmNotExists" /> Verificado en el proveedor: no existe
+    </label>
+  ) : null;
 
   return (
     <>
@@ -59,11 +65,11 @@ export default async function OrderAdmin({ params, searchParams }: { params: Pro
                     {g.last_error && <p className="mt-2 text-xs text-rojo">{g.last_error}</p>}
                     <div className="mt-3 flex flex-wrap gap-2">
                       {!g.provider_order_id && ["FAILED", "REQUIRES_REVIEW", "RETRY_SCHEDULED", "PENDING"].includes(g.status) && (
-                        <form action={retryFulfillmentAction}>{hidden("orderId", id)}{hidden("foId", g.id)}<SubmitButton>Reintentar</SubmitButton></form>
+                        <form action={retryFulfillmentAction} className="flex items-center gap-2">{hidden("orderId", id)}{hidden("foId", g.id)}{confirmBox}<SubmitButton>Reintentar</SubmitButton></form>
                       )}
                       {!g.provider_order_id && (
                         <form action={changeProviderAction} className="flex gap-1">
-                          {hidden("orderId", id)}{hidden("foId", g.id)}
+                          {hidden("orderId", id)}{hidden("foId", g.id)}{confirmBox}
                           <select name="targetProvider" className={inputCls}>{(providers ?? []).filter((p) => p.id !== g.provider_id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
                           <SubmitButton variant="ghost">Cambiar proveedor</SubmitButton>
                         </form>
@@ -79,7 +85,7 @@ export default async function OrderAdmin({ params, searchParams }: { params: Pro
               <p className="text-sm text-stone-2">Sin grupos de fulfillment todavía.</p>
             )}
             {o.payment_status === "PAID" && ["REQUIRES_REVIEW", "FULFILLMENT_FAILED", "PAID"].includes(o.status) && (
-              <form action={reprocessOrderAction} className="mt-4">{hidden("orderId", id)}<SubmitButton variant="primary">Revisado → reprocesar pedido</SubmitButton></form>
+              <form action={reprocessOrderAction} className="mt-4 flex items-center gap-3">{hidden("orderId", id)}{confirmBox}<SubmitButton variant="primary">Revisado → reprocesar pedido</SubmitButton></form>
             )}
           </Card>
 
@@ -155,6 +161,7 @@ export default async function OrderAdmin({ params, searchParams }: { params: Pro
             {o.payment_status === "PAID" || o.payment_status === "PARTIALLY_REFUNDED" ? (
               <form action={refundOrderAction} className="mt-3 flex gap-2">
                 {hidden("orderId", id)}
+                {hidden("nonce", crypto.randomUUID())}
                 <input name="amount" type="number" step="0.01" placeholder={String(o.total)} className={inputCls} />
                 <SubmitButton variant="danger">Reembolsar</SubmitButton>
               </form>

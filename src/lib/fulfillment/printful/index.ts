@@ -30,6 +30,7 @@ export class PrintfulProvider implements FulfillmentProvider {
   readonly id = "printful";
   readonly name = "Printful";
   readonly capabilities = PRINTFUL_CAPABILITIES;
+  readonly externalIdLookup = true;
 
   isConfigured() {
     return isConfigured.printful();

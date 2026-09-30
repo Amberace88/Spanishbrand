@@ -105,8 +105,11 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
   }
 
   const jar = await cookies();
-  const creatorId = discount && !discount.error && discount.creatorId ? discount.creatorId : jar.get("ref_creator")?.value ?? null;
-  const campaignId = jar.get("ref_campaign")?.value ?? null;
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  let creatorId: string | null = discount && !discount.error && discount.creatorId ? discount.creatorId : jar.get("ref_creator")?.value ?? null;
+  if (creatorId && (!UUID.test(creatorId) || !(await sb.from("creators").select("id").eq("id", creatorId).eq("status", "ACTIVE").maybeSingle()).data)) creatorId = null;
+  let campaignId: string | null = jar.get("ref_campaign")?.value ?? null;
+  if (campaignId && (!UUID.test(campaignId) || !(await sb.from("campaigns").select("id").eq("id", campaignId).maybeSingle()).data)) campaignId = null;
 
   // Production cost snapshot per variant (internal only)
   const { data: variantCosts } = await sb.from("product_variants").select("id, production_cost").in("id", cart.lines.map((l) => l.variantId));
@@ -127,8 +130,8 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
       prices_include_tax: pricesIncludeTax,
       shipping_method: shipping.method,
       discount_code: discount && !discount.error ? discount.code : null,
-      creator_id: creatorId && /^[0-9a-f-]{36}$/i.test(creatorId) ? creatorId : null,
-      campaign_id: campaignId && /^[0-9a-f-]{36}$/i.test(campaignId) ? campaignId : null,
+      creator_id: creatorId,
+      campaign_id: campaignId,
       metadata: { shipping_source: shipping.source, tax_rate: taxResult.rate, tax_requires_review: taxResult.requiresReview, marketing_consent: input.marketingConsent, discount_id: discount && !discount.error ? discount.id : null },
     })
     .select("id, order_number")
@@ -181,7 +184,11 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
             unit_amount: toCents(l.currentPrice),
             product_data: { name: l.productName, description: l.variantName, images: l.image ? [l.image] : undefined },
           },
-        })),
+        })).concat(
+          !pricesIncludeTax && taxResult.tax > 0
+            ? [{ quantity: 1, price_data: { currency: cart.currency.toLowerCase(), unit_amount: toCents(taxResult.tax), product_data: { name: `IVA ${Math.round(taxResult.rate * 100)}%`, description: "", images: undefined } } }]
+            : [],
+        ),
         discounts: couponId ? [{ coupon: couponId }] : undefined,
         shipping_address_collection: { allowed_countries: [country as "ES"] },
         phone_number_collection: { enabled: true },

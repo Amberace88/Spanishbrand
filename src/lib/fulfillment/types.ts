@@ -185,7 +185,7 @@ export interface NormalizedWebhookEvent {
   providerOrderId: string | null;
   externalOrderId: string | null;
   reason: string | null;
-  stock?: { outOfStock: string[]; discontinued: string[] } | null;
+  stock?: { outOfStock: string[]; discontinued: string[]; providerProductId?: string | null } | null;
   payload: unknown;
 }
 
@@ -206,6 +206,8 @@ export interface FulfillmentProvider {
   readonly id: ProviderId;
   readonly name: string;
   readonly capabilities: ProviderCapabilities;
+  /** true when getOrderByExternalId is backed by a documented endpoint (safe idempotent retries). */
+  readonly externalIdLookup: boolean;
   isConfigured(): boolean;
 
   getCatalogProducts(opts?: { limit?: number; offset?: number; categoryId?: string }): Promise<NormalizedCatalogProduct[]>;

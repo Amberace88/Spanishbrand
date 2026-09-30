@@ -45,11 +45,17 @@ async function ensureCart(): Promise<string> {
   if (existing) {
     const { data } = await sb.from("carts").select("id, status").eq("id", existing).maybeSingle();
     if (data && (data.status === "ACTIVE" || data.status === "CHECKOUT_STARTED")) return data.id;
+    if (data && data.status === "ABANDONED") {
+      await sb.from("carts").update({ status: "ACTIVE" }).eq("id", data.id);
+      return data.id;
+    }
   }
   const c = await cookies();
+  const ref = c.get("ref_creator")?.value;
+  const creatorOk = ref && /^[0-9a-f-]{36}$/i.test(ref) ? (await sb.from("creators").select("id").eq("id", ref).eq("status", "ACTIVE").maybeSingle()).data : null;
   const { data, error } = await sb
     .from("carts")
-    .insert({ brand_id: env.brandId(), session_id: c.get("sid")?.value ?? null, creator_id: c.get("ref_creator")?.value ?? null })
+    .insert({ brand_id: env.brandId(), session_id: c.get("sid")?.value ?? null, creator_id: creatorOk ? ref : null })
     .select("id")
     .single();
   if (error || !data) throw error ?? new Error("cart create failed");
@@ -63,7 +69,7 @@ export async function getCart(): Promise<CartView> {
   const sb = dbOrNull();
   if (!id || !sb) return EMPTY;
   const { data: cart } = await sb.from("carts").select("id, currency, status").eq("id", id).maybeSingle();
-  if (!cart || cart.status === "CONVERTED") return EMPTY;
+  if (!cart || cart.status === "CONVERTED" || cart.status === "EXPIRED") return EMPTY;
   const { data: items } = await sb
     .from("cart_items")
     .select("id, product_id, variant_id, quantity, unit_price, products(name, slug, status, fulfillment_eligible, retail_price, product_images(url, sort, kind)), product_variants(variant_name, retail_price, active, stock_status, image)")

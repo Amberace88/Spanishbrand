@@ -27,6 +27,7 @@ export async function POST(req: Request) {
 
   const rec = await recordWebhook({ provider: "stripe", eventId: event.id, eventType: event.type, payload: event, signatureValid: true });
   if (rec.duplicate) return NextResponse.json({ received: true, duplicate: true });
+  if (rec.inFlight) return NextResponse.json({ error: "in progress" }, { status: 409 });
 
   try {
     switch (event.type) {

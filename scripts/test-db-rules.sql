@@ -59,6 +59,26 @@ begin
   exception when unique_violation then raise notice 'PASS 6: duplicate webhook rejected';
   end;
 
+  -- 8. one out-of-stock variant does NOT pause the product; the variant itself is not purchasable
+  update products set limited = false, limited_type = null, limited_quantity = null where id = p;
+  declare v2 uuid; cid uuid;
+  begin
+    insert into product_variants (product_id, variant_name, size, production_cost) values (p, 'L / Black', 'L', 12.5) returning id into v2;
+    insert into variant_provider_mappings (mapping_id, variant_id, provider_variant_id) values (m, v2, '4013');
+    update products set status = 'PUBLISHED' where id = p;
+    update variant_provider_mappings set status = 'OUT_OF_STOCK' where variant_id = v2;
+    update product_variants set stock_status = 'OUT_OF_STOCK' where id = v2;
+    if not (refresh_product_eligibility(p)->>'eligible')::boolean then raise exception 'TEST FAILED: OOS variant paused product'; end if;
+    begin
+      insert into carts (brand_id) values (b) returning id into cid;
+      insert into cart_items (cart_id, product_id, variant_id, quantity, unit_price) values (cid, p, v2, 1, 39.9);
+      raise exception 'TEST FAILED: OOS variant added to cart';
+    exception when sqlstate 'P0001' then
+      if sqlerrm like 'TEST FAILED%' then raise; end if;
+    end;
+    raise notice 'PASS 8: per-variant stock enforced without pausing product';
+  end;
+
   -- 7. limited quantity enforcement
   update products set limited = true, limited_type = 'QUANTITY', limited_quantity = 2 where id = p;
   if not reserve_limited_quantity(p, 2) then raise exception 'TEST FAILED: reserve 2'; end if;

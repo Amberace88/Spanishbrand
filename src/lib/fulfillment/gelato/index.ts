@@ -30,6 +30,7 @@ export class GelatoProvider implements FulfillmentProvider {
   readonly id = "gelato";
   readonly name = "Gelato";
   readonly capabilities = GELATO_CAPABILITIES;
+  readonly externalIdLookup = false;
 
   isConfigured() {
     return isConfigured.gelato();

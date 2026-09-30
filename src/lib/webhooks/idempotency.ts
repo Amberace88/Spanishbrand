@@ -12,7 +12,7 @@ export async function recordWebhook(input: {
   eventType: string;
   payload: unknown;
   signatureValid: boolean | null;
-}): Promise<{ id: string; duplicate: boolean }> {
+}): Promise<{ id: string; duplicate: boolean; inFlight?: boolean }> {
   const sb = db();
   const { data, error } = await sb
     .from("webhook_events")
@@ -31,13 +31,19 @@ export async function recordWebhook(input: {
   if (error?.code === "23505") {
     const { data: existing } = await sb
       .from("webhook_events")
-      .select("id, processed")
+      .select("id, processed, error, attempts, created_at")
       .eq("provider", input.provider)
       .eq("event_id", input.eventId)
       .single();
     if (existing && !existing.processed) {
-      // Previous attempt failed mid-way → allow retry-safe reprocessing.
-      await sb.from("webhook_events").update({ attempts: 1 }).eq("id", existing.id);
+      const recent = Date.now() - new Date(existing.created_at).getTime() < 120_000;
+      if (recent && !existing.error) {
+        // Another worker is processing this event right now → ask the sender to retry later.
+        return { id: existing.id, duplicate: false, inFlight: true };
+      }
+      // Previous attempt failed or died → optimistic lease, then reprocess (handlers are idempotent).
+      const { data: lease } = await sb.from("webhook_events").update({ attempts: existing.attempts + 1, error: null }).eq("id", existing.id).eq("attempts", existing.attempts).select("id");
+      if (!lease?.length) return { id: existing.id, duplicate: false, inFlight: true };
       return { id: existing.id, duplicate: false };
     }
     log.info("WEBHOOK", "duplicate ignored", { provider: input.provider, eventId: input.eventId });

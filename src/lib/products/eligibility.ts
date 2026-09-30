@@ -18,6 +18,7 @@ export type EligibilityFailure =
   | "FULFILLMENT_TEST_NOT_PASSED"
   | "NO_ACTIVE_VARIANTS"
   | "UNMAPPED_VARIANTS"
+  | "ALL_VARIANTS_OUT_OF_STOCK"
   | "MISSING_PRODUCTION_COST"
   | "MISSING_RETAIL_PRICE"
   | "MISSING_IMAGES"
@@ -49,7 +50,8 @@ export interface EligibilityInput {
     discontinued: boolean;
     productionCost: number | null;
     providerVariantId: string | null;
-    mappingActive: boolean;
+    mappingActive: boolean; // mapping exists and is not discontinued
+    outOfStock?: boolean; // temporary — blocks only this variant
   }[];
 }
 
@@ -83,6 +85,7 @@ export function evaluateEligibility(input: EligibilityInput): EligibilityResult 
     const active = input.variants.filter((v) => v.active && !v.discontinued);
     if (active.length === 0) f.push("NO_ACTIVE_VARIANTS");
     if (active.some((v) => !v.mappingActive || blank(v.providerVariantId))) f.push("UNMAPPED_VARIANTS");
+    if (active.length > 0 && active.every((v) => v.outOfStock)) f.push("ALL_VARIANTS_OUT_OF_STOCK");
     if (active.some((v) => (v.productionCost ?? input.product.productionCost) == null)) f.push("MISSING_PRODUCTION_COST");
   }
 
@@ -107,6 +110,7 @@ export const FAILURE_LABELS: Record<EligibilityFailure, string> = {
   FULFILLMENT_TEST_NOT_PASSED: "Test de fulfillment no superado",
   NO_ACTIVE_VARIANTS: "Sin variantes activas",
   UNMAPPED_VARIANTS: "Variantes sin mapear al proveedor",
+  ALL_VARIANTS_OUT_OF_STOCK: "Todas las variantes sin stock en el proveedor",
   MISSING_PRODUCTION_COST: "Falta coste de producción",
   MISSING_RETAIL_PRICE: "Falta precio de venta",
   MISSING_IMAGES: "Faltan imágenes",

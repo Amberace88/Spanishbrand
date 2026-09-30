@@ -7,7 +7,7 @@ import { emitEvent } from "@/lib/events/bus";
 import { holdForReview } from "@/lib/orders/fulfillment-engine";
 import { spanishRegionFromPostalCode } from "@/lib/tax/tax-service";
 import { round2 } from "@/lib/pricing/cost-engine";
-import { fromCents } from "./stripe";
+import { fromCents, stripe } from "./stripe";
 import { log } from "@/lib/logger";
 
 type Addr = Stripe.Address | null | undefined;
@@ -49,7 +49,7 @@ export async function handleCheckoutPaid(session: Stripe.Checkout.Session) {
   const paid = fromCents(session.amount_total);
   const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
 
-  await sb
+  const { data: claimed } = await sb
     .from("orders")
     .update({
       status: "PAID",
@@ -62,7 +62,17 @@ export async function handleCheckoutPaid(session: Stripe.Checkout.Session) {
       stripe_payment_intent_id: piId,
     })
     .eq("id", orderId)
-    .eq("payment_status", "PENDING");
+    .eq("payment_status", "PENDING")
+    .select("id");
+  if (!claimed?.length) {
+    // Another delivery won the race, or the order was cancelled/expired before the payment landed.
+    const { data: now } = await sb.from("orders").select("payment_status").eq("id", orderId).single();
+    if (now?.payment_status !== "PAID") {
+      await sb.from("orders").update({ payment_status: "PAID", paid_at: new Date().toISOString(), stripe_payment_intent_id: piId, shipping_address: shippingAddress, billing_address: billingAddress }).eq("id", orderId);
+      await holdForReview(orderId, `PAID_BUT_ORDER_NOT_PENDING (was ${now?.payment_status})`);
+    }
+    return;
+  }
   await addOrderEvent(orderId, "PAYMENT_CONFIRMED", { from: order.status, to: "PAID", data: { amount: paid, session: session.id } });
 
   if (piId) {
@@ -138,13 +148,19 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
   const { data: order } = await sb.from("orders").select("id, total, status, customer_id").eq("stripe_payment_intent_id", piId).maybeSingle();
   if (!order) return;
   const refunded = fromCents(charge.amount_refunded);
-  for (const r of charge.refunds?.data ?? []) {
+  // charge.refunds is not expanded in current API versions → list explicitly.
+  const list = await stripe().refunds.list({ charge: charge.id, limit: 100 });
+  for (const r of list.data) {
     await sb.from("refunds").upsert(
       { order_id: order.id, amount: fromCents(r.amount), currency: r.currency.toUpperCase(), reason: r.reason, provider_refund_id: r.id, status: r.status === "succeeded" ? "SUCCEEDED" : r.status === "failed" ? "FAILED" : "PENDING" },
       { onConflict: "provider_refund_id" },
     );
   }
   const full = refunded + 0.001 >= Number(order.total);
+  if (full) {
+    // Stop anything not yet sent to a provider.
+    await sb.from("fulfillment_orders").update({ status: "CANCELLED", next_retry_at: null }).eq("order_id", order.id).is("provider_order_id", null).in("status", ["PENDING", "RETRY_SCHEDULED", "REQUIRES_REVIEW", "FAILED"]);
+  }
   await sb.from("orders").update({ payment_status: full ? "REFUNDED" : "PARTIALLY_REFUNDED", ...(full ? { status: "REFUNDED" } : {}) }).eq("id", order.id);
   await sb.from("payments").update({ status: full ? "REFUNDED" : "PARTIALLY_REFUNDED" }).eq("provider_payment_id", piId);
   await addOrderEvent(order.id, "REFUNDED", { from: order.status, to: full ? "REFUNDED" : order.status, data: { refunded } });

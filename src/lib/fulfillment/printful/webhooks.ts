@@ -73,7 +73,7 @@ export function parsePrintfulWebhook(req: WebhookRequest): NormalizedWebhookEven
     externalOrderId: order?.external_id ?? null,
     reason: typeof data.reason === "string" ? data.reason : null,
     stock: variantStock
-      ? { outOfStock: (variantStock.out ?? []).map(String), discontinued: (variantStock.discontinued ?? []).map(String) }
+      ? { outOfStock: (variantStock.out ?? []).map(String), discontinued: (variantStock.discontinued ?? []).map(String), providerProductId: data.product_id != null ? String(data.product_id) : null }
       : null,
     payload: body,
   };

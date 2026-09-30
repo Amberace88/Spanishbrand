@@ -40,6 +40,11 @@ export class ProviderError extends Error {
     return this.kind === "PERMANENT";
   }
 
+  /** The provider may have committed the write even though we saw a failure. */
+  get ambiguous() {
+    return this.status === null || this.status >= 500 || this.code === "SCHEMA_MISMATCH";
+  }
+
   toAdminJSON() {
     return {
       provider: this.provider,

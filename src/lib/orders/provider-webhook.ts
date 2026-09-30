@@ -33,6 +33,7 @@ export async function handleProviderWebhook(providerId: string, req: { url: URL;
 
   const rec = await recordWebhook({ provider: providerId, eventId: ev.eventId, eventType: ev.rawType, payload: ev.payload, signatureValid: provider.capabilities.webhook_signature ? true : null });
   if (rec.duplicate) return { status: 200, body: { ok: true, duplicate: true } };
+  if (rec.inFlight) return { status: 409, body: { error: "in progress" } };
 
   const sb = db();
   await sb.from("providers").update({ last_webhook_at: new Date().toISOString() }).eq("id", providerId);
@@ -82,24 +83,46 @@ async function findFulfillmentOrder(providerId: string, ev: NormalizedWebhookEve
   return null;
 }
 
-async function applyStockUpdate(providerId: string, stock: { outOfStock: string[]; discontinued: string[] }) {
+async function applyStockUpdate(providerId: string, stock: { outOfStock: string[]; discontinued: string[]; providerProductId?: string | null }) {
   const sb = db();
   const affected = new Set<string>();
-  for (const [ids, status] of [
-    [stock.outOfStock, "OUT_OF_STOCK"],
-    [stock.discontinued, "DISCONTINUED"],
-  ] as const) {
-    if (!ids.length) continue;
+  const touch = async (ids: string[], status: "OUT_OF_STOCK" | "DISCONTINUED" | "ACTIVE") => {
+    if (!ids.length) return;
     await sb.from("provider_variants").update({ status }).eq("provider_id", providerId).in("external_id", ids);
     const { data: vms } = await sb
       .from("variant_provider_mappings")
-      .select("id, product_provider_mappings!inner(product_id, provider_id)")
+      .select("id, variant_id, product_provider_mappings!inner(product_id, provider_id, role)")
       .in("provider_variant_id", ids)
       .eq("product_provider_mappings.provider_id", providerId);
-    const vmIds = (vms ?? []).map((v) => v.id);
-    if (vmIds.length) await sb.from("variant_provider_mappings").update({ status }).in("id", vmIds);
-    for (const v of vms ?? []) affected.add((v.product_provider_mappings as unknown as { product_id: string }).product_id);
+    for (const v of vms ?? []) {
+      await sb.from("variant_provider_mappings").update({ status }).eq("id", v.id);
+      const m = v.product_provider_mappings as unknown as { product_id: string; role: string };
+      if (m.role === "PRIMARY") {
+        // Per-variant enforcement: cart/checkout block only this variant.
+        await sb.from("product_variants").update({ stock_status: status === "ACTIVE" ? "ON_DEMAND" : status, provider_status: status }).eq("id", v.variant_id);
+      }
+      affected.add(m.product_id);
+    }
+  };
+  await touch(stock.outOfStock, "OUT_OF_STOCK");
+  await touch(stock.discontinued, "DISCONTINUED");
+
+  // Restock: mapped variants of this provider product that are no longer listed as out of stock.
+  if (stock.providerProductId) {
+    const listed = new Set([...stock.outOfStock, ...stock.discontinued]);
+    const { data: maps } = await sb
+      .from("product_provider_mappings")
+      .select("variant_provider_mappings(provider_variant_id, status)")
+      .eq("provider_id", providerId)
+      .eq("provider_product_id", stock.providerProductId);
+    const back = (maps ?? [])
+      .flatMap((m) => (m.variant_provider_mappings as { provider_variant_id: string; status: string }[]) ?? [])
+      .filter((v) => v.status === "OUT_OF_STOCK" && !listed.has(v.provider_variant_id))
+      .map((v) => v.provider_variant_id);
+    await touch(back, "ACTIVE");
   }
+
+  for (const id of affected) await sb.rpc("refresh_product_eligibility", { p_product_id: id });
   if (affected.size) {
     await emitEvent(stock.discontinued.length ? "PRODUCT_DISCONTINUED" : "PRODUCT_OUT_OF_STOCK", { providerId, productIds: [...affected] });
   }

@@ -45,6 +45,11 @@ describe("API fulfillment eligibility engine", () => {
     const r = evaluateEligibility({ ...good, product: { ...good.product, retailPrice: 0, imageCount: 0, description: " ", brandApproved: false } });
     expect(r.failures).toEqual(expect.arrayContaining(["MISSING_RETAIL_PRICE", "MISSING_IMAGES", "INCOMPLETE_CONTENT", "NOT_BRAND_APPROVED"]));
   });
+  it("one out-of-stock variant keeps the product sellable; all out of stock does not", () => {
+    const base = { active: true, discontinued: false, productionCost: 1, providerVariantId: "1", mappingActive: true };
+    expect(evaluateEligibility({ ...good, variants: [{ ...base, outOfStock: true }, base] }).eligible).toBe(true);
+    expect(evaluateEligibility({ ...good, variants: [{ ...base, outOfStock: true }] }).failures).toContain("ALL_VARIANTS_OUT_OF_STOCK");
+  });
   it("catalog pre-check flags discontinued and unmapped category", () => {
     const r = catalogEligibility({ capabilities: { order_api: true }, discontinued: true, variants: [{ status: "DISCONTINUED", cost: 1 }], categoryCode: null });
     expect(r.reasons).toEqual(expect.arrayContaining(["DISCONTINUED", "NO_AVAILABLE_VARIANTS", "UNMAPPED_CATEGORY"]));

@@ -3,7 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { env, isConfigured } from "@/lib/env";
 import { db } from "@/lib/supabase/admin";
 import { runHealthChecks, syncProviderCatalog } from "@/lib/providers/service";
-import { retryDueFulfillments } from "@/lib/orders/fulfillment-engine";
+import { retryDueFulfillments, sweepStuckFulfillment } from "@/lib/orders/fulfillment-engine";
 import { emitEvent } from "@/lib/events/bus";
 import { fulfillmentProviderFactory } from "@/lib/fulfillment/factory";
 import { applyProviderSnapshot } from "@/lib/orders/fulfillment-engine";
@@ -38,7 +38,10 @@ const JOBS: Record<string, () => Promise<unknown>> = {
     return out;
   },
   health: runHealthChecks,
-  "retry-fulfillment": async () => ({ retried: await retryDueFulfillments() }),
+  "retry-fulfillment": async () => {
+    const swept = await sweepStuckFulfillment();
+    return { swept, retried: await retryDueFulfillments() };
+  },
   /** Poll open provider orders as a safety net for missed webhooks. */
   "reconcile-orders": async () => {
     const { data } = await db()

@@ -150,34 +150,57 @@ export async function processPaidOrder(orderId: string) {
   if (transientOnly) {
     // Build primary groups for retry later.
     const retryAt = new Date(Date.now() + 5 * 60_000).toISOString();
-    for (const it of items) {
+    const unroutableIds = new Set(plan.unroutable.map((u) => u.orderItemId));
+    for (const it of items.filter((x) => unroutableIds.has(x.orderItemId))) {
       const primary = it.mappings.find((m) => m.role === "PRIMARY");
       if (!primary?.providerVariantId) continue;
       plan.groups.push({ providerId: primary.providerId, role: "PRIMARY", items: [{ orderItemId: it.orderItemId, providerProductId: primary.providerProductId, providerVariantId: primary.providerVariantId, quantity: it.quantity, files: primary.files }] });
     }
-    for (const g of plan.groups) await createGroup(orderId, g, "RETRY_SCHEDULED", retryAt);
+    // Items routed to a healthy provider (e.g. approved backup) are submitted now; the rest retry later.
+    for (const g of mergeGroups(plan.groups)) {
+      const allRetry = g.items.every((i) => unroutableIds.has(i.orderItemId));
+      const id = await createGroup(orderId, g, allRetry ? "RETRY_SCHEDULED" : "PENDING", allRetry ? retryAt : null);
+      if (id && !allRetry) await submitFulfillmentOrder(id);
+    }
     await syncOrderStatus(orderId);
     return;
   }
 
   const ids: string[] = [];
-  for (const g of plan.groups) ids.push(await createGroup(orderId, g, "PENDING"));
+  for (const g of plan.groups) {
+    const id = await createGroup(orderId, g, "PENDING");
+    if (id) ids.push(id); // only groups created by THIS call are submitted (concurrency-safe)
+  }
   for (const id of ids) await submitFulfillmentOrder(id);
 }
 
+type GroupPlan = { providerId: string; role: "PRIMARY" | "BACKUP"; items: { orderItemId: string; providerProductId: string; providerVariantId: string; quantity: number; files: PrintFile[] }[] };
+
+function mergeGroups(groups: GroupPlan[]): GroupPlan[] {
+  const m = new Map<string, GroupPlan>();
+  for (const g of groups) {
+    const e = m.get(g.providerId);
+    if (e) e.items.push(...g.items);
+    else m.set(g.providerId, { ...g, items: [...g.items] });
+  }
+  return [...m.values()];
+}
+
+/** Inserts a fulfillment group; returns its id, or null if another worker already created it. */
 async function createGroup(
   orderId: string,
-  g: { providerId: string; role: "PRIMARY" | "BACKUP"; items: { orderItemId: string; providerProductId: string; providerVariantId: string; quantity: number; files: PrintFile[] }[] },
+  g: GroupPlan,
   status: FulfillmentOrderStatus,
   nextRetryAt: string | null = null,
-): Promise<string> {
+): Promise<string | null> {
   const sb = db();
-  const { data: fo, error } = await sb
+  const { data: rows, error } = await sb
     .from("fulfillment_orders")
-    .upsert({ order_id: orderId, provider_id: g.providerId, mapping_role: g.role, status, next_retry_at: nextRetryAt }, { onConflict: "order_id,provider_id", ignoreDuplicates: false })
-    .select("id")
-    .single();
-  if (error || !fo) throw error ?? new Error("fulfillment group insert failed");
+    .upsert({ order_id: orderId, provider_id: g.providerId, mapping_role: g.role, status, next_retry_at: nextRetryAt }, { onConflict: "order_id,provider_id", ignoreDuplicates: true })
+    .select("id");
+  if (error) throw error;
+  const fo = rows?.[0];
+  if (!fo) return null;
   await sb.from("fulfillment_items").upsert(
     g.items.map((i) => ({
       fulfillment_order_id: fo.id,
@@ -263,8 +286,15 @@ async function buildProviderInput(foId: string, externalId: string): Promise<Pro
 /** Submits one fulfillment group to its provider with retry classification. */
 export async function submitFulfillmentOrder(foId: string) {
   const sb = db();
-  const { data: row } = await sb.from("fulfillment_orders").select("id, order_id, provider_id, status, attempts, orders(order_number)").eq("id", foId).single();
+  const { data: row } = await sb.from("fulfillment_orders").select("id, order_id, provider_id, status, attempts, orders(order_number, status, payment_status)").eq("id", foId).single();
   if (!row || !CLAIMABLE.includes(row.status)) return;
+  const ord = row.orders as unknown as { order_number: number; status: string; payment_status: string };
+  if (ord.payment_status !== "PAID" || ["CANCELLED", "REFUNDED"].includes(ord.status)) {
+    // Never produce an order that is no longer paid (refunded/cancelled while waiting for retry).
+    await sb.from("fulfillment_orders").update({ status: "CANCELLED", next_retry_at: null }).eq("id", foId).in("status", CLAIMABLE);
+    await addOrderEvent(row.order_id, "FULFILLMENT_SKIPPED", { message: `order ${ord.status}/${ord.payment_status}` });
+    return;
+  }
 
   // Optimistic claim → no concurrent double submission.
   const { data: claimed } = await sb
@@ -277,14 +307,15 @@ export async function submitFulfillmentOrder(foId: string) {
   if (!claimed || claimed.length === 0) return;
 
   const attempt = row.attempts + 1;
-  const orderNumber = (row.orders as unknown as { order_number: number }).order_number;
-  const externalId = `${orderNumber}-${row.provider_id}`;
-  const provider = fulfillmentProviderFactory.getProvider(row.provider_id);
+  const externalId = `${ord.order_number}-${row.provider_id}`;
+  let lookupSupported = false;
 
   try {
+    const provider = fulfillmentProviderFactory.getProvider(row.provider_id);
+    lookupSupported = provider.externalIdLookup;
     if (!provider.isConfigured()) throw new ProviderNotConfiguredError(provider.id);
-    let snapshot: ProviderOrderSnapshot | null = null;
-    if (attempt > 1) snapshot = await provider.getOrderByExternalId(externalId); // recover after timeout
+    // Always check first: an earlier attempt may have been committed despite an error/timeout.
+    let snapshot: ProviderOrderSnapshot | null = provider.externalIdLookup ? await provider.getOrderByExternalId(externalId) : null;
     if (!snapshot) {
       const input = await buildProviderInput(foId, externalId);
       snapshot = await provider.createOrder(input);
@@ -309,8 +340,11 @@ export async function submitFulfillmentOrder(foId: string) {
     await addOrderEvent(row.order_id, "SENT_TO_PROVIDER", { to: status, data: { provider: row.provider_id, providerOrderId: snapshot.providerOrderId, attempt } });
     log.info("FULFILLMENT", "submitted", { foId, provider: row.provider_id, providerOrderId: snapshot.providerOrderId });
   } catch (e) {
-    const permanent = e instanceof ProviderNotConfiguredError || (isProviderError(e) ? e.permanent : e instanceof Error && e.message === "MISSING_SHIPPING_ADDRESS");
-    const message = e instanceof Error ? e.message : String(e);
+    // Ambiguous create failures (timeout/5xx/bad 2xx) on providers without an external-id lookup
+    // could have created the order → a human must verify instead of an automatic retry (no duplicates).
+    const ambiguousNoLookup = isProviderError(e) && e.ambiguous && !lookupSupported;
+    const permanent = ambiguousNoLookup || e instanceof ProviderNotConfiguredError || (isProviderError(e) ? e.permanent : e instanceof Error && e.message === "MISSING_SHIPPING_ADDRESS");
+    const message = (ambiguousNoLookup ? "AMBIGUOUS: verify in the provider dashboard whether this order exists before retrying — " : "") + (e instanceof Error ? e.message : String(e));
     await recordFulfillmentError({
       orderId: row.order_id,
       fulfillmentOrderId: foId,
@@ -407,7 +441,7 @@ export async function syncOrderStatus(orderId: string) {
     sb.from("orders").select("id, status, fulfillment_status").eq("id", orderId).single(),
     sb.from("fulfillment_orders").select("provider_id, provider_order_id, status").eq("order_id", orderId),
   ]);
-  if (!order || !groups) return;
+  if (!order || !groups || groups.length === 0) return; // held/unrouted orders keep their status
   if (["CANCELLED", "REFUNDED"].includes(order.status)) return;
   const agg = aggregateOrderStatus(groups.map((g) => g.status));
   if (agg.status === order.status && agg.fulfillmentStatus === order.fulfillment_status) return;
@@ -435,4 +469,38 @@ export async function syncOrderStatus(orderId: string) {
   };
   const ev = map[agg.status];
   if (ev) await emitEvent(ev, { orderId });
+}
+
+/**
+ * Safety net for paid orders that got stuck (crash mid-flow, swallowed handler error, lost claim):
+ * PAID/PROCESSING orders without groups → re-route; PENDING/SUBMITTING groups older than 10 min → retry.
+ */
+export async function sweepStuckFulfillment() {
+  const sb = db();
+  const cutoff = new Date(Date.now() - 10 * 60_000).toISOString();
+  const { data: orders } = await sb.from("orders").select("id, fulfillment_orders(id)").eq("payment_status", "PAID").in("status", ["PAID", "PROCESSING"]).lt("paid_at", cutoff).limit(50);
+  let rerouted = 0;
+  for (const o of orders ?? []) {
+    if (((o.fulfillment_orders as unknown as unknown[]) ?? []).length === 0) {
+      await processPaidOrder(o.id);
+      rerouted++;
+    }
+  }
+  const { data: stuck } = await sb.from("fulfillment_orders").select("id, order_id, provider_id, status").in("status", ["PENDING", "SUBMITTING"]).lt("updated_at", cutoff).limit(100);
+  let requeued = 0;
+  let review = 0;
+  for (const g of stuck ?? []) {
+    const safe = g.status === "PENDING" || fulfillmentProviderFactory.getProvider(g.provider_id).externalIdLookup;
+    if (safe) {
+      await sb.from("fulfillment_orders").update({ status: "RETRY_SCHEDULED", next_retry_at: new Date().toISOString() }).eq("id", g.id).eq("status", g.status);
+      requeued++;
+    } else {
+      const msg = "AMBIGUOUS: submission interrupted — verify in the provider dashboard whether this order exists before retrying";
+      await sb.from("fulfillment_orders").update({ status: "REQUIRES_REVIEW", last_error: msg }).eq("id", g.id).eq("status", "SUBMITTING");
+      await recordFulfillmentError({ orderId: g.order_id, fulfillmentOrderId: g.id, provider: g.provider_id, code: "AMBIGUOUS_SUBMISSION", message: msg, permanent: true });
+      await syncOrderStatus(g.order_id);
+      review++;
+    }
+  }
+  return { rerouted, requeued, review };
 }

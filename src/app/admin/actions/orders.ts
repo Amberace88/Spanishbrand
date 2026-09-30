@@ -10,6 +10,17 @@ import { fulfillmentProviderFactory } from "@/lib/fulfillment/factory";
 import { stripe, toCents } from "@/lib/payments/stripe";
 import { isConfigured } from "@/lib/env";
 
+/** Groups whose last create attempt may have reached the provider need explicit human confirmation. */
+async function guardAmbiguous(orderId: string, formData: FormData, foId?: string) {
+  let q = db().from("fulfillment_orders").select("id, status, last_error").eq("order_id", orderId);
+  if (foId) q = q.eq("id", foId);
+  const { data } = await q;
+  if ((data ?? []).some((g) => g.status === "SUBMITTING")) back(orderId, "Hay un envío en curso al proveedor — espera unos minutos");
+  if ((data ?? []).some((g) => g.last_error?.startsWith("AMBIGUOUS")) && formData.get("confirmNotExists") !== "on") {
+    back(orderId, "Confirma que has verificado en el panel del proveedor que el pedido NO existe (evita duplicados)");
+  }
+}
+
 function back(orderId: string, msg?: string): never {
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/fulfillment");
@@ -24,7 +35,9 @@ export async function retryFulfillmentAction(formData: FormData) {
   const sb = db();
   const { data: fo } = await sb.from("fulfillment_orders").select("status, provider_order_id").eq("id", foId).single();
   if (!fo || fo.provider_order_id) back(orderId, "El grupo ya existe en el proveedor — no se puede reenviar");
-  await sb.from("fulfillment_orders").update({ status: "PENDING", attempts: 0, next_retry_at: null }).eq("id", foId);
+  await guardAmbiguous(orderId, formData, foId);
+  // attempts are NOT reset: the external-id lookup always runs before a new create.
+  await sb.from("fulfillment_orders").update({ status: "PENDING", next_retry_at: null, last_error: null }).eq("id", foId).neq("status", "SUBMITTING");
   await sb.from("orders").update({ status: "PROCESSING", review_reason: null }).eq("id", orderId);
   await addOrderEvent(orderId, "MANUAL_RETRY", { actor: staff.email });
   await audit({ action: "order.retry", actorId: staff.userId, actorEmail: staff.email, entityType: "order", entityId: orderId, after: { foId } });
@@ -39,7 +52,21 @@ export async function reprocessOrderAction(formData: FormData) {
   const sb = db();
   const { data: order } = await sb.from("orders").select("payment_status").eq("id", orderId).single();
   if (order?.payment_status !== "PAID") back(orderId, "Solo pedidos pagados");
-  await sb.from("fulfillment_orders").delete().eq("order_id", orderId).is("provider_order_id", null);
+  await guardAmbiguous(orderId, formData);
+  const { data: unsent } = await sb.from("fulfillment_orders").select("id, provider_id").eq("order_id", orderId).is("provider_order_id", null);
+  const { data: num } = await sb.from("orders").select("order_number").eq("id", orderId).single();
+  for (const g of unsent ?? []) {
+    const provider = fulfillmentProviderFactory.getProvider(g.provider_id);
+    const found = provider.externalIdLookup && provider.isConfigured() ? await provider.getOrderByExternalId(`${num?.order_number}-${g.provider_id}`).catch(() => null) : null;
+    if (found) {
+      // The provider already has it → attach instead of creating a duplicate.
+      await sb.from("fulfillment_orders").update({ provider_order_id: found.providerOrderId, status: "SENT_TO_PROVIDER" }).eq("id", g.id);
+      const { applyProviderSnapshot } = await import("@/lib/orders/fulfillment-engine");
+      await applyProviderSnapshot(g.id, found);
+    } else {
+      await sb.from("fulfillment_orders").delete().eq("id", g.id);
+    }
+  }
   await sb.from("fulfillment_errors").update({ resolved: true, resolved_at: new Date().toISOString(), resolved_by: staff.userId }).eq("order_id", orderId).eq("resolved", false);
   await sb.from("orders").update({ status: "PAID", fulfillment_status: "UNFULFILLED", review_reason: null }).eq("id", orderId);
   await addOrderEvent(orderId, "MANUAL_REPROCESS", { actor: staff.email, to: "PAID" });
@@ -58,6 +85,14 @@ export async function changeProviderAction(formData: FormData) {
   const { data: fo } = await sb.from("fulfillment_orders").select("id, provider_id, provider_order_id, fulfillment_items(order_item_id, quantity, order_items(product_id, variant_id))").eq("id", foId).single();
   if (!fo || fo.provider_order_id) back(orderId, "No se puede cambiar: el pedido ya está en el proveedor");
   if (fo!.provider_id === target) back(orderId, "Mismo proveedor");
+  await guardAmbiguous(orderId, formData, foId);
+  {
+    const from = fulfillmentProviderFactory.getProvider(fo!.provider_id);
+    const { data: num } = await sb.from("orders").select("order_number").eq("id", orderId).single();
+    if (from.externalIdLookup && from.isConfigured() && (await from.getOrderByExternalId(`${num?.order_number}-${fo!.provider_id}`).catch(() => null))) {
+      back(orderId, `El pedido ya existe en ${fo!.provider_id} — usa "Actualizar desde proveedor"`);
+    }
+  }
   const items = (fo!.fulfillment_items ?? []) as unknown as { order_item_id: string; quantity: number; order_items: { product_id: string; variant_id: string } }[];
   const newItems = [];
   for (const it of items) {
@@ -117,11 +152,15 @@ export async function refundOrderAction(formData: FormData) {
   const sb = db();
   const { data: o } = await sb.from("orders").select("stripe_payment_intent_id, total").eq("id", orderId).single();
   if (!o?.stripe_payment_intent_id) back(orderId, "Sin pago asociado");
-  const amount = Number(formData.get("amount") || o!.total);
-  if (!(amount > 0) || amount > Number(o!.total)) back(orderId, "Importe no válido");
+  const { data: prev } = await sb.from("refunds").select("amount, status").eq("order_id", orderId).neq("status", "FAILED");
+  const already = (prev ?? []).reduce((s, r) => s + Number(r.amount), 0);
+  const remaining = Math.round((Number(o!.total) - already) * 100) / 100;
+  const amount = Number(formData.get("amount") || remaining);
+  if (!(amount > 0) || amount > remaining + 0.001) back(orderId, `Importe no válido (máximo reembolsable ${remaining.toFixed(2)} €)`);
+  const nonce = String(formData.get("nonce") ?? "").slice(0, 64) || crypto.randomUUID();
   let msg: string;
   try {
-    const r = await stripe().refunds.create({ payment_intent: o!.stripe_payment_intent_id!, amount: toCents(amount), reason: "requested_by_customer" }, { idempotencyKey: `refund-${orderId}-${toCents(amount)}` });
+    const r = await stripe().refunds.create({ payment_intent: o!.stripe_payment_intent_id!, amount: toCents(amount), reason: "requested_by_customer" }, { idempotencyKey: `refund-${orderId}-${nonce}` });
     await sb.from("refunds").upsert({ order_id: orderId, amount, currency: r.currency.toUpperCase(), provider_refund_id: r.id, status: r.status === "succeeded" ? "SUCCEEDED" : "PENDING", created_by: staff.userId, reason: String(formData.get("reason") ?? "") || null }, { onConflict: "provider_refund_id" });
     await audit({ action: "order.refund", actorId: staff.userId, actorEmail: staff.email, entityType: "order", entityId: orderId, after: { amount, refund: r.id } });
     msg = "Reembolso solicitado — Stripe confirmará vía webhook";

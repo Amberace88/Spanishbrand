@@ -75,6 +75,7 @@ export async function providerRequest<T>(opts: RequestOptions<T>): Promise<T> {
       requestId,
       payload: body,
       kind: "TRANSIENT",
+      code: "SCHEMA_MISMATCH",
     });
   }
   return parsed.data;
