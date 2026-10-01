@@ -3,10 +3,12 @@ import { getCurrentCustomer } from "@/lib/account";
 import { getT } from "@/lib/i18n/server";
 import { db } from "@/lib/supabase/admin";
 import { requestDeletionAction, updateProfileAction } from "@/app/actions/account";
+import { PasswordForm } from "@/components/account/PasswordForm";
 
 export const metadata: Metadata = { title: "Perfil", robots: { index: false } };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ reset?: string }> }) {
+  const { reset } = await searchParams;
   const [t, { user, customer }] = await Promise.all([getT(), getCurrentCustomer()]);
   const { data: pendingDelete } = user ? await db().from("gdpr_requests").select("id").eq("user_id", user.id).eq("type", "DELETE").eq("status", "PENDING").maybeSingle() : { data: null };
 
@@ -27,6 +29,10 @@ export default async function ProfilePage() {
         </label>
         <button className="btn btn-ink">Guardar</button>
       </form>
+      <div id="seguridad" className={`space-y-4 rounded-3xl border p-6 lg:col-span-2 ${reset ? "border-accent" : "border-line"}`}>
+        <p className="eyebrow text-muted">{t("auth.security")}</p>
+        <PasswordForm hasPassword={Boolean(user?.user_metadata?.has_password)} />
+      </div>
       <div className="space-y-6">
         <p className="eyebrow text-muted">Privacidad (RGPD)</p>
         <a href="/api/account/export" className="btn btn-ghost w-full">

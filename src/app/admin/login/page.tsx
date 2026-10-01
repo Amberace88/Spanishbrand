@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getStaffSession } from "@/lib/auth/rbac";
 import { getSessionUser } from "@/lib/supabase/server";
-import { MagicLinkForm } from "@/components/account/MagicLinkForm";
+import { AuthForm } from "@/components/account/AuthForm";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { getBrand } from "@/lib/brand";
 
@@ -24,7 +24,7 @@ export default async function AdminLogin() {
           </p>
         ) : (
           <div className="mt-8">
-            <MagicLinkForm next="/admin" dark />
+            <AuthForm next="/admin" dark />
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/Section";
-import { MagicLinkForm } from "@/components/account/MagicLinkForm";
+import { AuthForm } from "@/components/account/AuthForm";
 import { signOutAction } from "@/app/actions/account";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ export default async function AccountLayout({ children }: { children: ReactNode 
             <p className="mt-4 text-lg text-muted">{t("account.signin.body")}</p>
           </div>
           <div className="max-w-md rounded-3xl bg-surface p-6 shadow-[0_20px_50px_-30px_rgba(28,23,18,0.4)] sm:p-8">
-            <MagicLinkForm />
+            <AuthForm />
           </div>
         </Container>
       </section>

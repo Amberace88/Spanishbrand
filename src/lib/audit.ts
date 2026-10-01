@@ -33,7 +33,10 @@ export type AuditAction =
   | "ai.review"
   | "content.publish"
   | "settings.update"
-  | "role.change";
+  | "role.change"
+  | "team.invite"
+  | "team.remove"
+  | "auth.signout_all";
 
 export async function audit(entry: {
   action: AuditAction;
