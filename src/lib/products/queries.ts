@@ -343,3 +343,37 @@ export const getTemplateProducts = cache(async () => {
   const all = await getPublishedProducts({ limit: 200 });
   return all.filter((p) => p.personalization?.mode === "fields");
 });
+
+/**
+ * Real product photos (provider mockups) for homepage tiles: one per product type / category /
+ * collection, preferring bestsellers and featured items. Tiles fall back to illustrations when empty.
+ */
+export interface Showcase {
+  byType: Record<string, string>;
+  byCategory: Record<string, string>;
+  byCollection: Record<string, string[]>;
+  byTag: Record<string, string>;
+  /** Fill-in jersey (name + number) and blank tee for the personalise / design tiles. */
+  jersey: string | null;
+  blank: string | null;
+}
+export const getShowcase = cache(async (): Promise<Showcase> => {
+  const products = await getPublishedProducts({ limit: 500 }).catch(() => [] as PublicProduct[]);
+  const score = (p: PublicProduct) => (p.tags.includes("bestseller") ? 4 : 0) + (p.featured ? 2 : 0) + (p.tags.includes("logo") ? 1 : 0);
+  const sorted = [...products].filter((p) => p.images[0]?.url).sort((a, b) => score(b) - score(a));
+  const out: Showcase = { byType: {}, byCategory: {}, byCollection: {}, byTag: {}, jersey: null, blank: null };
+  const bySlug = (re: RegExp) => sorted.find((p) => re.test(p.slug))?.images[0]?.url ?? null;
+  out.jersey = bySlug(/^nombre-dorsal-camiseta/);
+  out.blank = bySlug(/^camiseta-personalizada/);
+  for (const p of sorted) {
+    const img = p.images[0].url;
+    out.byType[p.productType] ??= img;
+    if (p.categoryCode) out.byCategory[p.categoryCode] ??= img;
+    if (p.collection) {
+      const list = (out.byCollection[p.collection.slug] ??= []);
+      if (list.length < 3 && !list.includes(img)) list.push(img);
+    }
+    for (const t of p.tags) out.byTag[t] ??= img;
+  }
+  return out;
+});

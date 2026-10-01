@@ -31,7 +31,7 @@ export function ClubBadge({ text, className = "", tone = "light" }: { text: stri
   );
 }
 
-export function Hero({ brandName }: { brandName: string }) {
+export function Hero({ brandName, jerseyImg, blankImg }: { brandName: string; jerseyImg?: string | null; blankImg?: string | null }) {
   const t = useT();
   const reduce = useReducedMotion();
   const tile = (d: number) => (reduce ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { delay: d, duration: 0.9, ease } });
@@ -84,9 +84,15 @@ export function Hero({ brandName }: { brandName: string }) {
                   <IconArrow className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mx-auto w-[74%] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-rotate-3 group-hover:scale-105 lg:w-[52%]">
-                <JerseyBack name="TU NOMBRE" number="10" shirt="#0d0d0d" ink="#e0b84a" trim="#c8102e" />
-              </div>
+              {jerseyImg ? (
+                <div className="relative mx-auto my-3 aspect-square w-[78%] overflow-hidden rounded-2xl shadow-[0_24px_50px_-25px_rgba(0,0,0,0.6)] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-rotate-2 group-hover:scale-[1.04] lg:w-[56%]">
+                  <Image src={jerseyImg} alt="" fill sizes="(min-width:1024px) 18vw, 40vw" className="object-cover" />
+                </div>
+              ) : (
+                <div className="mx-auto w-[74%] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-rotate-3 group-hover:scale-105 lg:w-[52%]">
+                  <JerseyBack name="TU NOMBRE" number="10" shirt="#0d0d0d" ink="#e0b84a" trim="#c8102e" />
+                </div>
+              )}
               <p className="headline mt-auto text-xl uppercase sm:text-3xl">{t("hero3.perso")}</p>
             </Link>
           </motion.div>
@@ -98,13 +104,33 @@ export function Hero({ brandName }: { brandName: string }) {
                   <IconArrow className="h-4 w-4" />
                 </span>
               </div>
-              <DesignerGlyph />
+              {blankImg ? <DesignerPhoto src={blankImg} /> : <DesignerGlyph />}
               <p className="headline mt-auto text-xl uppercase sm:text-3xl">{t("hero3.design")}</p>
             </Link>
           </motion.div>
         </div>
       </div>
     </section>
+  );
+}
+
+/** Real blank tee photo with the designer's animated print-area overlay. */
+function DesignerPhoto({ src }: { src: string }) {
+  return (
+    <div className="relative mx-auto my-3 aspect-square w-[78%] overflow-hidden rounded-2xl shadow-[0_24px_50px_-25px_rgba(0,0,0,0.6)] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:rotate-2 group-hover:scale-[1.04] lg:w-[56%]" aria-hidden>
+      <Image src={src} alt="" fill sizes="(min-width:1024px) 18vw, 40vw" className="object-cover" />
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
+        <rect x="34" y="30" width="32" height="38" rx="1.5" fill="none" stroke="#c8102e" strokeWidth="0.9" strokeDasharray="2.4 2" className="[animation:dash_1.2s_linear_infinite]" />
+        {[[34, 30], [66, 30], [34, 68], [66, 68]].map(([x, y]) => (
+          <rect key={`${x}${y}`} x={x - 1.6} y={y - 1.6} width="3.2" height="3.2" fill="#fff" stroke="#c8102e" strokeWidth="0.8" />
+        ))}
+        <text x="50" y="47" textAnchor="middle" fontFamily="Cinzel Variable, serif" fontWeight="700" fontSize="7" fill="#0d0d0d">Aa</text>
+        <rect x="41" y="52" width="18" height="6" rx="1" fill="#ffc400" />
+      </svg>
+      <svg viewBox="0 0 24 24" className="absolute bottom-[14%] right-[14%] h-[14%] w-[14%] animate-[floaty_3s_ease-in-out_infinite] drop-shadow" fill="#0d0d0d" stroke="#fff" strokeWidth="1.2">
+        <path d="M4 3 L19 12 L12 13.5 L9 20 Z" />
+      </svg>
+    </div>
   );
 }
 

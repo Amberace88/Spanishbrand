@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getBrand } from "@/lib/brand";
 import { getT } from "@/lib/i18n/server";
-import { getBestsellers, getCollectionCounts, getCollections, getCollectionsBySlugs, getDrops, getOpenPoll, getPublishedProducts } from "@/lib/products/queries";
+import { getBestsellers, getCollectionCounts, getCollections, getCollectionsBySlugs, getDrops, getOpenPoll, getPublishedProducts, getShowcase } from "@/lib/products/queries";
 import { BigMarquee, Hero, Manifesto } from "@/components/home/Hero";
 import { BrandEssentials, BrandPromise, CategoryGrid, ClubTeaser, CollectionsBento, ComingSoonGrid, FiestasCalendar, PersonalizeTeaser, ThemesBento, TrustBar } from "@/components/home/ShopSections";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -15,7 +15,8 @@ import { IconArrow } from "@/components/ui/Icons";
 export const revalidate = 300;
 
 export default async function Home() {
-  const [brand, t, collections, counts, bestsellers, newest, drops, poll, themes] = await Promise.all([
+  const [show, brand, t, collections, counts, bestsellers, newest, drops, poll, themes] = await Promise.all([
+    getShowcase(),
     getBrand(),
     getT(),
     getCollections(),
@@ -35,7 +36,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero brandName={brand.name} />
+      <Hero brandName={brand.name} jerseyImg={show.jersey} blankImg={show.blank} />
       <TrustBar />
       <BrandEssentials />
       <CategoryGrid />

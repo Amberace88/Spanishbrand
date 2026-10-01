@@ -11,7 +11,7 @@ import { Reveal } from "@/components/ui/Reveal";
 export const metadata: Metadata = { title: "Tienda", description: "Camisetas, sudaderas, tazas, bolsas, pósters y pegatinas con diseños originales de identidad española. Fabricado bajo pedido.", alternates: { canonical: "/shop" } };
 export const revalidate = 120;
 
-const CATEGORIES = ["APPAREL", "KIDS", "HEADWEAR", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING", "TECH_ACCESSORIES", "STATIONERY", "PETS"] as const;
+const CATEGORIES = ["APPAREL", "KIDS", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING", "TECH_ACCESSORIES", "STATIONERY", "PETS"] as const;
 const SORTS = ["featured", "new", "priceAsc", "priceDesc"] as const;
 type Sort = (typeof SORTS)[number];
 

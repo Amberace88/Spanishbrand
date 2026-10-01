@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getT } from "@/lib/i18n/server";
-import type { PublicCollection } from "@/lib/products/queries";
+import { getShowcase, type PublicCollection, type Showcase } from "@/lib/products/queries";
 import { themeFor, upcomingFiestas } from "@/lib/themes";
 import { Mockup, type MockupKind } from "@/components/art/Mockup";
 import { JerseyBack } from "@/components/art/Jersey";
@@ -48,17 +48,26 @@ export async function TrustBar() {
   );
 }
 
-const CATEGORY_TILES: { key: string; cat: string; kind: MockupKind; color: string; slug: string; print?: "art" | "logo" }[] = [
-  { key: "cats.TEES", cat: "APPAREL", kind: "tee", color: "#111111", slug: "espana", print: "logo" },
-  { key: "cats.HOODIES", cat: "APPAREL", kind: "hoodie", color: "#111111", slug: "heritage", print: "logo" },
-  { key: "cats.HEADWEAR", cat: "HEADWEAR", kind: "cap", color: "#111111", slug: "espana", print: "logo" },
-  { key: "cats.DRINKWARE", cat: "DRINKWARE", kind: "mug", color: "#ffffff", slug: "tapas" },
-  { key: "cats.WALL_ART", cat: "WALL_ART", kind: "poster", color: "#ffffff", slug: "futbol" },
-  { key: "cats.BAGS", cat: "BAGS", kind: "tote", color: "#111111", slug: "camino", print: "logo" },
+const CATEGORY_TILES: { key: string; cat: string; kind: MockupKind; color: string; slug: string; print?: "art" | "logo"; photo: (s: Showcase) => string | undefined }[] = [
+  { key: "cats.TEES", cat: "APPAREL", kind: "tee", color: "#111111", slug: "espana", print: "logo", photo: (s) => s.byType.TSHIRT },
+  { key: "cats.HOODIES", cat: "APPAREL", kind: "hoodie", color: "#111111", slug: "heritage", print: "logo", photo: (s) => s.byType.HOODIE },
+  { key: "cats.DRINKWARE", cat: "DRINKWARE", kind: "mug", color: "#ffffff", slug: "tapas", photo: (s) => s.byCategory.DRINKWARE },
+  { key: "cats.WALL_ART", cat: "WALL_ART", kind: "poster", color: "#ffffff", slug: "futbol", photo: (s) => s.byType.FRAMED_PRINT ?? s.byCategory.WALL_ART },
+  { key: "cats.BAGS", cat: "BAGS", kind: "tote", color: "#111111", slug: "camino", print: "logo", photo: (s) => s.byCategory.BAGS },
+  { key: "cats.HOME_LIVING", cat: "HOME_LIVING", kind: "poster", color: "#ffffff", slug: "playa", photo: (s) => s.byType.BLANKET ?? s.byType.PILLOW ?? s.byCategory.HOME_LIVING },
 ];
 
+/** Real product photo (provider mockup) in a rounded frame. */
+function Photo({ src, alt, className = "", sizes = "(min-width:1024px) 16vw, 45vw" }: { src: string; alt: string; className?: string; sizes?: string }) {
+  return (
+    <div className={`relative aspect-square overflow-hidden rounded-2xl bg-[#f3f1ee] ${className}`}>
+      <Image src={src} alt={alt} fill sizes={sizes} className="object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]" />
+    </div>
+  );
+}
+
 export async function CategoryGrid() {
-  const t = await getT();
+  const [t, show] = await Promise.all([getT(), getShowcase()]);
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
@@ -76,9 +85,13 @@ export async function CategoryGrid() {
             <Reveal key={c.key} delay={i * 0.04}>
               <Link href={`/shop?c=${c.cat}`} className="group relative block overflow-hidden rounded-3xl bg-surface-2 p-4 transition-colors duration-500 hover:bg-fg hover:text-bg sm:p-5">
                 <span className="text-[11px] font-bold tabular-nums text-muted group-hover:text-bg/60">{String(i + 1).padStart(2, "0")}</span>
-                <div className="px-2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-1 group-hover:scale-[1.06]">
-                  <Mockup kind={c.kind} color={c.color} slug={c.slug} print={c.print} />
-                </div>
+                {c.photo(show) ? (
+                  <Photo src={c.photo(show)!} alt={t(c.key as never)} className="my-3" />
+                ) : (
+                  <div className="px-2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-1 group-hover:scale-[1.06]">
+                    <Mockup kind={c.kind} color={c.color} slug={c.slug} print={c.print} />
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-2">
                   <span className="headline text-lg uppercase sm:text-xl">{t(c.key as never)}</span>
                   <IconArrow className="h-4 w-4 -rotate-45 transition-transform duration-300 group-hover:rotate-0" />
@@ -94,7 +107,7 @@ export async function CategoryGrid() {
 
 /** "Lo que nos mueve": bento of what matters in Spain — football, pueblo, fiesta, sea, tapas, Camino. */
 export async function ThemesBento({ collections }: { collections: PublicCollection[] }) {
-  const t = await getT();
+  const [t, show] = await Promise.all([getT(), getShowcase()]);
   const spans: Record<string, string> = {
     futbol: "col-span-2 row-span-2",
     "mi-pueblo": "col-span-2 row-span-2",
@@ -119,7 +132,15 @@ export async function ThemesBento({ collections }: { collections: PublicCollecti
                     <ArrowDot />
                   </div>
                   <div className={`pointer-events-none absolute transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-2 group-hover:rotate-[-4deg] group-hover:scale-105 ${big ? "-bottom-[6%] -right-[4%] w-[78%] sm:w-[70%]" : "-bottom-[16%] -right-[10%] w-[62%] sm:w-[58%]"}`}>
-                    {c.slug === "futbol" ? <JerseyBack name="AFICIÓN" number="10" shirt="#ffffff" ink="#0f7a3d" trim="#e3051b" /> : <Mockup kind={th.kind} color={th.garment} slug={th.art} />}
+                    {show.byCollection[c.slug]?.[0] ? (
+                      <div className="relative aspect-square overflow-hidden rounded-[1.4rem] shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)] ring-1 ring-black/5 rotate-[-5deg]">
+                        <Image src={show.byCollection[c.slug][0]} alt={c.name} fill sizes="(min-width:1024px) 22vw, 50vw" className="object-cover" />
+                      </div>
+                    ) : c.slug === "futbol" ? (
+                      <JerseyBack name="AFICIÓN" number="10" shirt="#ffffff" ink="#0f7a3d" trim="#e3051b" />
+                    ) : (
+                      <Mockup kind={th.kind} color={th.garment} slug={th.art} />
+                    )}
                   </div>
                 </Link>
               </Reveal>
@@ -165,7 +186,7 @@ export async function FiestasCalendar() {
 }
 
 export async function PersonalizeTeaser() {
-  const t = await getT();
+  const [t, show] = await Promise.all([getT(), getShowcase()]);
   return (
     <section className="bg-bg pb-16 sm:pb-24">
       <Container>
@@ -189,7 +210,13 @@ export async function PersonalizeTeaser() {
             <div className="relative flex min-h-[380px] items-center justify-center bg-accent p-8">
               <div className="grain-soft absolute inset-0" />
               <div className="floaty relative w-[78%] max-w-[440px]">
-                <JerseyBack name="TU NOMBRE" number="7" shirt="#ffffff" ink="#e3051b" trim="#ffc400" />
+                {show.jersey ? (
+                  <div className="relative aspect-square overflow-hidden rounded-[1.6rem] shadow-2xl">
+                    <Image src={show.jersey} alt={t("perso.title")} fill sizes="(min-width:1024px) 30vw, 70vw" className="object-cover" />
+                  </div>
+                ) : (
+                  <JerseyBack name="TU NOMBRE" number="7" shirt="#ffffff" ink="#e3051b" trim="#ffc400" />
+                )}
               </div>
               <div className="floaty-slow absolute bottom-6 left-6 w-[30%] max-w-[170px] rotate-[-8deg] rounded-2xl bg-white p-2 shadow-2xl">
                 <Mockup kind="poster" slug="mi-pueblo" />
@@ -308,7 +335,7 @@ export async function ComingSoonGrid({ collections }: { collections: PublicColle
 }
 
 export async function CollectionsBento({ collections, counts }: { collections: PublicCollection[]; counts: Record<string, number> }) {
-  const t = await getT();
+  const [t, show] = await Promise.all([getT(), getShowcase()]);
   const list = collections.slice(0, 3);
   return (
     <section className="bg-bg py-16 sm:py-24">
@@ -327,9 +354,9 @@ export async function CollectionsBento({ collections, counts }: { collections: P
                   <h3 className="mega relative z-10 mt-4 text-6xl sm:text-7xl">{c.name}</h3>
                   {c.tagline && <p className="relative z-10 mt-3 max-w-xs text-[15px] opacity-85">{c.tagline}</p>}
                   <div className="pointer-events-none absolute -bottom-[8%] left-1/2 w-[78%] -translate-x-1/2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-3 group-hover:scale-105">
-                    {c.heroImage ? (
-                      <div className="relative aspect-square">
-                        <Image src={c.heroImage} alt={c.name} fill sizes="33vw" className="object-cover" />
+                    {c.heroImage || show.byCollection[c.slug]?.[0] ? (
+                      <div className="relative aspect-square overflow-hidden rounded-[1.6rem] shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)]">
+                        <Image src={(c.heroImage || show.byCollection[c.slug][0])!} alt={c.name} fill sizes="(min-width:1024px) 26vw, 80vw" className="object-cover" />
                       </div>
                     ) : (
                       <Mockup kind={th.kind} color={th.garment} slug={th.art} />
