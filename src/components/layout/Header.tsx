@@ -148,7 +148,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
         <div className="h-[env(safe-area-inset-top)] bg-[#0b0b0b]" aria-hidden />
         <Ticker messages={messages} />
         <header className={`relative border-b backdrop-blur-xl transition-colors duration-300 ${scrolled ? "border-line bg-bg/80" : "border-transparent bg-bg"}`}>
-          <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:h-[68px] sm:px-8">
+          <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:h-[68px] sm:px-8 xl:grid-cols-[auto_1fr_auto] xl:gap-0">
             <div className="flex items-center gap-1">
               <button onClick={() => setOpen(true)} className="-ml-2 grid h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06] xl:hidden" aria-label={t("nav.menu")}>
                 <IconMenu className="h-6 w-6" />
@@ -162,8 +162,9 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
             <Link href="/" className="text-fg xl:hidden" aria-label={brandName}>
               <Wordmark name={brandName} className="text-[13px] sm:text-base" />
             </Link>
-            <nav className="hidden xl:block" aria-label="Categorías">
-              <ul className="flex items-center gap-0.5 text-[13px] font-semibold uppercase tracking-[0.06em]">
+            <nav className="hidden xl:block xl:px-10 2xl:px-16" aria-label="Categorías">
+              {/* the menu spans the whole bar between logo and icons, items evenly spaced */}
+              <ul className="flex w-full items-center justify-between text-[13.5px] font-semibold uppercase tracking-[0.08em]">
                 {nav.map((l) => {
                   const base = l.href.split("?")[0];
                   const active = l.href.includes("?") ? false : l.href === "/shop" ? pathname === "/shop" : pathname.startsWith(base);
