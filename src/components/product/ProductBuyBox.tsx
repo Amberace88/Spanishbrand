@@ -52,8 +52,9 @@ export function ProductBuyBox({ variants, currency, onColorChange }: { variants:
         <div>
           <p className="eyebrow mb-3 text-muted">
             {t("product.color")} — <span className="text-fg">{color}</span>
+            {colors.length > 6 && <span className="ml-2 normal-case tracking-normal text-muted">· {colors.length}</span>}
           </p>
-          <div className="flex flex-wrap gap-2.5">
+          <div className={`flex flex-wrap ${colors.length > 12 ? "gap-1.5" : "gap-2.5"}`}>
             {colors.map(([c, hex]) => (
               <button
                 key={c}
@@ -63,8 +64,9 @@ export function ProductBuyBox({ variants, currency, onColorChange }: { variants:
                   onColorChange?.(c);
                 }}
                 aria-label={c}
+                title={c}
                 aria-pressed={color === c}
-                className={`h-10 w-10 rounded-full border-2 p-0.5 transition ${color === c ? "border-fg" : "border-transparent hover:border-ink/30"}`}
+                className={`${colors.length > 12 ? "h-8 w-8" : "h-10 w-10"} rounded-full border-2 p-0.5 transition ${color === c ? "border-fg" : "border-transparent hover:border-ink/30"}`}
               >
                 <span className="block h-full w-full rounded-full border border-line" style={{ background: hex ?? "#ccc" }} />
               </button>

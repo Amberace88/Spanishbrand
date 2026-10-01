@@ -9,7 +9,8 @@ export function ProductCard({ p, labels }: { p: PublicProduct; labels: { madeToO
   const prices = p.variants.map((v) => v.price);
   const min = prices.length ? Math.min(...prices) : p.price;
   const varies = prices.length > 1 && Math.max(...prices) !== min;
-  const colors = [...new Set(p.variants.map((v) => v.colorHex).filter(Boolean))].slice(0, 5) as string[];
+  const allColors = [...new Set(p.variants.map((v) => v.colorHex).filter(Boolean))] as string[];
+  const colors = allColors.slice(0, 6);
   const onSale = p.compareAt != null && p.compareAt > min;
   return (
     <Link href={`/products/${p.slug}`} className="group block">
@@ -35,10 +36,11 @@ export function ProductCard({ p, labels }: { p: PublicProduct; labels: { madeToO
           {p.collection && <p className="kicker text-[10px] text-muted">{p.collection.name}</p>}
           <h3 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug">{p.name}</h3>
           {colors.length > 1 && (
-            <div className="mt-2 flex gap-1.5">
+            <div className="mt-2 flex items-center gap-1.5">
               {colors.map((c) => (
                 <span key={c} className="h-3 w-3 rounded-full border border-line" style={{ background: c }} />
               ))}
+              {allColors.length > colors.length && <span className="text-[11px] font-semibold text-muted">+{allColors.length - colors.length}</span>}
             </div>
           )}
         </div>
