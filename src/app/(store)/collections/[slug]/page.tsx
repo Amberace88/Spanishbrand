@@ -113,31 +113,25 @@ export default async function CollectionPage({ params, searchParams }: { params:
               {design && <span className={chip(true)}>{design.name}</span>}
             </nav>
           )}
-          {!type && !design && sections.length > 1 ? (
-            // unfiltered: one section per design (art pieces first), max 8 each — never hundreds of cards at once
-            <div className="space-y-16">
-              {sections.map((sec) => (
-                <div key={sec.key}>
-                  <div className="mb-6 flex items-end justify-between gap-4 border-b border-line pb-3">
-                    <div>
-                      <h2 className="headline text-2xl leading-tight sm:text-3xl">{sec.title}</h2>
-                      {sec.line && <p className="mt-1 line-clamp-1 max-w-2xl text-sm text-muted">{sec.line}</p>}
-                    </div>
-                    {sec.items.length > 8 && sec.key !== "_" && (
-                      <Link href={`/collections/${c.slug}?d=${sec.key}#productos`} className="shrink-0 text-sm font-semibold text-accent hover:underline">
-                        {t("collections.all")} ({sec.items.length})
+          {!design && sections.length > 1 ? (
+            // one card per design so every tile shows a different drawing; the design's other items are one click away
+            <div className="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-5 lg:grid-cols-4">
+              {sections
+                .flatMap((sec) => {
+                  const items = type ? sec.items.filter((p) => p.categoryCode === type) : sec.items;
+                  if (!items.length) return [];
+                  return sec.key === "_" ? items.map((p) => ({ key: p.id, lead: p, count: 1, design: null as string | null })) : [{ key: sec.key, lead: items[0], count: items.length, design: sec.key }];
+                })
+                .map((x, i) => (
+                  <Reveal key={x.key} delay={(i % 4) * 0.05}>
+                    <ProductCard p={x.lead} labels={labels} />
+                    {x.design && x.count > 1 && (
+                      <Link href={`/collections/${c.slug}?d=${x.design}${type ? `&c=${type}` : ""}#productos`} className="mt-2 inline-flex items-center gap-1 px-0.5 text-[12px] font-semibold text-accent hover:underline">
+                        +{x.count - 1} {t("collections.moreOfDesign" as never)} →
                       </Link>
                     )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-5 lg:grid-cols-4">
-                    {sec.items.slice(0, 8).map((p, i) => (
-                      <Reveal key={p.id} delay={(i % 4) * 0.05}>
-                        <ProductCard p={p} labels={labels} />
-                      </Reveal>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                  </Reveal>
+                ))}
             </div>
           ) : products.length ? (
             <div className="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-5 lg:grid-cols-4">

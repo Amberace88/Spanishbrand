@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { SizeFinder } from "@/components/product/SizeFinder";
 import { formatMoney } from "@/lib/format";
 import { notFound } from "next/navigation";
@@ -63,10 +64,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const p = await getProductBySlug(slug);
   if (!p) notFound();
-  const [brand, t, rating, all] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 500 })]);
+  const [brand, t, rating, all] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 2000 })]);
   const design = p.design ? designBySlug(p.design) : null;
   const sameDesign = design ? all.filter((x) => x.design === design.slug && x.id !== p.id).slice(0, 4) : [];
   const related = all.filter((x) => x.collection?.slug === p.collection?.slug && x.id !== p.id && x.design !== p.design).slice(0, 4);
+  // other drawings for this very item: same product type, same collection first, one per design
+  const altPool = all.filter((x) => x.productType === p.productType && x.design && x.design !== p.design && x.images[0]);
+  const alternatives = [...altPool.filter((x) => x.collection?.slug === p.collection?.slug), ...altPool.filter((x) => x.collection?.slug !== p.collection?.slug)]
+    .filter((x, i, arr) => arr.findIndex((y) => y.design === x.design) === i)
+    .slice(0, 15);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const minPrice = Math.min(...p.variants.map((v) => v.price), p.price);
   const [d1, d2] = deliveryWindow("es");
@@ -116,6 +122,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
       <h1 className="headline mt-3 text-3xl sm:text-[2.6rem]">{p.name}</h1>
       {p.shortDescription && <p className="mt-3 text-lg leading-relaxed text-muted">{p.shortDescription}</p>}
+      {alternatives.length > 0 && (
+        <div className="mt-6">
+          <p className="kicker text-muted">{t("product.otherDesigns" as never)}</p>
+          <div className="no-scrollbar -mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+            <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-accent bg-surface-2" aria-current="true" title={p.name}>
+              {p.images[0] && <Image src={p.images[0].url} alt={p.name} fill sizes="64px" className="object-cover" />}
+            </span>
+            {alternatives.map((x) => (
+              <Link key={x.id} href={`/products/${x.slug}`} title={x.name} className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-surface-2 transition hover:border-fg">
+                <Image src={x.images[0].url} alt={x.name} fill sizes="64px" className="object-cover" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
       {rating && (
         <p className="mt-3 text-sm">
           <span className="text-[color:var(--gold)]">★</span> {rating.avg.toFixed(1)} · {rating.count} {t("product.reviews")}
