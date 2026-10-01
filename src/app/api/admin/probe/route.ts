@@ -4,6 +4,7 @@ import { isProviderError } from "@/lib/fulfillment/errors";
 import { getProdigiProduct, quote } from "@/lib/fulfillment/prodigi";
 import * as printify from "@/lib/fulfillment/printify";
 import { z } from "zod";
+import { getCatalogProduct, listCatalogProducts } from "@/lib/fulfillment/printful/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,18 @@ export async function GET(req: Request) {
       return NextResponse.json(await quote([{ sku, attributes: Object.fromEntries((attrs ?? "").split(",").filter(Boolean).map((x) => x.split("="))), copies: 1 }], "ES"));
     }
     if (what === "printify-shop") return NextResponse.json({ shop: await printify.shopId() });
+    if (what === "printful-products") {
+      const re = new RegExp(arg || ".", "i");
+      const all = (await listCatalogProducts()).filter((p) => !p.discontinued && re.test(p.title)).slice(0, 12);
+      const withEu = await Promise.all(
+        all.map(async (p) => {
+          const d = await getCatalogProduct(p.externalId).catch(() => null);
+          const eu = d ? d.variants.filter((v) => /in_stock|stocked_on_demand|active/i.test(v.availability?.EU ?? v.availability?.EU_LV ?? v.availability?.EU_ES ?? "")).length : null;
+          return { id: p.externalId, title: p.title, type: p.type, variants: d?.variants.length ?? null, euVariants: eu, regions: d ? [...new Set(d.variants.flatMap((v) => Object.keys(v.availability ?? {})))] : [] };
+        }),
+      );
+      return NextResponse.json(withEu);
+    }
     if (what === "printify-eu") {
       const idx = await printify.euProviderIndex(["ES", "PT", "FR", "DE", "IT", "NL", "BE", "LU", "AT", "IE", "PL", "CZ", "SK", "SI", "HU", "RO", "BG", "HR", "GR", "LV", "LT", "EE", "SE", "DK", "FI"]);
       const re = arg ? new RegExp(arg, "i") : null;
