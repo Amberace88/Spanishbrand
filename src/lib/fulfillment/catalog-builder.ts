@@ -468,6 +468,29 @@ function copyFor(spec: Spec, res: Resolved) {
   };
 }
 
+/** Relative luminance of a provider colour code ("#1a1a1a", "1a1a1a" or "#111111/#ffffff" for heathers → first). */
+function luminance(code: string | null): number | null {
+  const m = (code ?? "").match(/#?([0-9a-f]{6})/i);
+  if (!m) return null;
+  const n = parseInt(m[1], 16), lin = (c: number) => { const x = c / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+}
+
+/**
+ * Every live colour that keeps the print readable: light-ink (dark-tone) designs go on dark and mid
+ * colours, dark-ink (light-tone) designs on light colours. Darkest/lightest first.
+ */
+function toneColors(live: { color: string | null; color_code: string | null }[], tones: Tone[]) {
+  const byName = new Map<string, number | null>();
+  for (const v of live) if (v.color && !byName.has(v.color)) byName.set(v.color, luminance(v.color_code));
+  const dark = tones.includes("dark"), light = tones.includes("light");
+  const fits = ([name, l]: [string, number | null]) => {
+    if (l == null) return dark ? /black|navy|charcoal|dark|forest|maroon|burgundy|military|olive/i.test(name) : /white|natural|cream|ivory|sand|ash|light/i.test(name);
+    return (dark && l < 0.32) || (light && l > 0.45);
+  };
+  return [...byName.entries()].filter(fits).sort((a, b) => (dark && !light ? (a[1] ?? 0) - (b[1] ?? 0) : (b[1] ?? 1) - (a[1] ?? 1))).map(([n]) => n);
+}
+
 function pickVariants(spec: Spec, variants: { id: string; external_id: string; size: string | null; color: string | null; color_code: string | null; cost: number | null; status: string }[], allowed?: string[]) {
   const { bp } = spec;
   if (allowed?.length) {
@@ -478,8 +501,10 @@ function pickVariants(spec: Spec, variants: { id: string; external_id: string; s
   let colors: (string | null)[] = [null];
   if (bp.colors) {
     const pref = spec.tones.flatMap((t) => bp.colors![t]);
-    const max = spec.kind === "blank" ? 4 : (bp.maxColors ?? 2);
-    colors = pref.filter((c) => live.some((v) => (v.color ?? "").toLowerCase() === c.toLowerCase())).slice(0, max);
+    const max = bp.allColors ? (bp.maxColors ?? 48) : spec.kind === "blank" ? 4 : (bp.maxColors ?? 2);
+    colors = pref.filter((c) => live.some((v) => (v.color ?? "").toLowerCase() === c.toLowerCase()));
+    if (bp.allColors) colors = [...colors, ...toneColors(live, spec.tones).filter((c) => !colors.some((p) => (p ?? "").toLowerCase() === c.toLowerCase()))];
+    colors = colors.slice(0, max);
     if (!colors.length) {
       // fall back to whatever exists (first colours by name)
       colors = [...new Set(live.map((v) => v.color))].slice(0, 1);
@@ -649,7 +674,7 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
   if (vmErr) throw new Error(`variant mappings: ${vmErr.message}`);
 
   await sb.rpc("refresh_product_eligibility", { p_product_id: product.id });
-  await save(job, { phase: "test", product_id: product.id, state: { slug, resKey: rk, files }, error: null });
+  await save(job, { phase: "test", product_id: product.id, state: { slug, resKey: rk, files, replaces: (job.state as { replaces?: string | null }).replaces ?? null }, error: null });
   return { key: job.key, phase: "test", done: false, message: `${copy.name} · ${variants.length} variantes` };
 }
 
@@ -804,7 +829,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   for (const v of pvars ?? []) {
     const k = v.color ?? "_";
     const ext = (v.variant_provider_mappings as unknown as { provider_variant_id: string }[])[0]?.provider_variant_id;
-    if (ext && !perColor.has(k)) perColor.set(k, ext);
+    if (ext && !perColor.has(k) && perColor.size < 12) perColor.set(k, ext); // photos for the first 12 colours; the rest show swatches
   }
   const placementOk = res.placements.includes(placement) ? placement : res.placements[0];
   const { width, height } = res.printfile;
@@ -879,6 +904,19 @@ async function stepPublish(job: JobRow, staff: StaffSession): Promise<StepResult
   await sb.from("products").update({ brand_approved: true, og_image: null }).eq("id", job.product_id!);
   const { data: first } = await sb.from("product_images").select("url").eq("product_id", job.product_id!).order("sort").limit(1).maybeSingle();
   if (first) await sb.from("products").update({ og_image: first.url }).eq("id", job.product_id!);
+  const replaces = (job.state as { replaces?: string | null }).replaces;
+  if (replaces) {
+    // hand the old product's URL to the replacement before it goes live
+    const { data: old } = await sb.from("products").select("slug").eq("id", replaces).maybeSingle();
+    if (old) {
+      await sb.from("products").update({ status: "ARCHIVED", visibility: "HIDDEN", slug: `${old.slug}-v${Date.now().toString(36)}` }).eq("id", replaces);
+      await sb.from("products").update({ slug: old.slug }).eq("id", job.product_id!);
+      // free storage: the retired product's mockup photos (its print file stays for order history)
+      const prefix = `catalog/media/${old.slug}`;
+      const { data: files } = await sb.storage.from("print-files").list(prefix, { limit: 200 });
+      if (files?.length) await sb.storage.from("print-files").remove(files.map((f) => `${prefix}/${f.name}`)).catch(() => null);
+    }
+  }
   const r = await publishProduct(staff, job.product_id!);
   if (!r.ok) throw new Error(`publish blocked: ${r.failures.join(", ")}`);
   await save(job, { phase: "done", error: null });
@@ -915,24 +953,15 @@ export async function runStep(key: string, staff: StaffSession, opts: { retry?: 
 
 async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSession, opts: { retry?: boolean; reset?: boolean; rebuild?: boolean }): Promise<StepResult> {
   const job = await loadJob(key, kind);
-  // rebuild: the design changed — retire the live product (hidden + archived, slug freed, order history intact)
-  // and build it again from the current artwork.
+  // rebuild: design or colour range changed — build a replacement while the live product stays on sale;
+  // on publish the new one takes over the slug and the old one is archived (order history intact).
   if (opts.rebuild && kind === "PRODUCT" && (job.phase === "done" || job.phase === "failed")) {
-    if (job.product_id) {
-      const { data: old } = await db().from("products").select("slug").eq("id", job.product_id).maybeSingle();
-      if (old) await db().from("products").update({ status: "ARCHIVED", visibility: "HIDDEN", slug: `${old.slug}-v${Date.now().toString(36)}` }).eq("id", job.product_id);
-    }
-    await save(job, { phase: "new", product_id: null, state: {}, error: null, attempts: 0 });
+    const replaces = job.phase === "done" ? job.product_id : null;
+    if (job.phase === "failed" && job.product_id) await db().from("products").delete().eq("id", job.product_id).neq("status", "PUBLISHED");
+    await save(job, { phase: "new", product_id: null, state: { replaces }, error: null, attempts: 0 });
     job.phase = "new";
     job.product_id = null;
-    job.state = {};
-  }
-  // reset: re-resolve a provider lookup (e.g. after a provider-selection change). Only for RESOLVE jobs
-  // and only if no product built on it is already live — products keep their own mapping.
-  if (opts.reset && kind === "RESOLVE" && job.phase !== "new") {
-    await save(job, { phase: "new", state: {}, error: null, attempts: 0 });
-    job.phase = "new";
-    job.state = {};
+    job.state = { replaces };
   }
   if (job.phase === "done") return { key, phase: "done", done: true };
   if (job.phase === "failed") {

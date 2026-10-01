@@ -23,6 +23,8 @@ export interface Blueprint {
   technique: string;
   colors?: Record<Tone, string[]>; // preferred colour names, first available wins (max 3)
   maxColors?: number;
+  /** Offer every live (EU) colour of the product that suits the design's tone, preferred colours first. */
+  allColors?: boolean;
   sizes?: string[]; // allowed sizes, in display order
   price: number; // base retail price (EUR, VAT incl.)
   sizePremium?: Record<string, number>;
@@ -39,6 +41,7 @@ export interface Blueprint {
 export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   tee: {
     key: "tee",
+    allColors: true,
     provider: "printful",
     productType: "TSHIRT",
     category: "APPAREL",
@@ -60,6 +63,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   kids: {
     key: "kids",
+    allColors: true,
     provider: "printful",
     productType: "KIDS_TSHIRT",
     category: "KIDS",
@@ -79,6 +83,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   hoodie: {
     key: "hoodie",
+    allColors: true,
     provider: "printful",
     productType: "HOODIE",
     category: "APPAREL",
@@ -99,6 +104,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   sweat: {
     key: "sweat",
+    allColors: true,
     provider: "printful",
     productType: "SWEATSHIRT",
     category: "APPAREL",
@@ -138,6 +144,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   tote: {
     key: "tote",
+    allColors: true,
     provider: "printful",
     productType: "TOTE",
     category: "BAGS",
@@ -247,6 +254,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   apron: {
     key: "apron",
+    allColors: true,
     provider: "printful",
     productType: "APRON",
     category: "HOME_LIVING",
@@ -348,6 +356,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   cap: {
     key: "cap",
+    allColors: true,
     provider: "printful",
     productType: "CAP",
     category: "HEADWEAR",
@@ -366,6 +375,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   beanie: {
     key: "beanie",
+    allColors: true,
     provider: "printful",
     productType: "BEANIE",
     category: "HEADWEAR",
@@ -384,6 +394,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   embtee: {
     key: "embtee",
+    allColors: true,
     provider: "printful",
     productType: "TSHIRT",
     category: "APPAREL",
@@ -404,6 +415,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
   },
   embhoodie: {
     key: "embhoodie",
+    allColors: true,
     provider: "printful",
     productType: "HOODIE",
     category: "APPAREL",

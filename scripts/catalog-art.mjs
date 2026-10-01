@@ -572,7 +572,7 @@ for (const name of ["lion-crowned", "crown-royal"]) {
       if (g > 150 && r < 140 && b < 140) data[i + 3] = Math.round(a * 0.15); // leftover screen
     }
   }
-  const out = await sharp(data, { raw: info }).trim({ threshold: 1 }).png({ compressionLevel: 9 }).toBuffer({ resolveWithObject: true });
+  const out = await sharp(data, { raw: info }).trim({ threshold: 1 }).resize({ width: name === "lion-crowned" ? 1600 : 1200, kernel: "lanczos3" }).png({ compressionLevel: 9, palette: false }).toBuffer({ resolveWithObject: true });
   await writeFile(new URL(`${name}.png`, OUT), out.data);
   manifest[name] = +(out.info.height / out.info.width).toFixed(4);
 }
