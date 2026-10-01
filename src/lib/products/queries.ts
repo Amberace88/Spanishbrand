@@ -181,11 +181,25 @@ function compactVariants(p: PublicProduct): PublicProduct {
 }
 
 async function loadListing(): Promise<PublicProduct[]> {
-  const q = publishedQuery();
-  if (!q) return [];
-  const { data, error } = await q.lt("product_images.sort", 4).order("published_at", { ascending: false }).limit(2000);
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => compactVariants(mapProduct(r as Row)));
+  // small pages in parallel: one big join hits PostgREST row caps and statement timeouts
+  const PAGE = 150;
+  const sb = dbOrNull();
+  if (!sb) return [];
+  const { count } = await sb.from("products").select("id", { count: "exact", head: true }).eq("brand_id", env.brandId()).eq("status", "PUBLISHED").eq("fulfillment_eligible", true).eq("visibility", "PUBLIC");
+  const pages = Math.max(1, Math.ceil(Math.min(count ?? PAGE, 3000) / PAGE));
+  const out: PublicProduct[][] = [];
+  for (let start = 0; start < pages; start += 4) {
+    const chunk = await Promise.all(
+      Array.from({ length: Math.min(4, pages - start) }, async (_, k) => {
+        const i = start + k;
+        const { data, error } = await publishedQuery()!.lt("product_images.sort", 4).order("published_at", { ascending: false }).order("id").range(i * PAGE, i * PAGE + PAGE - 1);
+        if (error) throw new Error(error.message);
+        return (data ?? []).map((r) => compactVariants(mapProduct(r as Row)));
+      }),
+    );
+    out.push(...chunk);
+  }
+  return out.flat();
 }
 
 async function listing(): Promise<PublicProduct[]> {
