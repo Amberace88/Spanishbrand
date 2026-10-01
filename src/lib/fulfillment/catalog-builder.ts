@@ -270,22 +270,25 @@ const EU = ["ES", "PT", "FR", "DE", "IT", "NL", "BE", "LU", "AT", "IE", "PL", "C
 
 async function resolvePrintify(bp: Blueprint): Promise<Resolved> {
   const all = await printify.listBlueprints();
-  const cands = all.filter((b) => bp.match.test(b.title) && !(bp.exclude?.test(b.title) ?? false)).slice(0, 2);
+  const cands = all.filter((b) => bp.match.test(b.title) && !(bp.exclude?.test(b.title) ?? false)).slice(0, 4);
   if (!cands.length) throw new Error(`No Printify blueprint matches ${bp.match}`);
+  // Only European print providers: no customs/import VAT for Spanish customers and short delivery.
   let pick: { b: (typeof cands)[number]; pp: { id: number; title: string }; country: string } | null = null;
-  for (const b of cands) {
-    const providers = (await printify.blueprintProviders(String(b.id))).slice(0, 6);
+  const seen: string[] = [];
+  outer: for (const b of cands) {
+    const providers = (await printify.blueprintProviders(String(b.id))).slice(0, 20);
     for (const pp of providers) {
       let country = pp.location?.country ?? "";
       if (!country) country = (await printify.printProvider(String(pp.id)).catch(() => null))?.location?.country ?? "";
-      const score = EU.includes(country) ? (country === "ES" ? 3 : 2) : country === "GB" ? 1 : 0;
-      const best = pick ? (EU.includes(pick.country) ? (pick.country === "ES" ? 3 : 2) : pick.country === "GB" ? 1 : 0) : -1;
-      if (score > best) pick = { b, pp, country };
-      if (score === 3) break;
+      seen.push(`${pp.title} (${country || "?"})`);
+      if (EU.includes(country)) {
+        if (!pick || (country === "ES" && pick.country !== "ES")) pick = { b, pp, country };
+        if (country === "ES") break outer;
+      }
     }
-    if (pick && EU.includes(pick.country)) break;
+    if (pick) break;
   }
-  if (!pick) throw new Error("No Printify print provider available");
+  if (!pick) throw new Error(`Sin proveedor europeo en Printify para ${bp.label}. Vistos: ${seen.slice(0, 8).join(", ")}`);
   const raw = await printify.providerVariants(String(pick.b.id), String(pick.pp.id));
   const position = (v: (typeof raw)[number]) => v.placeholders?.find((p) => p.position === bp.placement) ?? v.placeholders?.[0];
   let vs = raw.filter((v) => position(v));
