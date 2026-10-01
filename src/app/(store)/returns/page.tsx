@@ -47,7 +47,7 @@ export default async function ReturnsPage() {
         <Container>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {cards.map((c, i) => (
-              <div key={c.t} className={`rounded-[22px] p-6 ${i === 1 ? "bg-[#c8102e] text-white" : i === 2 ? "bg-[#0b0b0b] text-[#f5f1e8]" : "border border-line bg-surface-2"}`}>
+              <div key={c.t} className={`rounded-[22px] p-6 ${i === 1 ? "bg-[#c8102e] text-white" : i === 2 ? "bg-[#d4a62a] text-[#0b0b0b]" : "border border-line bg-surface-2"}`}>
                 <p className="font-[family-name:var(--font-logo)] text-3xl font-bold">{c.n}</p>
                 <p className="mt-3 font-bold">{c.t}</p>
                 <p className={`mt-1.5 text-sm leading-relaxed ${i === 1 || i === 2 ? "opacity-80" : "text-muted"}`}>{c.d}</p>
