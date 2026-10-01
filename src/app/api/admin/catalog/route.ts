@@ -25,11 +25,11 @@ export async function GET() {
 export async function POST(req: Request) {
   const staff = await staffOr403();
   if (!staff) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-  const body = (await req.json().catch(() => ({}))) as { key?: string; retry?: boolean };
+  const body = (await req.json().catch(() => ({}))) as { key?: string; retry?: boolean; reset?: boolean };
   const key = typeof body.key === "string" ? body.key : "";
   if (!buildPlan().some((p) => p.key === key)) return NextResponse.json({ error: "UNKNOWN_JOB" }, { status: 400 });
   const started = Date.now();
-  const res = await runStep(key, staff, { retry: Boolean(body.retry) });
+  const res = await runStep(key, staff, { retry: Boolean(body.retry), reset: Boolean(body.reset) });
   log.info("CATALOG", "catalog step", { key, phase: res.phase, ms: Date.now() - started, error: res.error });
   return NextResponse.json(res);
 }

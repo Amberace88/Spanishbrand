@@ -269,26 +269,20 @@ async function resolveGelatoPoster(bp: Blueprint): Promise<Resolved> {
 const EU = ["ES", "PT", "FR", "DE", "IT", "NL", "BE", "LU", "AT", "IE", "PL", "CZ", "SK", "SI", "HU", "RO", "BG", "HR", "GR", "LV", "LT", "EE", "SE", "DK", "FI"];
 
 async function resolvePrintify(bp: Blueprint): Promise<Resolved> {
-  const all = await printify.listBlueprints();
-  const cands = all.filter((b) => bp.match.test(b.title) && !(bp.exclude?.test(b.title) ?? false)).slice(0, 4);
-  if (!cands.length) throw new Error(`No Printify blueprint matches ${bp.match}`);
   // Only European print providers: no customs/import VAT for Spanish customers and short delivery.
-  let pick: { b: (typeof cands)[number]; pp: { id: number; title: string }; country: string } | null = null;
-  const seen: string[] = [];
-  outer: for (const b of cands) {
-    const providers = (await printify.blueprintProviders(String(b.id))).slice(0, 20);
-    for (const pp of providers) {
-      let country = pp.location?.country ?? "";
-      if (!country) country = (await printify.printProvider(String(pp.id)).catch(() => null))?.location?.country ?? "";
-      seen.push(`${pp.title} (${country || "?"})`);
-      if (EU.includes(country)) {
-        if (!pick || (country === "ES" && pick.country !== "ES")) pick = { b, pp, country };
-        if (country === "ES") break outer;
-      }
-    }
-    if (pick) break;
+  // Start from the EU providers and the blueprints they make (a title search alone hits US/GB-only listings first).
+  const [all, euIdx] = await Promise.all([printify.listBlueprints(), printify.euProviderIndex(EU)]);
+  const byId = new Map(all.map((b) => [b.id, b]));
+  const matches = (title: string) => bp.match.test(title) && !(bp.exclude?.test(title) ?? false);
+  const rank = (c: string) => (c === "ES" ? 0 : ["PT", "FR", "IT", "DE", "NL", "BE"].includes(c) ? 1 : 2);
+  const options = euIdx
+    .flatMap((pp) => pp.blueprints.filter((b) => matches(b.title) && byId.has(b.id)).map((b) => ({ b: byId.get(b.id)!, pp: { id: pp.id, title: pp.title }, country: pp.country })))
+    .sort((a, b) => rank(a.country) - rank(b.country) || all.indexOf(a.b) - all.indexOf(b.b));
+  if (!options.length) {
+    const anyTitle = all.some((b) => matches(b.title));
+    throw new Error(anyTitle ? `Sin proveedor europeo en Printify para ${bp.label} (${euIdx.length} proveedores UE revisados)` : `No Printify blueprint matches ${bp.match}`);
   }
-  if (!pick) throw new Error(`Sin proveedor europeo en Printify para ${bp.label}. Vistos: ${seen.slice(0, 8).join(", ")}`);
+  const pick = options[0];
   const raw = await printify.providerVariants(String(pick.b.id), String(pick.pp.id));
   const position = (v: (typeof raw)[number]) => v.placeholders?.find((p) => p.position === bp.placement) ?? v.placeholders?.[0];
   let vs = raw.filter((v) => position(v));
@@ -827,9 +821,16 @@ async function stepPublish(job: JobRow, staff: StaffSession): Promise<StepResult
 
 /* ───────────────────────── step dispatcher ───────────────────────── */
 
-export async function runStep(key: string, staff: StaffSession, opts: { retry?: boolean } = {}): Promise<StepResult> {
+export async function runStep(key: string, staff: StaffSession, opts: { retry?: boolean; reset?: boolean } = {}): Promise<StepResult> {
   const kind: JobRow["kind"] = key.startsWith("res:") ? "RESOLVE" : "PRODUCT";
   const job = await loadJob(key, kind);
+  // reset: re-resolve a provider lookup (e.g. after a provider-selection change). Only for RESOLVE jobs
+  // and only if no product built on it is already live — products keep their own mapping.
+  if (opts.reset && kind === "RESOLVE" && job.phase !== "new") {
+    await save(job, { phase: "new", state: {}, error: null, attempts: 0 });
+    job.phase = "new";
+    job.state = {};
+  }
   if (job.phase === "done") return { key, phase: "done", done: true };
   if (job.phase === "failed") {
     if (!opts.retry) return { key, phase: "failed", done: true, error: job.error ?? undefined };

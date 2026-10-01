@@ -75,8 +75,31 @@ export async function getBlueprint(id: string) {
 export async function blueprintProviders(id: string) {
   return pfy(`/catalog/blueprints/${encodeURIComponent(id)}/print_providers.json`, z.array(z.object({ id: z.number(), title: z.string(), location: z.object({ country: z.string().optional() }).passthrough().optional() }).passthrough()));
 }
+const providerDetail = z
+  .object({
+    id: z.number(),
+    title: z.string(),
+    location: z.object({ country: z.string().optional(), city: z.string().optional() }).passthrough().optional(),
+    blueprints: z.array(z.object({ id: z.number(), title: z.string() }).passthrough()).optional(),
+  })
+  .passthrough();
 export async function printProvider(id: string) {
-  return pfy(`/catalog/print_providers/${encodeURIComponent(id)}.json`, z.object({ id: z.number(), title: z.string(), location: z.object({ country: z.string().optional(), city: z.string().optional() }).passthrough().optional() }).passthrough());
+  return pfy(`/catalog/print_providers/${encodeURIComponent(id)}.json`, providerDetail);
+}
+export async function listPrintProviders() {
+  return pfy("/catalog/print_providers.json", z.array(z.object({ id: z.number(), title: z.string(), location: z.object({ country: z.string().optional() }).passthrough().optional() }).passthrough()), { timeoutMs: 20_000 });
+}
+
+/** EU-located print providers with the blueprints each one makes (cached per instance for 1h). */
+let euIndexCache: { at: number; data: { id: number; title: string; country: string; blueprints: { id: number; title: string }[] }[] } | null = null;
+export async function euProviderIndex(countries: readonly string[]) {
+  if (euIndexCache && Date.now() - euIndexCache.at < 3_600_000) return euIndexCache.data;
+  const all = await listPrintProviders();
+  const eu = all.filter((p) => countries.includes(p.location?.country ?? ""));
+  const details = await Promise.all(eu.map((p) => printProvider(String(p.id)).catch(() => null)));
+  const data = details.filter((d): d is z.infer<typeof providerDetail> => Boolean(d)).map((d) => ({ id: d.id, title: d.title, country: d.location?.country ?? "", blueprints: (d.blueprints ?? []).map((b) => ({ id: b.id, title: b.title })) }));
+  euIndexCache = { at: Date.now(), data };
+  return data;
 }
 const pVariant = z
   .object({
@@ -281,7 +304,19 @@ export async function registerWebhook(url: string) {
   if (!secret) return { registered: false, note: "Set PRINTIFY_WEBHOOK_SECRET first" };
   const sid = await shopId();
   const target = `${url}?token=${encodeURIComponent(secret)}`;
+  // Idempotent: keep hooks that already point at the current URL+token, drop stale ones for our endpoint.
+  const existing = await pfy(`/shops/${sid}/webhooks.json`, z.array(z.object({ id: z.string(), topic: z.string(), url: z.string() }).passthrough())).catch(() => []);
+  const have = new Set<string>();
+  for (const h of existing) {
+    if (!h.url.startsWith(url)) continue;
+    if (h.url === target) {
+      have.add(h.topic);
+      continue;
+    }
+    await pfy(`/shops/${sid}/webhooks/${h.id}.json?host=${encodeURIComponent(new URL(url).host)}`, z.unknown(), { method: "DELETE" }).catch(() => null);
+  }
   for (const topic of ["order:updated", "order:sent-to-production", "order:shipment:created", "order:shipment:delivered"]) {
+    if (have.has(topic)) continue;
     try {
       await pfy(`/shops/${sid}/webhooks.json`, z.unknown(), { method: "POST", body: { topic, url: target, secret } });
     } catch (e) {

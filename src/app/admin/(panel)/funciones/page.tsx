@@ -37,7 +37,12 @@ export default async function FeaturesPage() {
     ["Pagos (Stripe)", isConfigured.stripe(), "Tarjeta, Apple Pay, Google Pay y Bizum (activar en Stripe)", "/admin/settings"],
     ["Emails (Resend)", isConfigured.email(), "Confirmaciones, envíos, tarjetas regalo", "/admin/settings"],
     ["Tareas automáticas (CRON_SECRET)", Boolean(env.cronSecret()), "Reintentos, seguimiento, drops, carritos abandonados"],
-    ["Avisos de proveedores (webhooks)", Boolean(process.env.PRINTFUL_WEBHOOK_SECRET && process.env.GELATO_WEBHOOK_SECRET), "Estados y seguimiento en tiempo real", "/admin/providers"],
+    [
+      "Avisos de proveedores (webhooks)",
+      ["PRINTFUL_WEBHOOK_SECRET", "GELATO_WEBHOOK_SECRET", "PRINTIFY_WEBHOOK_SECRET", "PRODIGI_WEBHOOK_SECRET"].every((k) => Boolean(process.env[k])),
+      `Estados y seguimiento en tiempo real · ${["PRINTFUL", "GELATO", "PRINTIFY", "PRODIGI"].filter((p) => process.env[`${p}_WEBHOOK_SECRET`]).length}/4 proveedores`,
+      "/admin/providers",
+    ],
     ["IA", isConfigured.ai(), "Textos de producto y contenido", "/admin/ai"],
   ];
 

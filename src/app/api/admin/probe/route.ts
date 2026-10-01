@@ -3,6 +3,7 @@ import { getStaffSession, hasRole } from "@/lib/auth/rbac";
 import { isProviderError } from "@/lib/fulfillment/errors";
 import { getProdigiProduct, quote } from "@/lib/fulfillment/prodigi";
 import * as printify from "@/lib/fulfillment/printify";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,24 @@ export async function GET(req: Request) {
       return NextResponse.json(await quote([{ sku, attributes: Object.fromEntries((attrs ?? "").split(",").filter(Boolean).map((x) => x.split("="))), copies: 1 }], "ES"));
     }
     if (what === "printify-shop") return NextResponse.json({ shop: await printify.shopId() });
+    if (what === "printify-eu") {
+      const idx = await printify.euProviderIndex(["ES", "PT", "FR", "DE", "IT", "NL", "BE", "LU", "AT", "IE", "PL", "CZ", "SK", "SI", "HU", "RO", "BG", "HR", "GR", "LV", "LT", "EE", "SE", "DK", "FI"]);
+      const re = arg ? new RegExp(arg, "i") : null;
+      return NextResponse.json(idx.map((p) => ({ id: p.id, title: p.title, country: p.country, count: p.blueprints.length, matches: re ? p.blueprints.filter((b) => re.test(b.title)).map((b) => `${b.id} ${b.title}`).slice(0, 15) : undefined })));
+    }
+    if (what === "printify-webhooks") {
+      const sid = await printify.shopId();
+      const hooks = await printify.pfy(`/shops/${sid}/webhooks.json`, z.array(z.object({ id: z.string(), topic: z.string(), url: z.string() }).passthrough()));
+      const secret = process.env.PRINTIFY_WEBHOOK_SECRET ?? "";
+      // never echo the token: only whether it matches the configured secret
+      return NextResponse.json(
+        hooks.map((h) => {
+          const u = new URL(h.url);
+          const token = u.searchParams.get("token") ?? "";
+          return { topic: h.topic, endpoint: `${u.origin}${u.pathname}`, tokenMatches: Boolean(secret) && token === secret };
+        }),
+      );
+    }
     if (what === "printify-blueprints") {
       const all = await printify.listBlueprints();
       const re = new RegExp(arg || ".", "i");
