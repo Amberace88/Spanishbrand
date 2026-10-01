@@ -782,7 +782,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     // lifestyle photos generated with the PDFs (scripts/calendar-mockups.py), served as static files from our domain
     const labels = ["en la pared", "un mes por dentro", "portada y enero"];
     for (let n = 1; n <= 3; n++) {
-      await addImage(product!.id, `${env.siteUrl()}/catalog/calendars/${st.slug}-${n}.jpg`, `${product!.name} — ${labels[n - 1]}`, n - 1, null, n === 1 ? "LIFESTYLE" : "MOCKUP");
+      await addImage(product!.id, `${env.siteUrl()}/catalog/calendars/${design.slug}-${n}.jpg`, `${product!.name} — ${labels[n - 1]}`, n - 1, null, n === 1 ? "LIFESTYLE" : "MOCKUP");
     }
     await save(job, { phase: "publish" });
     return { key: job.key, phase: "publish", done: false };
@@ -902,7 +902,7 @@ async function release(key: string) {
   await db().from("catalog_jobs").update({ locked_until: null }).eq("key", key);
 }
 
-export async function runStep(key: string, staff: StaffSession, opts: { retry?: boolean; reset?: boolean } = {}): Promise<StepResult> {
+export async function runStep(key: string, staff: StaffSession, opts: { retry?: boolean; reset?: boolean; rebuild?: boolean } = {}): Promise<StepResult> {
   const kind: JobRow["kind"] = key.startsWith("res:") ? "RESOLVE" : "PRODUCT";
   await loadJob(key, kind); // make sure the row exists before leasing
   if (!(await lease(key))) return { key, phase: "busy", done: true, message: "otro proceso lo está construyendo" };
@@ -913,8 +913,20 @@ export async function runStep(key: string, staff: StaffSession, opts: { retry?: 
   }
 }
 
-async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSession, opts: { retry?: boolean; reset?: boolean }): Promise<StepResult> {
+async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSession, opts: { retry?: boolean; reset?: boolean; rebuild?: boolean }): Promise<StepResult> {
   const job = await loadJob(key, kind);
+  // rebuild: the design changed — retire the live product (hidden + archived, slug freed, order history intact)
+  // and build it again from the current artwork.
+  if (opts.rebuild && kind === "PRODUCT" && (job.phase === "done" || job.phase === "failed")) {
+    if (job.product_id) {
+      const { data: old } = await db().from("products").select("slug").eq("id", job.product_id).maybeSingle();
+      if (old) await db().from("products").update({ status: "ARCHIVED", visibility: "HIDDEN", slug: `${old.slug}-v${Date.now().toString(36)}` }).eq("id", job.product_id);
+    }
+    await save(job, { phase: "new", product_id: null, state: {}, error: null, attempts: 0 });
+    job.phase = "new";
+    job.product_id = null;
+    job.state = {};
+  }
   // reset: re-resolve a provider lookup (e.g. after a provider-selection change). Only for RESOLVE jobs
   // and only if no product built on it is already live — products keep their own mapping.
   if (opts.reset && kind === "RESOLVE" && job.phase !== "new") {

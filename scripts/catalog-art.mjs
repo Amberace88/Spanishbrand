@@ -256,12 +256,57 @@ const M = {
      <path d="M410 600 H590 M410 650 H560 M410 700 H520" stroke="${a}" stroke-width="14" stroke-linecap="round"/>`,
 
   // ───── embroidery-safe (flat, Printful thread colours only) ─────
-  crownemb: ({ a, b }) =>
-    `<path d="M170 700 L120 330 L330 500 L500 230 L670 500 L880 330 L830 700 Z" fill="${a}"/>
-     <rect x="160" y="710" width="680" height="90" rx="14" fill="${a}"/>
-     <circle cx="120" cy="300" r="42" fill="${a}"/><circle cx="500" cy="190" r="46" fill="${a}"/><circle cx="880" cy="300" r="42" fill="${a}"/>
-     <circle cx="330" cy="755" r="26" fill="${b}"/><circle cx="500" cy="755" r="26" fill="${b}"/><circle cx="670" cy="755" r="26" fill="${b}"/>
-     <path d="M500 330 L540 470 L500 610 L460 470 Z" fill="${b}"/>`,
+  // Royal crown in the style of the brand lion's crown: cross + orb, five pearled arches over red velvet,
+  // fleur-tipped circlet with jewels. Flat shapes, thread colours only (a gold, b red, c bright gold, d white).
+  crownemb: ({ a, b, c = "#FFCC00", d = "#FFFFFF" }) => {
+    // cubic arches springing from the fleurons and dipping where they meet under the orb (like the lion's crown)
+    const A = [[205, 548, 190, 320, 420, 285, 500, 352], [795, 548, 810, 320, 580, 285, 500, 352], [352, 552, 352, 395, 455, 320, 500, 352], [648, 552, 648, 395, 545, 320, 500, 352]];
+    const bez = (q, t) => { const [x0, y0, x1, y1, x2, y2, x3, y3] = q, u = 1 - t; return [u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3]; };
+    const arch = (q) => `<path d="M${q[0]} ${q[1]} C ${q[2]} ${q[3]} ${q[4]} ${q[5]} ${q[6]} ${q[7]}" fill="none" stroke="${a}" stroke-width="30" stroke-linecap="round"/>`;
+    const pearls = (q, n) => Array.from({ length: n }, (_, i) => { const [x, y] = bez(q, (i + 1) / (n + 1)); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11.5" fill="${c}"/>`; }).join("");
+    const fleur = (x, h) => `<path d="M${x} ${660 - h} C ${x - 22} ${660 - h * 0.7} ${x - 52} ${660 - h * 0.55} ${x - 44} ${660 - h * 0.22} C ${x - 30} ${640} ${x - 14} ${652} ${x} 660 C ${x + 14} ${652} ${x + 30} ${640} ${x + 44} ${660 - h * 0.22} C ${x + 52} ${660 - h * 0.55} ${x + 22} ${660 - h * 0.7} ${x} ${660 - h} Z" fill="${a}"/>`;
+    return `
+     <path d="M196 662 L205 548 C 190 320 420 285 500 352 C 580 285 810 320 795 548 L804 662 Z" fill="${b}"/>
+     <path d="M500 352 L500 552" stroke="${a}" stroke-width="30" stroke-linecap="round"/>
+     ${A.map(arch).join("")}
+     ${A.map((q, i) => pearls(q, i < 2 ? 7 : 4)).join("")}${[420, 470, 515].map((y) => `<circle cx="500" cy="${y}" r="11.5" fill="${c}"/>`).join("")}
+     ${[[205, 130], [352, 120], [500, 125], [648, 120], [795, 130]].map(([x, h]) => fleur(x, h)).join("")}
+     ${[278, 426, 574, 722].map((x) => `<path d="M${x} 618 L${x + 14} 662 H${x - 14} Z" fill="${a}"/><circle cx="${x}" cy="606" r="13" fill="${c}"/>`).join("")}
+     <circle cx="500" cy="318" r="42" fill="${a}"/><path d="M462 318 H538" stroke="${c}" stroke-width="10" stroke-linecap="round"/>
+     <path d="M484 172 H516 V208 H548 V240 H516 V282 H484 V240 H452 V208 H484 Z" fill="${a}"/>
+     <path d="M150 662 H850 L838 772 Q500 800 162 772 Z" fill="${a}"/>
+     <path d="M152 664 H848" stroke="${c}" stroke-width="14" stroke-linecap="round"/><path d="M166 768 Q500 796 834 768" fill="none" stroke="${c}" stroke-width="14" stroke-linecap="round"/>
+     ${[[230, d], [365, b], [500, d], [635, b], [770, d]].map(([x, col], i) => (i % 2 ? `<rect x="${x - 24}" y="694" width="48" height="48" rx="7" transform="rotate(45 ${x} 718)" fill="${col}"/>` : `<ellipse cx="${x}" cy="718" rx="28" ry="32" fill="${col}"/>`)).join("")}
+     ${[298, 432, 568, 702].map((x) => `<circle cx="${x}" cy="718" r="10" fill="${c}"/>`).join("")}`;
+  },
+  // Painted red-and-gold brush swoosh (as under the lookbook lettering): tapered strokes with dry-brush streaks.
+  swoosh: ({ a, b }) => {
+    let r = 11;
+    const rnd = () => ((r = (r * 9301 + 49297) % 233280) / 233280);
+    // centreline: gentle rising curve; thickness tapers to a point on the left, dry-brush break-up on the right
+    const P = (t, y0, y1) => [70 + 860 * t, y0 + (y1 - y0) * t - 40 * Math.sin(Math.PI * t)];
+    const N = (t, y0, y1) => { const [x1, ya] = P(t - 0.005, y0, y1), [x2, yb] = P(t + 0.005, y0, y1), dx = x2 - x1, dy = yb - ya, l = Math.hypot(dx, dy); return [-dy / l, dx / l]; };
+    const W = (t, k) => k * Math.min(1, Math.pow(t / 0.35, 0.8)) * (t > 0.85 ? 1 - (t - 0.85) * 2.2 : 1);
+    const stroke = (y0, y1, k, col) => {
+      const top = [], bot = [];
+      for (let i = 0; i <= 80; i++) {
+        const t = i / 80, [x, y] = P(t, y0, y1), [nx, ny] = N(Math.min(0.995, Math.max(0.005, t)), y0, y1), w = W(t, k) * (0.92 + rnd() * 0.12);
+        top.push(`${(x + nx * w).toFixed(1)} ${(y + ny * w).toFixed(1)}`);
+        bot.push(`${(x - nx * w * 0.8).toFixed(1)} ${(y - ny * w * 0.8).toFixed(1)}`);
+      }
+      let out = `<path d="M${top.join(" L")} L${bot.reverse().join(" L")} Z" fill="${col}"/>`;
+      for (let i = 0; i < 22; i++) {
+        const off = (rnd() * 2 - 1) * k * 1.05, t0 = 0.2 + rnd() * 0.45, t1 = Math.min(1.04, t0 + 0.3 + rnd() * 0.45), pts = [];
+        for (let j = 0; j <= 20; j++) { const t = t0 + ((t1 - t0) * j) / 20, [x, y] = P(t, y0, y1), [nx, ny] = N(Math.min(0.995, t), y0, y1); pts.push(`${(x + nx * off).toFixed(1)} ${(y + ny * off).toFixed(1)}`); }
+        out += `<path d="M${pts.join(" L")}" fill="none" stroke="${col}" stroke-width="${(2.5 + rnd() * 6).toFixed(1)}" stroke-linecap="round" opacity="${(0.6 + rnd() * 0.4).toFixed(2)}"/>`;
+      }
+      return out;
+    };
+    return stroke(500, 430, 38, a) + stroke(590, 525, 34, b);
+  },
+  swooshemb: ({ a, b }) =>
+    `<path d="M70 480 C 300 430 650 360 930 380 L 900 420 C 640 430 320 520 110 540 Z" fill="${a}"/>
+     <path d="M140 580 C 360 530 660 470 930 470 L 900 508 C 650 520 380 600 170 622 Z" fill="${b}"/>`,
   flagemb: ({ a, b }) => `<rect x="60" y="260" width="880" height="480" rx="40" fill="${a}"/><rect x="60" y="380" width="880" height="240" fill="${b}"/>`,
 
   // ───── military-inspired (generic: no armed-forces emblems, ranks, unit crests or weapons) ─────
@@ -431,7 +476,9 @@ const ART = [
   ["spain-red", "spain", { a: C.red }],
   ["spain-ink", "spain", { a: C.ink }],
   ["dots-gold", "dots", { a: C.gold }],
-  ["crown-emb", "crownemb", { a: "#A67843", b: "#CC3333" }],
+  ["crown-emb", "crownemb", { a: "#A67843", b: "#CC3333", c: "#FFCC00", d: "#FFFFFF" }],
+  ["swoosh-rg", "swoosh", { a: "#c8102e", b: "#e0b030" }],
+  ["swoosh-emb", "swooshemb", { a: "#CC3333", b: "#FFCC00" }],
   ["flag-emb", "flagemb", { a: "#CC3333", b: "#FFCC00" }],
   ["camo-olive", "camo", { a: "#4b5320", b: "#6b7a3a", c: "#2f3a1c", d: "#a89f6a" }],
   ["camo-sand", "camo", { a: "#c3b091", b: "#a48c63", c: "#7a6a4a", d: "#e0d2b0" }],
@@ -502,6 +549,30 @@ for (const [name, motif, colors] of ART) {
 for (const [name, file] of [["logo-lion", "logo-lion.png"], ["logo-text", "logo-text.png"], ["logo-full", "logo-full.png"]]) {
   const src = new URL(`../public/brand/${file}`, import.meta.url).pathname;
   const out = await sharp(src).trim({ threshold: 1 }).png({ compressionLevel: 9 }).toBuffer({ resolveWithObject: true });
+  await writeFile(new URL(`${name}.png`, OUT), out.data);
+  manifest[name] = +(out.info.height / out.info.width).toFixed(4);
+}
+// Lookbook artwork (generated for the brand from our lookbook, transparent PNG). Green-screen spill is
+// neutralised (G clamped to max(R,B) on semi-transparent / greenish pixels) so no green fringe prints.
+for (const name of ["lion-crowned", "crown-royal"]) {
+  const src = new URL(`../public/brand/${name}.png`, import.meta.url).pathname;
+  let raw;
+  try {
+    raw = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  } catch {
+    continue; // not supplied yet
+  }
+  const { data, info } = raw;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+    if (a < 8) { data[i + 3] = 0; continue; }
+    const m = Math.max(r, b);
+    if (g > m + 12) {
+      data[i + 1] = m; // despill
+      if (g > 150 && r < 140 && b < 140) data[i + 3] = Math.round(a * 0.15); // leftover screen
+    }
+  }
+  const out = await sharp(data, { raw: info }).trim({ threshold: 1 }).png({ compressionLevel: 9 }).toBuffer({ resolveWithObject: true });
   await writeFile(new URL(`${name}.png`, OUT), out.data);
   manifest[name] = +(out.info.height / out.info.width).toFixed(4);
 }
