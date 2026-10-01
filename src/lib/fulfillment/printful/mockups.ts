@@ -47,8 +47,10 @@ const pfPrintfiles = z
   .passthrough();
 
 /** GET /mockup-generator/printfiles/{product_id} — exact print-file sizes per placement. */
-export async function getPrintfiles(productId: string) {
-  const res = await pf(`/mockup-generator/printfiles/${encodeURIComponent(productId)}`, pfEnvelope(pfPrintfiles));
+export async function getPrintfiles(productId: string, technique?: "EMBROIDERY" | "DTG" | "SUBLIMATION") {
+  // Printful lists placements for the product's default technique unless one is requested (e.g. embroidery on a DTG tee)
+  const q = technique ? `?technique=${technique}` : "";
+  const res = await pf(`/mockup-generator/printfiles/${encodeURIComponent(productId)}${q}`, pfEnvelope(pfPrintfiles));
   return res.result;
 }
 

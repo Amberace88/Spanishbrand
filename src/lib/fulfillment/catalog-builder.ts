@@ -207,7 +207,7 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
     try {
       const p = await getCatalogProduct(cid);
       if (p.product.discontinued || !ok(p.product.title)) return;
-      const pf = await getPrintfiles(cid);
+      const pf = await getPrintfiles(cid, wantsEmb ? "EMBROIDERY" : undefined);
       const pls = Object.keys(pf.variant_printfiles[0]?.placements ?? {}).filter(printable);
       const pick = pls.includes(bp.placement) ? bp.placement : wantsEmb ? (pls.find((x) => /front|chest_left|chest_center/.test(x)) ?? pls[0] ?? null) : pls.includes("default") ? "default" : pls.find((x) => x === "front" || x.startsWith("front")) ?? null;
       if (!pick) return;
