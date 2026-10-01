@@ -962,9 +962,11 @@ async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSess
   if (job.phase === "done") return { key, phase: "done", done: true };
   if (job.phase === "failed") {
     if (!opts.retry) return { key, phase: "failed", done: true, error: job.error ?? undefined };
-    // retry: drop a half-built product and start again
+    // retry: drop a half-built product and start again (a pending replacement keeps pointing at the live product)
     if (job.product_id) await db().from("products").delete().eq("id", job.product_id).neq("status", "PUBLISHED");
-    await save(job, { phase: "new", product_id: null, state: {}, error: null });
+    const replaces = (job.state as { replaces?: string | null }).replaces ?? null;
+    await save(job, { phase: "new", product_id: null, state: replaces ? { replaces } : {}, error: null });
+    job.state = replaces ? { replaces } : {};
   }
   try {
     if (kind === "RESOLVE") return await stepResolve(job);
@@ -990,9 +992,10 @@ async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSess
     }
   } catch (e) {
     const msg = isProviderError(e) ? `${e.message} (${e.endpoint ?? ""} ${e.status ?? ""})` : e instanceof Error ? e.message : String(e);
-    if (isProviderError(e) && (e.status === 429 || e.status === null || (e.status ?? 0) >= 500) && job.attempts < 6) {
+    const transient = (isProviderError(e) && (e.status === 429 || e.status === null || (e.status ?? 0) >= 500)) || /Bad Gateway|Gateway Timeout|Service Unavailable|fetch failed|ECONNRESET|ETIMEDOUT|socket hang up/i.test(msg);
+    if (transient && job.attempts < 6) {
       await save(job, { attempts: job.attempts + 1, error: msg });
-      return { key, phase: job.phase, done: false, waitMs: e.status === 429 ? 30_000 : 5_000, error: msg };
+      return { key, phase: job.phase, done: false, waitMs: isProviderError(e) && e.status === 429 ? 30_000 : 5_000, error: msg };
     }
     log.warn("CATALOG", "catalog build step failed", { key, phase: job.phase, msg });
     await save(job, { phase: "failed", error: msg.slice(0, 900), attempts: job.attempts + 1 });
