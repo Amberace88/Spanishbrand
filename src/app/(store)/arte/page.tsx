@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 const SERIES: { key: string; es: string; en: string; sub: [string, string]; pieces: string[] }[] = [
   { key: "espana", es: "España eterna", en: "Timeless Spain", sub: ["Los símbolos de siempre, grabados como en un museo.", "The timeless symbols, engraved like museum pieces."], pieces: ["toro", "flamenca", "guitarra", "quijote", "alhambra", "galeon"] },
   { key: "mar", es: "Mediterráneo", en: "Mediterranean", sub: ["Cal, sal y olivo: la costa y el campo del sur.", "Whitewash, salt and olive: the southern coast and countryside."], pieces: ["pueblo-blanco", "barca", "faro", "chiringuito", "olivo"] },
-  { key: "mesa", es: "La mesa", en: "At the table", sub: ["Lo que se comparte: vino, jamón y paella de domingo.", "What we share: wine, ham and Sunday paella."], pieces: ["vino", "jamon", "paella"] },
-  { key: "fiesta", es: "Fiesta y camino", en: "Fiesta and pilgrimage", sub: ["Fuego en Valencia, torres humanas y el Camino.", "Fire in Valencia, human towers and the Way."], pieces: ["fallas", "castellers", "peregrino"] },
+  { key: "mesa", es: "La mesa", en: "At the table", sub: ["Lo que se comparte: vino, jamón, paella, churros y vermut.", "What we share: wine, ham, paella, churros and vermouth."], pieces: ["vino", "jamon", "paella", "churros", "vermut"] },
+  { key: "fiesta", es: "Fiesta y camino", en: "Fiesta and pilgrimage", sub: ["Fallas, castellers, feria, San Fermín y el Camino.", "Fallas, human towers, the fair, San Fermín and the Way."], pieces: ["fallas", "castellers", "feria", "sanfermin", "peregrino"] },
   { key: "deporte", es: "Deporte y motor", en: "Sport and motor", sub: ["Estadio, parada, remate, puerto, rally y carretera.", "Stadium, save, smash, mountain pass, rally and the open road."], pieces: ["estadio", "portero", "padel", "ciclista", "rally", "moto"] },
 ];
 

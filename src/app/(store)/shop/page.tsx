@@ -156,7 +156,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <div className="flex flex-col justify-center p-6 sm:p-10">
                 <p className="kicker text-[#a3162b]">{en ? "New · Author illustration" : "Nuevo · Ilustración de autor"}</p>
                 <p className="headline mt-2 text-3xl uppercase leading-[1.02] sm:text-5xl">{en ? "Wearable art" : "Arte que se lleva"}</p>
-                <p className="mt-3 max-w-md text-sm text-[#1c1a17]/70">{en ? "23 illustrations of Spain in five series, printed as large as the garment allows." : "23 ilustraciones de España en cinco series, impresas tan grandes como permite la prenda."}</p>
+                <p className="mt-3 max-w-md text-sm text-[#1c1a17]/70">{en ? "27 illustrations of Spain in five series, printed as large as the garment allows." : "27 ilustraciones de España en cinco series, impresas tan grandes como permite la prenda."}</p>
                 <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#a3162b]">
                   {en ? "See the series" : "Ver las series"} <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
