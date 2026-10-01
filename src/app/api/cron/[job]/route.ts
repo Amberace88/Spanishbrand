@@ -9,6 +9,7 @@ import { fulfillmentProviderFactory } from "@/lib/fulfillment/factory";
 import { applyProviderSnapshot } from "@/lib/orders/fulfillment-engine";
 import { getBrand } from "@/lib/brand";
 import { log } from "@/lib/logger";
+import { runCatalogBatch } from "@/lib/fulfillment/catalog-builder";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +25,16 @@ function authorized(req: Request) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+/** Staff identity for unattended catalog steps (audit trail points at the owner account). */
+async function systemStaff() {
+  const { data } = await db().from("user_roles").select("user_id, role").eq("brand_id", env.brandId()).in("role", ["SUPER_ADMIN", "ADMIN"]).order("role", { ascending: false }).limit(1).maybeSingle();
+  if (!data) throw new Error("no admin user for system staff");
+  return { userId: data.user_id as string, email: "system@cron", roles: ["SUPER_ADMIN", "ADMIN"] as const } as unknown as import("@/lib/auth/rbac").StaffSession;
+}
+
 const JOBS: Record<string, () => Promise<unknown>> = {
+  /** Every minute: advance the catalog builder server-side (safe next to the admin page runner). */
+  catalog: async () => runCatalogBatch(await systemStaff(), { budgetMs: 9_000, workers: 3 }),
   /** Daily: catalog sync for configured providers (never publishes). */
   "catalog-sync": async () => {
     const out: Record<string, unknown> = {};

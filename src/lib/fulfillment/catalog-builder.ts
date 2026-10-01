@@ -102,7 +102,7 @@ interface JobRow {
 
 export interface StepResult {
   key: string;
-  phase: Phase;
+  phase: Phase | "busy";
   done: boolean;
   waitMs?: number;
   error?: string;
@@ -124,7 +124,7 @@ async function save(job: JobRow, patch: Partial<JobRow>) {
 }
 
 export async function listJobs() {
-  const { data } = await db().from("catalog_jobs").select("key, kind, phase, product_id, error, attempts, updated_at").eq("brand_id", env.brandId());
+  const { data } = await db().from("catalog_jobs").select("key, kind, phase, product_id, error, attempts, updated_at, locked_until").eq("brand_id", env.brandId());
   return data ?? [];
 }
 
@@ -851,8 +851,33 @@ async function stepPublish(job: JobRow, staff: StaffSession): Promise<StepResult
 
 /* ───────────────────────── step dispatcher ───────────────────────── */
 
+/** Lease a job for one step (60 s). Returns false when another runner holds it. */
+async function lease(key: string): Promise<boolean> {
+  const now = new Date();
+  const { data } = await db()
+    .from("catalog_jobs")
+    .update({ locked_until: new Date(now.getTime() + 60_000).toISOString() })
+    .eq("key", key)
+    .or(`locked_until.is.null,locked_until.lt.${now.toISOString()}`)
+    .select("key");
+  return !!data?.length;
+}
+async function release(key: string) {
+  await db().from("catalog_jobs").update({ locked_until: null }).eq("key", key);
+}
+
 export async function runStep(key: string, staff: StaffSession, opts: { retry?: boolean; reset?: boolean } = {}): Promise<StepResult> {
   const kind: JobRow["kind"] = key.startsWith("res:") ? "RESOLVE" : "PRODUCT";
+  await loadJob(key, kind); // make sure the row exists before leasing
+  if (!(await lease(key))) return { key, phase: "busy", done: true, message: "otro proceso lo está construyendo" };
+  try {
+    return await runStepLocked(key, kind, staff, opts);
+  } finally {
+    await release(key).catch(() => null);
+  }
+}
+
+async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSession, opts: { retry?: boolean; reset?: boolean }): Promise<StepResult> {
   const job = await loadJob(key, kind);
   // reset: re-resolve a provider lookup (e.g. after a provider-selection change). Only for RESOLVE jobs
   // and only if no product built on it is already live — products keep their own mapping.
@@ -900,4 +925,50 @@ export async function runStep(key: string, staff: StaffSession, opts: { retry?: 
     await save(job, { phase: "failed", error: msg.slice(0, 900), attempts: job.attempts + 1 });
     return { key, phase: "failed", done: true, error: msg };
   }
+}
+
+
+/* ───────────────────────── server-side runner (cron) ───────────────────────── */
+
+/**
+ * Runs catalog steps for ~`budgetMs` with `workers` parallel jobs. Picks resolves first, then
+ * jobs already in progress, then new plan items. Leases make it safe next to the browser runner.
+ * A new step only starts while there is time left for it to finish inside the function limit.
+ */
+export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: number; workers?: number } = {}) {
+  const started = Date.now();
+  const budget = opts.budgetMs ?? 9_000;
+  const plan = buildPlan();
+  const jobs = await listJobs();
+  const state = new Map(jobs.map((j) => [j.key, j]));
+  const nowIso = new Date().toISOString();
+  const free = (k: string) => {
+    const j = state.get(k) as { locked_until?: string | null } | undefined;
+    return !j?.locked_until || j.locked_until < nowIso;
+  };
+  const open = (k: string) => {
+    const ph = state.get(k)?.phase;
+    return ph !== "done" && ph !== "failed";
+  };
+  const resolves = plan.filter((p) => p.kind === "RESOLVE" && open(p.key) && free(p.key));
+  const inProgress = plan.filter((p) => p.kind === "PRODUCT" && state.has(p.key) && open(p.key) && state.get(p.key)!.phase !== "new" && free(p.key));
+  const fresh = plan.filter((p) => p.kind === "PRODUCT" && open(p.key) && (!state.has(p.key) || state.get(p.key)!.phase === "new") && free(p.key));
+  const queue = [...resolves, ...inProgress, ...fresh].map((p) => p.key);
+  const remaining = queue.length;
+  const results: { key: string; phase: string; error?: string }[] = [];
+  const worker = async () => {
+    while (queue.length && Date.now() - started < budget) {
+      const key = queue.shift()!;
+      // keep stepping the same job while time allows (mockup polling etc.)
+      for (let i = 0; i < 12 && Date.now() - started < budget; i++) {
+        const r = await runStep(key, staff);
+        if (r.done || r.waitMs) {
+          results.push({ key, phase: r.phase, error: r.error });
+          break;
+        }
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: opts.workers ?? 3 }, worker));
+  return { ms: Date.now() - started, remaining, processed: results.length, results: results.slice(0, 20) };
 }
