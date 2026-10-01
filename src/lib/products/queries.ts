@@ -183,25 +183,21 @@ function compactVariants(p: PublicProduct): PublicProduct {
 }
 
 async function loadListing(): Promise<PublicProduct[]> {
-  // small pages in parallel: one big join hits PostgREST row caps and statement timeouts
-  const PAGE = 150;
   const sb = dbOrNull();
   if (!sb) return [];
-  const { count } = await sb.from("products").select("id", { count: "exact", head: true }).eq("brand_id", env.brandId()).eq("status", "PUBLISHED").eq("fulfillment_eligible", true).eq("visibility", "PUBLIC");
-  const pages = Math.max(1, Math.ceil(Math.min(count ?? PAGE, 3000) / PAGE));
-  const out: PublicProduct[][] = [];
-  for (let start = 0; start < pages; start += 4) {
-    const chunk = await Promise.all(
-      Array.from({ length: Math.min(4, pages - start) }, async (_, k) => {
-        const i = start + k;
-        const { data, error } = await publishedQuery()!.lt("product_images.sort", 4).order("published_at", { ascending: false }).order("id").range(i * PAGE, i * PAGE + PAGE - 1);
-        if (error) throw new Error(error.message);
-        return (data ?? []).map((r) => compactVariants(mapProduct(r as Row)));
-      }),
-    );
-    out.push(...chunk);
+  // one round trip: the DB builds the lean listing (first images, one variant per colour) — see migration listing_products
+  const rpc = await sb.rpc("listing_products", { p_brand: env.brandId() });
+  if (!rpc.error && Array.isArray(rpc.data)) return (rpc.data as Row[]).map((r) => compactVariants(mapProduct(r)));
+  // fallback (function not deployed yet): small pages in sequence
+  const PAGE = 120;
+  const out: PublicProduct[] = [];
+  for (let i = 0; i < 25; i++) {
+    const { data, error } = await publishedQuery()!.lt("product_images.sort", 4).order("published_at", { ascending: false }).order("id").range(i * PAGE, i * PAGE + PAGE - 1);
+    if (error) throw new Error(error.message);
+    out.push(...(data ?? []).map((r) => compactVariants(mapProduct(r as Row))));
+    if (!data || data.length < PAGE) break;
   }
-  return out.flat();
+  return out;
 }
 
 async function listing(): Promise<PublicProduct[]> {
