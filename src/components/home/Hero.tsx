@@ -28,7 +28,8 @@ function HeroFilm({ src }: { src: string }) {
   }, []);
   if (skip) return null;
   return (
-    <div className={`absolute inset-0 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`} aria-hidden>
+    // overflow-hidden: the end-of-film drift (scale) must never spill past the left fade into the text column
+    <div className={`absolute inset-0 overflow-hidden transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`} aria-hidden>
       {/* the film ends on the lion close-up; the held frame keeps drifting so the end never looks frozen */}
       <video
         ref={ref}
