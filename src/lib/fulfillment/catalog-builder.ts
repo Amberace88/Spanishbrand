@@ -586,12 +586,14 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     files.push({ type: "default", url: `${env.siteUrl()}/catalog/calendars/${design.slug}.pdf` });
   } else if (spec.kind === "design") {
     const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
-    const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}.png`, png, "image/png");
+    // versioned path: Printful caches files by URL, so an overwritten print kept producing the old artwork
+    const ver = Date.now().toString(36);
+    const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}.png`, png, "image/png");
     files.push({ type: res.placement ?? bp.placement, url });
     // two-sided designs: second print file on the back (Printful garments that offer a back placement)
     if (design.back?.length && res.provider === "printful" && bp.renderMode === "print" && res.placements.includes("back")) {
       const backPng = await renderDesign({ ...design, layers: design.back }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
-      const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-back.png`, backPng, "image/png");
+      const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}-back.png`, backPng, "image/png");
       files.push({ type: "back", url: backUrl });
     }
   }
@@ -758,7 +760,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     } else {
       png = await renderDesign(PLACEHOLDER, { width, height, mode: bp.renderMode });
     }
-    artUrl = await uploadObject(`catalog/mockup-src/${job.key.replace(/:/g, "-")}.png`, png, "image/png");
+    artUrl = await uploadObject(`catalog/mockup-src/${job.key.replace(/:/g, "-")}-${Date.now().toString(36)}.png`, png, "image/png");
   }
 
   if (res.provider === "prodigi") {
