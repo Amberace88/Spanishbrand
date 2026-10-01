@@ -1,6 +1,6 @@
 /**
  * Netlify Scheduled Function — builds the catalog server-side every minute (no browser needed).
- * Each run advances up to 3 jobs for ~10 s via the protected /api/cron/catalog endpoint; when
+ * Each run (every 3 min) advances up to 3 jobs for ~20 s via the protected /api/cron/catalog endpoint; when
  * nothing is left it returns immediately.
  */
 import type { Config } from "@netlify/functions";
@@ -13,4 +13,4 @@ export default async () => {
   return new Response(`catalog:${r.status} ${(await r.text()).slice(0, 300)}`);
 };
 
-export const config: Config = { schedule: "* * * * *" };
+export const config: Config = { schedule: "*/3 * * * *" }; // every 3 min: Netlify credits
