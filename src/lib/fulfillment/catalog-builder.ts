@@ -770,13 +770,13 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     for (const color of colors) {
       const hex = !color ? null : ({ black: "#141414", white: "#f4f2ee", natural: "#b48a5a" } as Record<string, string>)[color.toLowerCase()] ?? "#141414";
       const [scene] = await posterScenes(poster, bp.key === "canvas" ? { frame: null, mat: false } : { frame: hex ?? "#141414", mat: true });
-      const url = await uploadObject(`catalog/media/${st.slug}/scene-${n}.webp`, scene, "image/webp");
+      const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-scene-${n}.webp`, scene, "image/webp");
       const v = (pvars ?? []).find((x) => x.color === color);
       await addImage(product!.id, url, [product!.name, color].filter(Boolean).join(" — "), n++, color ? (v?.id ?? null) : null, "LIFESTYLE");
       if (v) await sb.from("product_variants").update({ image: url }).eq("product_id", product!.id).eq("color", color ?? "");
     }
     const [, flat] = await posterScenes(poster, { frame: null, mat: false });
-    await addImage(product!.id, await uploadObject(`catalog/media/${st.slug}/flat.webp`, flat, "image/webp"), `${product!.name} — detalle`, n, null);
+    await addImage(product!.id, await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-flat.webp`, flat, "image/webp"), `${product!.name} — detalle`, n, null);
     await save(job, { phase: "publish" });
     return { key: job.key, phase: "publish", done: false };
   }
@@ -828,8 +828,8 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   if (res.provider === "gelato") {
     const poster = await (await fetch(artUrl)).arrayBuffer();
     const [scene, flat] = await posterScenes(Buffer.from(poster));
-    const a = await uploadObject(`catalog/media/${st.slug}/scene.webp`, scene, "image/webp");
-    const b = await uploadObject(`catalog/media/${st.slug}/flat.webp`, flat, "image/webp");
+    const a = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-scene.webp`, scene, "image/webp");
+    const b = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-flat.webp`, flat, "image/webp");
     await addImage(product!.id, a, `${product!.name} — en la pared`, 0, null, "LIFESTYLE");
     await addImage(product!.id, b, `${product!.name} — detalle`, 1, null);
     await save(job, { phase: "publish" });
@@ -901,7 +901,7 @@ async function stepImages(job: JobRow): Promise<StepResult> {
     const n = st.done + j;
     const r = await fetch(img.url);
     if (!r.ok) throw new Error(`mockup download ${r.status}`);
-    const url = await uploadObject(`catalog/media/${st.slug}/${n}.webp`, await webp(Buffer.from(await r.arrayBuffer())), "image/webp");
+    const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${n}.webp`, await webp(Buffer.from(await r.arrayBuffer())), "image/webp");
     const variant = (pvars ?? []).find((v) => (v.color ?? "_") === img.color) ?? null;
     await addImage(product!.id, url, [product!.name, img.color !== "_" ? img.color : null, img.title || null].filter(Boolean).join(" — "), n, variant?.id ?? null, img.kind);
     // first image of each colour becomes that colour's variant image
