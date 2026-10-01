@@ -11,7 +11,7 @@ import { IconArrow } from "@/components/ui/Icons";
 const ease = [0.16, 1, 0.3, 1] as const;
 
 /** Hero film (Grok Imagine, from the lookbook still). null = still image only. */
-const HERO_VIDEO: string | null = null;
+const HERO_VIDEO: string | null = "/brand/hero-film";
 
 /**
  * Plays the hero film once over the poster still and holds the final close-up frame.
@@ -20,6 +20,7 @@ const HERO_VIDEO: string | null = null;
 function HeroFilm({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
+  const [ended, setEnded] = useState(false);
   const [skip, setSkip] = useState(false);
   useEffect(() => {
     const c = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
@@ -27,18 +28,27 @@ function HeroFilm({ src }: { src: string }) {
   }, []);
   if (skip) return null;
   return (
-    <video
-      ref={ref}
-      className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
-      src={src}
-      poster="/brand/lookbook-trio.webp"
-      autoPlay
-      muted
-      playsInline
-      preload="auto"
-      aria-hidden
-      onPlaying={() => setReady(true)}
-    />
+    <div className={`absolute inset-0 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`} aria-hidden>
+      {/* the film ends on the lion close-up; the held frame keeps drifting so the end never looks frozen */}
+      <video
+        ref={ref}
+        className="h-full w-full object-cover object-center will-change-transform"
+        style={{ transform: ended ? "scale(1.06)" : "scale(1)", transition: "transform 16s cubic-bezier(.16,1,.3,1)" }}
+        poster="/brand/lookbook-trio.webp"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        onPlaying={() => setReady(true)}
+        onEnded={() => setEnded(true)}
+      >
+        <source src={`${src}.webm`} type="video/webm" />
+        <source src={`${src}.mp4`} type="video/mp4" />
+      </video>
+      {/* soft golden glint that settles on the final frame */}
+      <div className={`pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_55%_35%,rgba(224,184,74,0.18),transparent_70%)] mix-blend-screen transition-opacity duration-[2500ms] ${ended ? "opacity-100" : "opacity-0"}`} />
+    </div>
   );
 }
 
