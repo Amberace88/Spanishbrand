@@ -15,11 +15,11 @@ import type { CostEstimate, ProviderOrderInput, ProviderOrderSnapshot } from "..
 const PREFERRED_OPTION_VALUES: Record<string, string[]> = { stitch_color: ["black", "white"], thread_colors: ["#000000"] };
 type PfBody = ReturnType<typeof toPrintfulOrderBody>;
 export function fillMissingOption(body: PfBody, message: string): boolean {
-  const m = message.match(/Item (\d+): Item '([\w-]+)' option missing or has an invalid value! Allowed values: ([^\n"]+)/i);
+  const m = message.match(/Item (\d+): (?:Item '([\w-]+)' option missing or has an invalid value|([\w-]+) option is missing or incorrect)! Allowed values: ([^\n"]+)/i);
   if (!m) return false;
   const idx = Number(m[1]);
-  const id = m[2];
-  const allowed = m[3].split(",").map((x) => x.trim().replace(/[.!]$/, "")).filter(Boolean);
+  const id = m[2] ?? m[3];
+  const allowed = m[4].split(",").map((x) => x.trim().replace(/[.!]$/, "")).filter(Boolean);
   const item = body.items[idx];
   if (!item || !allowed.length) return false;
   const value = PREFERRED_OPTION_VALUES[id]?.find((v) => allowed.includes(v)) ?? allowed[0];

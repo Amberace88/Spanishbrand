@@ -142,7 +142,7 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
     productType: "TOTE",
     category: "BAGS",
     label: "Bolsa tote",
-    preferredIds: ["1553", "367"],
+    preferredIds: ["367", "1553"],
     match: /Cotton Color Tote|Eco Tote Bag|Organic Tote|Tote Bag/i,
     exclude: /All-Over|Large|Beach|Zip|Clear|Denim|Carry-All|AS Colour/i,
     placement: "front",

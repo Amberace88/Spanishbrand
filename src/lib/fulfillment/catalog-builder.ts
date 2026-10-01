@@ -187,31 +187,43 @@ async function upsertVariants(rowId: string, provider: string, variants: { exter
 async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolved> {
   const spec = (tone && bp.alt?.[tone]) || bp;
   const ok = (title: string) => spec.match.test(title) && !(spec.exclude?.test(title) ?? false);
+  // Candidates: preferred IDs first, then catalog matches. A candidate must have a printable (non-embroidery)
+  // placement for the blueprint — some Printful products only offer embroidery in a region.
+  const printable = (pl: string) => !/embroider/i.test(pl);
+  const tried = new Set<string>();
   let found: Awaited<ReturnType<typeof getCatalogProduct>> | null = null;
-  for (const id of spec.preferredIds ?? []) {
+  let pfiles: Awaited<ReturnType<typeof getPrintfiles>> | null = null;
+  let place = "";
+  const consider = async (cid: string) => {
+    if (tried.has(cid) || found) return;
+    tried.add(cid);
     try {
-      const p = await getCatalogProduct(id);
-      if (!p.product.discontinued && ok(p.product.title)) {
-        found = p;
-        break;
-      }
+      const p = await getCatalogProduct(cid);
+      if (p.product.discontinued || !ok(p.product.title)) return;
+      const pf = await getPrintfiles(cid);
+      const pls = Object.keys(pf.variant_printfiles[0]?.placements ?? {}).filter(printable);
+      const pick = pls.includes(bp.placement) ? bp.placement : pls.includes("default") ? "default" : pls.find((x) => x === "front" || x.startsWith("front")) ?? null;
+      if (!pick) return;
+      found = p;
+      pfiles = pf;
+      place = pick;
     } catch {
-      /* try the next hint */
+      /* try the next candidate */
     }
-  }
+  };
+  for (const cid of spec.preferredIds ?? []) await consider(cid);
   if (!found) {
     const all = await listCatalogProducts();
-    const cand = all.filter((p) => !p.discontinued && ok(p.title));
-    if (!cand.length) throw new Error(`No Printful product matches ${spec.match}`);
-    found = await getCatalogProduct(cand[0].externalId);
+    for (const c of all.filter((p) => !p.discontinued && ok(p.title)).slice(0, 6)) await consider(c.externalId);
   }
-  const p = found.product;
-  const pfiles = await getPrintfiles(p.externalId);
-  const firstVariant = pfiles.variant_printfiles[0];
-  const placements = Object.keys(firstVariant?.placements ?? {});
-  const place = placements.includes(bp.placement) ? bp.placement : placements.includes("default") ? "default" : placements[0];
+  if (!found || !pfiles) throw new Error(`No printable Printful product matches ${spec.match}`);
+  const fp = found as Awaited<ReturnType<typeof getCatalogProduct>>;
+  const p = fp.product;
+  const pfs = pfiles as Awaited<ReturnType<typeof getPrintfiles>>;
+  const firstVariant = pfs.variant_printfiles[0];
+  const placements = Object.keys(firstVariant?.placements ?? {}).filter(printable);
   const pfId = firstVariant?.placements[place];
-  const pf = pfiles.printfiles.find((x) => x.printfile_id === pfId) ?? pfiles.printfiles[0];
+  const pf = pfs.printfiles.find((x) => x.printfile_id === pfId) ?? pfs.printfiles[0];
   let sizeGuide: unknown;
   if (["tee", "hoodie", "sweat", "kids"].includes(bp.key)) {
     try {
@@ -229,16 +241,16 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
     internal_category_code: bp.category,
     techniques: p.techniques,
     placements,
-    variant_count: found.variants.length,
+    variant_count: fp.variants.length,
     discontinued: false,
-    currency: p.currency ?? found.variants[0]?.currency ?? null,
+    currency: p.currency ?? fp.variants[0]?.currency ?? null,
     raw: p.raw as object,
   });
   // EU production only: variants without an EU facility are stored as unavailable so they are never sold.
-  const euOk = (v: (typeof found.variants)[number]) => Object.entries(v.availability ?? {}).some(([r, st]) => r.startsWith("EU") && /in_stock|stocked_on_demand|active/i.test(String(st)));
-  const euVariants = found.variants.filter(euOk);
+  const euOk = (v: (typeof fp.variants)[number]) => Object.entries(v.availability ?? {}).some(([r, st]) => r.startsWith("EU") && /in_stock|stocked_on_demand|active/i.test(String(st)));
+  const euVariants = fp.variants.filter(euOk);
   if (!euVariants.length) throw new Error(`${p.title}: sin producción en la UE en Printful`);
-  await upsertVariants(rowId, "printful", found.variants.map((v) => (euOk(v) ? v : { ...v, status: "OUT_OF_STOCK" })));
+  await upsertVariants(rowId, "printful", fp.variants.map((v) => (euOk(v) ? v : { ...v, status: "OUT_OF_STOCK" })));
   const variantIds = bp.variantFilter || bp.maxVariants ? euVariants.filter((v) => !bp.variantFilter || bp.variantFilter.test(v.name)).slice(0, bp.maxVariants ?? 24).map((v) => v.externalId) : undefined;
   if (variantIds && !variantIds.length) throw new Error(`${p.title}: ninguna variante UE coincide con ${bp.variantFilter}`);
   return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: pf.width, height: pf.height }, placements, placement: place, sizeGuide, variantIds };
