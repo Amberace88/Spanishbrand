@@ -50,3 +50,13 @@ describe("design library", () => {
     expect(retail(30)).toBe(29.95);
   });
 });
+
+describe("printful required options", () => {
+  it("fills stitch_color from the 400 message", async () => {
+    const { fillMissingOption } = await import("@/lib/fulfillment/printful/orders");
+    const body = { items: [{ options: undefined }] } as never as Parameters<typeof fillMissingOption>[0];
+    expect(fillMissingOption(body, "Item 0: Item 'stitch_color' option missing or has an invalid value! Allowed values: white, black, clear")).toBe(true);
+    expect(body.items[0].options).toEqual([{ id: "stitch_color", value: "black" }]);
+    expect(fillMissingOption(body, "Item 0: Item 'stitch_color' option missing or has an invalid value! Allowed values: white, black, clear")).toBe(false);
+  });
+});
