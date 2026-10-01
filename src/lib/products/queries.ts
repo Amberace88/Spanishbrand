@@ -359,7 +359,7 @@ export interface Showcase {
 }
 export const getShowcase = cache(async (): Promise<Showcase> => {
   const products = await getPublishedProducts({ limit: 500 }).catch(() => [] as PublicProduct[]);
-  const score = (p: PublicProduct) => (p.tags.includes("bestseller") ? 4 : 0) + (p.featured ? 2 : 0) + (p.tags.includes("logo") ? 1 : 0);
+  const score = (p: PublicProduct) => (p.tags.includes("arte") ? 6 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.tags.includes("bestseller") ? 4 : 0) + (p.featured ? 2 : 0) + (p.tags.includes("logo") ? 1 : 0);
   const sorted = [...products].filter((p) => p.images[0]?.url).sort((a, b) => score(b) - score(a));
   const out: Showcase = { byType: {}, byCategory: {}, byCollection: {}, byTag: {}, jersey: null, blank: null };
   const bySlug = (re: RegExp) => sorted.find((p) => re.test(p.slug))?.images[0]?.url ?? null;

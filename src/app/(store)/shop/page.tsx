@@ -47,7 +47,7 @@ const TYPES: [string, string, string][] = [
 const typeLabel = (code: string, en: boolean) => TYPES.find((x) => x[0] === code)?.[en ? 2 : 1] ?? code;
 
 const minPrice = (p: PublicProduct) => Math.min(p.price, ...p.variants.map((v) => v.price));
-const score = (p: PublicProduct) => (p.featured ? 6 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.tags.includes("bestseller") ? 3 : 0) + (p.categoryCode === "APPAREL" ? 1 : 0);
+const score = (p: PublicProduct) => (p.tags.includes("arte") ? 8 : 0) + (p.featured ? 6 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.tags.includes("bestseller") ? 3 : 0) + (p.categoryCode === "APPAREL" ? 1 : 0);
 
 function sortProducts(list: PublicProduct[], sort: Sort) {
   const l = [...list];

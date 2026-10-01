@@ -33,7 +33,8 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
   const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 500 })]);
-  const own = all.filter((p) => p.collection?.slug === c.slug);
+  const rank = (p: (typeof all)[number]) => (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
+  const own = all.filter((p) => p.collection?.slug === c.slug).sort((a, b) => rank(b) - rank(a));
   const designs = designsFor(c.slug);
   const type = TYPES.find((x) => x === sp.c);
   const design = designs.find((d) => d.slug === sp.d);

@@ -90,6 +90,24 @@ export function professionDesigns(): Design[] {
       posterBg: "#0d0d0d",
       tags: ["profesion", p.key, "personalizable", "minimal"],
     };
-    return [seal, minimal];
+    // art edition: a full illustration (engraved / painterly, flag brushstrokes) with one bold title — the lead product
+    const artName = `prof-${p.key}`;
+    const a = artAspect(artName);
+    const artW = +Math.min(0.9, 0.6 / (a * 0.75)).toFixed(4);
+    const arte: Design = {
+      slug: `oficio-${p.key}-arte`,
+      collection: "profesiones",
+      name: `${p.label} · Arte`,
+      line: `${p.line} Ilustración de autor a gran tamaño.`,
+      tone: "dark",
+      layers: [
+        { id: id(), type: "image", path: artPath(artName as ArtName), url: artUrl(artName), aspect: a, x: 0.5, y: 0.36, w: artW, rotation: 0 },
+        txt(p.title, "sport", CR, 0.745, 0.085),
+      ],
+      products: ["tee", "hoodie", "sweat", "mug", "poster", ...(p.extra ?? [])],
+      posterBg: "#0d0d0d",
+      tags: ["profesion", p.key, "personalizable", "arte"],
+    };
+    return [arte, seal, minimal];
   });
 }

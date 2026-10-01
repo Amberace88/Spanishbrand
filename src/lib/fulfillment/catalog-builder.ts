@@ -1031,7 +1031,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   // priority: brand-defining lines first (lookbook lion, royal crown, embroidery), then pending replacements, then the rest
   const prio = (key: string) => {
     const d = designBySlug(key.split(":")[1] ?? "");
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado"))) return 0;
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };
