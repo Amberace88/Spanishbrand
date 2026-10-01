@@ -27,6 +27,8 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     ["Stripe", isConfigured.stripe()],
     ["Printful API", isConfigured.printful()],
     ["Gelato API", isConfigured.gelato()],
+    ["Printify API", isConfigured.printify()],
+    ["Prodigi API", isConfigured.prodigi()],
     ["Email (Resend)", isConfigured.email()],
     ["IA", isConfigured.ai()],
     ["CRON_SECRET", Boolean(env.cronSecret())],
@@ -39,7 +41,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       <PageTitle title="Dashboard" sub="Últimos 30 días · datos reales de la base de datos" />
 
       {setup.some(([, ok]) => !ok) && (
-        <Card title="Puesta en marcha" className="mb-6">
+        <Card title="Puesta en marcha" className="mb-6" actions={<Link href="/admin/funciones" className="text-xs font-semibold underline">Ver lista completa →</Link>}>
           <ul className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
             {setup.map(([label, ok]) => (
               <li key={label} className="flex items-center gap-2">

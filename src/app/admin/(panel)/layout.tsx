@@ -11,24 +11,52 @@ import { signOutAction } from "@/app/actions/account";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-const NAV: { href: string; label: string; roles: StaffRole[] }[] = [
-  { href: "/admin", label: "Dashboard", roles: ["ADMIN", "ANALYST", "CUSTOMER_SUPPORT", "CONTENT_MANAGER"] },
-  { href: "/admin/orders", label: "Pedidos", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/fulfillment", label: "Fulfillment", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/products", label: "Productos", roles: ["ADMIN", "CONTENT_MANAGER"] },
-  { href: "/admin/catalogo", label: "Constructor de catálogo", roles: ["ADMIN"] },
-  { href: "/admin/providers", label: "Proveedores", roles: ["ADMIN"] },
-  { href: "/admin/collections", label: "Colecciones", roles: ["ADMIN", "CONTENT_MANAGER"] },
-  { href: "/admin/drops", label: "Drops", roles: ["ADMIN", "CONTENT_MANAGER"] },
-  { href: "/admin/customers", label: "Clientes (CRM)", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/content", label: "Content Studio", roles: ["ADMIN", "CONTENT_MANAGER"] },
-  { href: "/admin/ai", label: "AI Creator", roles: ["ADMIN", "CONTENT_MANAGER", "ANALYST"] },
-  { href: "/admin/analytics", label: "Analítica", roles: ["ADMIN", "ANALYST"] },
-  { href: "/admin/creators", label: "Creadores", roles: ["ADMIN"] },
-  { href: "/admin/b2b", label: "Empresas / B2B", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
-  { href: "/admin/causas", label: "Causas solidarias", roles: ["ADMIN"] },
-  { href: "/admin/community", label: "Comunidad", roles: ["ADMIN", "CONTENT_MANAGER"] },
-  { href: "/admin/settings", label: "Ajustes", roles: ["ADMIN"] },
+const NAV: { group: string; items: { href: string; label: string; roles: StaffRole[] }[] }[] = [
+  {
+    group: "General",
+    items: [
+      { href: "/admin", label: "Dashboard", roles: ["ADMIN", "ANALYST", "CUSTOMER_SUPPORT", "CONTENT_MANAGER"] },
+      { href: "/admin/funciones", label: "Funciones y lanzamiento", roles: ["ADMIN", "ANALYST", "CUSTOMER_SUPPORT", "CONTENT_MANAGER"] },
+    ],
+  },
+  {
+    group: "Ventas",
+    items: [
+      { href: "/admin/orders", label: "Pedidos", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
+      { href: "/admin/fulfillment", label: "Fulfillment", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
+      { href: "/admin/customers", label: "Clientes (CRM)", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
+      { href: "/admin/b2b", label: "Empresas / B2B", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
+    ],
+  },
+  {
+    group: "Catálogo",
+    items: [
+      { href: "/admin/catalogo", label: "Constructor de catálogo", roles: ["ADMIN"] },
+      { href: "/admin/products", label: "Productos", roles: ["ADMIN", "CONTENT_MANAGER"] },
+      { href: "/admin/collections", label: "Colecciones", roles: ["ADMIN", "CONTENT_MANAGER"] },
+      { href: "/admin/drops", label: "Drops", roles: ["ADMIN", "CONTENT_MANAGER"] },
+      { href: "/admin/providers", label: "Proveedores", roles: ["ADMIN"] },
+    ],
+  },
+  {
+    group: "Marketing",
+    items: [
+      { href: "/admin/content", label: "Content Studio", roles: ["ADMIN", "CONTENT_MANAGER"] },
+      { href: "/admin/ai", label: "AI Creator", roles: ["ADMIN", "CONTENT_MANAGER", "ANALYST"] },
+      { href: "/admin/analytics", label: "Analítica", roles: ["ADMIN", "ANALYST"] },
+      { href: "/admin/creators", label: "Creadores", roles: ["ADMIN"] },
+      { href: "/admin/community", label: "Comunidad", roles: ["ADMIN", "CONTENT_MANAGER"] },
+      { href: "/admin/causas", label: "Causas solidarias", roles: ["ADMIN"] },
+    ],
+  },
+  {
+    group: "Sistema",
+    items: [
+      { href: "/admin/equipo", label: "Equipo y roles", roles: ["ADMIN"] },
+      { href: "/admin/settings", label: "Ajustes", roles: ["ADMIN"] },
+      { href: "/admin/cuenta", label: "Mi cuenta", roles: ["ADMIN", "ANALYST", "CUSTOMER_SUPPORT", "CONTENT_MANAGER"] },
+    ],
+  },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
@@ -45,7 +73,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const staff = await getStaffSession();
   if (!staff) redirect("/admin/login");
   const brand = await getBrand();
-  const nav = NAV.filter((n) => hasRole(staff, n.roles));
+  const nav = NAV.map((g) => ({ ...g, items: g.items.filter((n) => hasRole(staff, n.roles)) })).filter((g) => g.items.length);
 
   return (
     <div className="force-light min-h-dvh bg-[#f7f3ec] text-ink lg:grid lg:grid-cols-[232px_1fr]">
@@ -58,15 +86,20 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             Tienda ↗
           </Link>
         </div>
-        <nav className="no-scrollbar flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible">
-          {nav.map((n) => (
-            <Link key={n.href} href={n.href} className="shrink-0 rounded-sm px-3 py-2 text-[0.8rem] text-bone/75 hover:bg-bone/10 hover:text-bone">
-              {n.label}
-            </Link>
+        <nav className="no-scrollbar flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:gap-0 lg:overflow-visible">
+          {nav.map((g) => (
+            <div key={g.group} className="flex shrink-0 gap-1 lg:mb-3 lg:flex-col lg:gap-0">
+              <p className="hidden px-3 pb-1 pt-2 text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-bone/35 lg:block">{g.group}</p>
+              {g.items.map((n) => (
+                <Link key={n.href} href={n.href} className="shrink-0 rounded-sm px-3 py-1.5 text-[0.8rem] text-bone/75 hover:bg-bone/10 hover:text-bone">
+                  {n.label}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="hidden border-t border-bone/10 px-5 py-4 text-xs text-bone/50 lg:block">
-          <p className="truncate">{staff.email}</p>
+          <Link href="/admin/cuenta" className="block truncate hover:text-bone">{staff.email}</Link>
           <p className="mt-1">{staff.roles.join(", ")}</p>
           <form action={signOutAction} className="mt-3">
             <button className="underline hover:text-bone">Cerrar sesión</button>
