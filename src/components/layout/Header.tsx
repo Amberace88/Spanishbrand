@@ -71,6 +71,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
 
   const nav = [
     { href: "/shop", label: t("nav.shop") },
+    { href: "/arte", label: t("nav.art" as never) },
     { href: "/deportes", label: t("nav.sports") },
     { href: "/personaliza", label: t("nav.personalize") },
     { href: "/disena", label: t("hero3.design"), badge: true },

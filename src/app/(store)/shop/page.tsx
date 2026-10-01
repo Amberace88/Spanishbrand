@@ -151,6 +151,23 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               ))}
             </div>
 
+            <Link href="/arte" className="group mt-12 grid overflow-hidden rounded-[1.6rem] bg-[#f3ead7] text-[#1c1a17] sm:grid-cols-[1.1fr_1fr]">
+              <div className="flex flex-col justify-center p-6 sm:p-10">
+                <p className="kicker text-[#a3162b]">{en ? "New · Author illustration" : "Nuevo · Ilustración de autor"}</p>
+                <p className="headline mt-2 text-3xl uppercase leading-[1.02] sm:text-5xl">{en ? "Wearable art" : "Arte que se lleva"}</p>
+                <p className="mt-3 max-w-md text-sm text-[#1c1a17]/70">{en ? "23 illustrations of Spain in five series, printed as large as the garment allows." : "23 ilustraciones de España en cinco series, impresas tan grandes como permite la prenda."}</p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#a3162b]">
+                  {en ? "See the series" : "Ver las series"} <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 p-4 sm:p-6" aria-hidden>
+                {["toro", "flamenca", "faro", "paella", "fallas", "quijote"].map((k) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={k} src={`/catalog/art/art-${k}.png`} alt="" loading="lazy" className="aspect-square w-full object-contain transition-transform duration-700 group-hover:scale-105" />
+                ))}
+              </div>
+            </Link>
+
             {picks.length > 0 && (
               <div className="mt-20">
                 <SectionHead

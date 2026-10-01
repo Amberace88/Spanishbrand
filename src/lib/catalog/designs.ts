@@ -12,6 +12,7 @@ import { artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 import { cityDesigns } from "./cities";
 import { professionDesigns } from "./professions";
 import { footballDesigns } from "./football";
+import { artSeriesDesigns, refraneroDesigns } from "./art-series";
 
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
@@ -28,6 +29,8 @@ export interface Design {
   products: BlueprintKey[];
   posterBg?: string;
   tags?: string[];
+  /** Second print on the garment back (Printful apparel only; adds BACK_PRINT_PRICE). */
+  back?: Layer[];
   /** Fill-in template customers can use with this look (Personaliza). */
   template?: "pueblo" | "jersey" | "year" | "text";
 }
@@ -640,7 +643,7 @@ const BASE_DESIGNS: Design[] = [
   },
 ];
 
-export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns()];
+export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns()];
 
 export const designBySlug = (slug: string) => DESIGNS.find((d) => d.slug === slug) ?? null;
 export const designsFor = (collection: string) => DESIGNS.filter((d) => d.collection === collection);

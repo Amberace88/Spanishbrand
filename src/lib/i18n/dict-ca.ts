@@ -81,6 +81,7 @@ export const ca: Dict = {
   "nav.personalize": "Personalitza",
   "nav.gifts": "Regals",
   "nav.club": "Club",
+  "nav.art": "Art",
   "designer.kicker": "Dissenyador",
   "designer.sub": "Tria la peça, afegeix el teu text o puja la teva imatge i col·loca-ho on vulguis. Ho fabriquem per encàrrec per a tu.",
   "designer.product": "Producte",

@@ -31,6 +31,9 @@ export interface PlanItem {
 }
 
 /** Blank products for "Diseña tú mismo". */
+/** Extra retail for a second (back) print: Printful charges ≈ 5–6 € per additional placement. */
+const BACK_PRINT_PRICE = 7;
+
 const BLANKS: { bp: BlueprintKey; placements: ("front" | "back")[] }[] = [
   { bp: "tee", placements: ["front", "back"] },
   { bp: "hoodie", placements: ["front", "back"] },
@@ -585,7 +588,14 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
     const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}.png`, png, "image/png");
     files.push({ type: res.placement ?? bp.placement, url });
+    // two-sided designs: second print file on the back (Printful garments that offer a back placement)
+    if (design.back?.length && res.provider === "printful" && bp.renderMode === "print" && res.placements.includes("back")) {
+      const backPng = await renderDesign({ ...design, layers: design.back }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
+      const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-back.png`, backPng, "image/png");
+      files.push({ type: "back", url: backUrl });
+    }
   }
+  const twoSided = files.some((f) => f.type === "back");
 
   const copy = copyFor(spec, res);
   const collectionSlug = spec.kind === "design" ? design.collection : spec.kind === "template" ? (spec.template!.template === "jersey" ? "futbol" : spec.template!.template === "pueblo" ? "mi-pueblo" : "esenciales") : "esenciales";
@@ -598,8 +608,8 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
       : spec.kind === "template"
         ? PRESETS[spec.template!.template]
         : null;
-  const basePrice = bp.price + (personalization ? 0 : 0);
-  const details = [bp.details, copy.paper ? `Papel: ${copy.paper.replace(/-/g, " ")}.` : "", `Cuidados: ${bp.care}`].filter(Boolean).join("\n\n");
+  const basePrice = bp.price + (twoSided ? BACK_PRINT_PRICE : 0);
+  const details = [bp.details, twoSided ? "Impresión por delante y por detrás." : "", copy.paper ? `Papel: ${copy.paper.replace(/-/g, " ")}.` : "", `Cuidados: ${bp.care}`].filter(Boolean).join("\n\n");
   const slug = await uniqueSlug(slugify(copy.name));
 
   const { data: product, error } = await sb
@@ -838,7 +848,10 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
       productId: res.externalId,
       variantIds: [...perColor.values()],
       format: "jpg",
-      files: [{ placement: placementOk, imageUrl: artUrl, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } }],
+      files: [
+        { placement: placementOk, imageUrl: artUrl, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } },
+        ...st.files.filter((f) => f.type === "back" && res.placements.includes("back")).map((f) => ({ placement: "back", imageUrl: f.url, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } })),
+      ],
     });
     await save(job, { phase: "poll", state: { ...st, taskKey, perColor: Object.fromEntries(perColor), design: design.slug } });
     return { key: job.key, phase: "poll", done: false, waitMs: 8000 };
@@ -866,6 +879,12 @@ async function stepPoll(job: JobRow): Promise<StepResult> {
     for (const x of extra) pending.push({ url: x.url, color, kind: /lifestyle|model|men|women|person/i.test(`${x.title} ${x.option}`) ? "LIFESTYLE" : "MOCKUP", title: x.title ?? "" });
   }
   if (!pending.length) throw new Error("Mockup task returned no images");
+  // two-sided prints: the big back artwork sells the piece, so its photos lead
+  const backFirst = (task.mockups ?? []).some((m) => (m as { placement?: string }).placement === "back");
+  if (backFirst) {
+    const backUrls = new Set((task.mockups ?? []).filter((m) => (m as { placement?: string }).placement === "back").map((m) => m.mockup_url));
+    pending.sort((a, b) => Number(backUrls.has(b.url)) - Number(backUrls.has(a.url)));
+  }
   await save(job, { phase: "images", state: { ...job.state, pending, done: 0 } });
   return { key: job.key, phase: "images", done: false };
 }

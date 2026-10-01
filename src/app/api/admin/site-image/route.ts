@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { getStaffSession, hasRole } from "@/lib/auth/rbac";
-import { uploadObject } from "@/lib/personalization/storage";
+import { uploadObject as uploadOnce } from "@/lib/personalization/storage";
 import { audit } from "@/lib/audit";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
+
+// storage answers 502/504 under load (catalog runner uploads in parallel): retry a few times
+async function uploadObject(path: string, data: Buffer, type: string) {
+  let last: unknown;
+  for (let i = 0; i < 4; i++) {
+    try {
+      return await uploadOnce(path, data, type);
+    } catch (e) {
+      last = e;
+      await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+    }
+  }
+  throw last;
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -12,6 +27,14 @@ export const dynamic = "force-dynamic";
  * Body: { name, dataUrl } — a JPEG/PNG/WebP data URL, ≤ 12 MB. Admins only.
  */
 export async function POST(req: Request) {
+  try {
+    return await handle(req);
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "FAILED" }, { status: 500 });
+  }
+}
+
+async function handle(req: Request) {
   // the import page receives images from an AI-image tab via postMessage and forwards them here (same origin)
   const s = await getStaffSession();
   if (!s || !hasRole(s, ["ADMIN"])) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

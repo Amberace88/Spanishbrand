@@ -81,6 +81,7 @@ export const gl: Dict = {
   "nav.personalize": "Personaliza",
   "nav.gifts": "Agasallos",
   "nav.club": "Club",
+  "nav.art": "Arte",
   "designer.kicker": "Deseñador",
   "designer.sub": "Escolle a peza, engade o teu texto ou sube a túa imaxe e colócao onde queiras. Fabricámolo por encarga para ti.",
   "designer.product": "Produto",

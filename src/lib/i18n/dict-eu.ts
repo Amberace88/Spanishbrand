@@ -81,6 +81,7 @@ export const eu: Dict = {
   "nav.personalize": "Pertsonalizatu",
   "nav.gifts": "Opariak",
   "nav.club": "Kluba",
+  "nav.art": "Artea",
   "designer.kicker": "Diseinatzailea",
   "designer.sub": "Aukeratu jantzia, gehitu zure testua edo igo zure irudia, eta jarri nahi duzun lekuan. Zuretzat fabrikatzen dugu, eskaeraren arabera.",
   "designer.product": "Produktua",

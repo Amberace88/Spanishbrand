@@ -11,6 +11,7 @@ import { assetBase } from "./assets";
 export { assetBase };
 
 const artCache = new Map<string, string>();
+const artDims = new Map<string, number>(); // file → true height/width ratio, read from the PNG header
 async function artDataUri(file: string): Promise<string> {
   const hit = artCache.get(file);
   if (hit) return hit;
@@ -29,6 +30,10 @@ async function artDataUri(file: string): Promise<string> {
       }
     }
     if (!buf) throw new Error(`ART_MISSING: ${file}`);
+  }
+  if (buf.length > 24 && buf.readUInt32BE(12) === 0x49484452) {
+    const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+    if (w > 0 && h > 0) artDims.set(file, h / w);
   }
   const uri = `data:image/png;base64,${buf.toString("base64")}`;
   artCache.set(file, uri);
@@ -68,9 +73,20 @@ export type RenderMode = "print" | "mug" | "poster" | "sticker" | "fill" | "emb"
  *  poster  → full-bleed background, content centred, small brand footer
  *  sticker → content cropped and centred on transparent
  */
-export async function renderDesign(design: Pick<Design, "layers" | "posterBg" | "tone">, opts: { width: number; height: number; mode: RenderMode }) {
+export async function renderDesign(input: Pick<Design, "layers" | "posterBg" | "tone">, opts: { width: number; height: number; mode: RenderMode }) {
   const { width: W, height: H, mode } = opts;
-  const [fonts, art] = await Promise.all([loadFonts(), inlineArt(design.layers)]);
+  const [fonts, art] = await Promise.all([loadFonts(), inlineArt(input.layers)]);
+  // imported art may carry a placeholder aspect: use the real one from the file, keeping the layer's height budget
+  const design = {
+    ...input,
+    layers: input.layers.map((l) => {
+      if (l.type !== "image" || !l.path.startsWith("art/")) return l;
+      const real = artDims.get(l.path.slice(4));
+      if (!real || Math.abs(real - l.aspect) < 0.01) return l;
+      const w = Math.min(l.w, (l.w * l.aspect) / real, 0.96);
+      return { ...l, aspect: real, w: +w.toFixed(4) };
+    }),
+  };
   const src = (p: string, url: string) => art.get(p) ?? url;
   const cb = contentBox(design.layers);
 
