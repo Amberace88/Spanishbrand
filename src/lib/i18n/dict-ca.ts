@@ -244,6 +244,7 @@ export const ca: Dict = {
   "product.shipping": "Enviament i devolucions",
   "product.shippingBody": "Fabricat per encàrrec. Producció en 2–5 dies laborables i enviament amb seguiment. Consulta els terminis per destinació a la pàgina d'enviaments.",
   "product.madeToOrder": "Fabricat per encàrrec",
+  "product.twoSided": "Imprès per davant i per darrere",
   "product.limitedTime": "Edició per temps limitat",
   "product.limitedRemaining": "Queden {n} unitats",
   "product.vatIncluded": "IVA inclòs",

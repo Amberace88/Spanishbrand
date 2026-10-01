@@ -34,7 +34,7 @@ async function systemStaff() {
 
 const JOBS: Record<string, () => Promise<unknown>> = {
   /** Every minute: advance the catalog builder server-side (safe next to the admin page runner). */
-  catalog: async () => runCatalogBatch(await systemStaff(), { budgetMs: 8_000, workers: 3 }),
+  catalog: async () => runCatalogBatch(await systemStaff(), { budgetMs: 30_000, workers: 3 }),
   /** Daily: catalog sync for configured providers (never publishes). */
   "catalog-sync": async () => {
     const out: Record<string, unknown> = {};

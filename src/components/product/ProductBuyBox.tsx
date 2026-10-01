@@ -10,7 +10,7 @@ import { formatMoney } from "@/lib/format";
 /**
  * Mobile-first variant selection: works for products with size+color, size only, or a single variant.
  */
-export function ProductBuyBox({ variants, currency, onColorChange }: { variants: PublicVariant[]; currency: string; onColorChange?: (color: string | null) => void }) {
+export function ProductBuyBox({ variants, currency, onColorChange, twoSided = false }: { variants: PublicVariant[]; currency: string; onColorChange?: (color: string | null) => void; twoSided?: boolean }) {
   const t = useT();
   const router = useRouter();
   const colors = useMemo(() => [...new Map(variants.filter((v) => v.color).map((v) => [v.color!, v.colorHex])).entries()], [variants]);
@@ -117,6 +117,11 @@ export function ProductBuyBox({ variants, currency, onColorChange }: { variants:
         </button>
         {state === "error" && <p className="mt-2 text-sm text-accent">{t("common.error")}</p>}
       </div>
+      {twoSided && (
+        <p className="flex items-center gap-2 text-xs font-semibold text-fg">
+          <span className="h-1.5 w-1.5 rounded-full bg-gold" /> {t("product.twoSided")}
+        </p>
+      )}
       <p className="flex items-center gap-2 text-xs text-muted">
         <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {t("product.madeToOrder")}
       </p>

@@ -7,6 +7,8 @@ import { BigMarquee, Hero, Manifesto } from "@/components/home/Hero";
 import { BrandEssentials, BrandPromise, CategoryGrid, ClubTeaser, CollectionsBento, ComingSoonGrid, FiestasCalendar, PersonalizeTeaser, ThemesBento, TrustBar } from "@/components/home/ShopSections";
 import { ProductCard } from "@/components/product/ProductCard";
 import { LookbookLeon } from "@/components/home/LookbookLeon";
+import { ArteBand } from "@/components/home/ArteBand";
+import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
 import { Countdown } from "@/components/home/Countdown";
 import { Newsletter } from "@/components/home/Newsletter";
 import { PollCard } from "@/components/community/PollCard";
@@ -37,6 +39,9 @@ export default async function Home() {
     .filter((p) => p.tags.includes("lookbook"))
     .sort((a, b) => Number(/tee|hoodie|sweat/.test(b.tags.join(" "))) - Number(/tee|hoodie|sweat/.test(a.tags.join(" "))))
     .filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i || arr.length < 8);
+  // art series: one garment per illustration, newest pieces first
+  const arte = catalog.filter((p) => p.tags.includes("serie-arte") && p.categoryCode === "APPAREL").filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i);
+  const arts = ART_SERIES.map((p) => ({ key: p.art, name: p.name, src: siteArtSrc(p.art) }));
   const core = collections.filter((c) => ["espana", "heritage", "mediterraneo"].includes(c.slug));
   const products = bestsellers.length ? bestsellers : newest;
   const productsTitle = bestsellers.length ? t("home.bestsellers.title") : t("home.newest.title");
@@ -51,6 +56,7 @@ export default async function Home() {
       <BrandEssentials />
       <CategoryGrid />
       <LookbookLeon products={lookbook} en={locale === "en"} labels={{ madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") }} />
+      <ArteBand arts={arts} products={arte} en={locale === "en"} labels={cardLabels} />
 
       {products.length ? (
         <section className="bg-bg py-16 sm:py-24">

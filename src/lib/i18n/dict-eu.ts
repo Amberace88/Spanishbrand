@@ -244,6 +244,7 @@ export const eu: Dict = {
   "product.shipping": "Bidalketa eta itzulketak",
   "product.shippingBody": "Eskaeraren arabera fabrikatua. Ekoizpena 2–5 lanegunetan, eta jarraipendun bidalketa. Kontsultatu helmuga bakoitzeko epeak bidalketen orrian.",
   "product.madeToOrder": "Eskaeraren arabera fabrikatua",
+  "product.twoSided": "Aurretik eta atzetik inprimatua",
   "product.limitedTime": "Denbora mugatuko edizioa",
   "product.limitedRemaining": "{n} unitate geratzen dira",
   "product.vatIncluded": "BEZa barne",

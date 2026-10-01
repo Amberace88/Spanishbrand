@@ -21,7 +21,7 @@ export function ProductView({ p, fallback, header, footer }: { p: PublicProduct;
       <div className="lg:sticky lg:top-28 lg:self-start">
         {header}
         <div className="mt-8">
-          <ProductBuyBox variants={p.variants} currency={p.currency} onColorChange={setColor} />
+          <ProductBuyBox variants={p.variants} currency={p.currency} onColorChange={setColor} twoSided={p.tags.includes("doble-cara")} />
         </div>
         {footer}
       </div>

@@ -244,6 +244,7 @@ export const gl: Dict = {
   "product.shipping": "Envío e devolucións",
   "product.shippingBody": "Fabricado por encarga. Produción en 2–5 días laborables e envío con seguimento. Consulta os prazos por destino na páxina de envíos.",
   "product.madeToOrder": "Fabricado por encarga",
+  "product.twoSided": "Impreso por diante e por detrás",
   "product.limitedTime": "Edición por tempo limitado",
   "product.limitedRemaining": "{n} unidades restantes",
   "product.vatIncluded": "IVE incluído",
