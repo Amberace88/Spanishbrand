@@ -14,8 +14,9 @@ export const metadata: Metadata = {
 };
 export const revalidate = 120;
 
-export default async function PersonalizePage({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
-  const [{ t: tp }, t, products] = await Promise.all([searchParams, getT(), getTemplateProducts()]);
+export default async function PersonalizePage({ searchParams }: { searchParams: Promise<{ t?: string; nombre?: string; numero?: string }> }) {
+  const [{ t: tp, nombre, numero }, t, products] = await Promise.all([searchParams, getT(), getTemplateProducts()]);
+  const initialValues = { ...(nombre ? { name: nombre.toUpperCase().slice(0, 12) } : {}), ...(numero && /^[0-9]{1,2}$/.test(numero) ? { number: numero } : {}) };
   const list: TemplateProduct[] = products
     .filter((p) => p.personalization?.mode === "fields")
     .map((p) => ({ id: p.id, name: p.name, slug: p.slug, price: p.price, currency: p.currency, config: p.personalization as TemplateProduct["config"], variants: p.variants }));
@@ -29,7 +30,7 @@ export default async function PersonalizePage({ searchParams }: { searchParams: 
       </PageHero>
       <section className="bg-bg py-10 sm:py-14">
         <Container>
-          <Studio products={list} initial={initial} />
+          <Studio products={list} initial={nombre || numero ? "jersey" : initial} initialValues={initialValues} />
         </Container>
       </section>
     </>

@@ -33,6 +33,7 @@ const NAV: { group: string; items: { href: string; label: string; roles: StaffRo
     group: "Catálogo",
     items: [
       { href: "/admin/catalogo", label: "Constructor de catálogo", roles: ["ADMIN"] },
+      { href: "/admin/medios", label: "Imágenes del sitio", roles: ["ADMIN"] },
       { href: "/admin/products", label: "Productos", roles: ["ADMIN", "CONTENT_MANAGER"] },
       { href: "/admin/collections", label: "Colecciones", roles: ["ADMIN", "CONTENT_MANAGER"] },
       { href: "/admin/drops", label: "Drops", roles: ["ADMIN", "CONTENT_MANAGER"] },

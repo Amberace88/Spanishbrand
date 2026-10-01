@@ -21,7 +21,7 @@ function kindOf(productType: string): DesignKind | null {
   return null;
 }
 
-export default async function DesignPage({ searchParams }: { searchParams: Promise<{ style?: string }> }) {
+export default async function DesignPage({ searchParams }: { searchParams: Promise<{ style?: string; texto?: string; tinta?: string }> }) {
   const [t, products, sp] = await Promise.all([getT(), getDesignerProducts(), searchParams]);
   const styles: DesignerStyle[] = DESIGNS.map((d) => ({ slug: d.slug, name: d.name, collection: d.collection, tone: d.tone, layers: d.layers }));
   const initialStyle = sp.style && styles.some((s) => s.slug === sp.style) ? sp.style : null;
@@ -48,7 +48,7 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
       <PageHero eyebrow={t("designer.kicker")} title={t("hero3.design")} sub={t("designer.sub")} />
       <section className="bg-bg py-10 sm:py-14">
         <Container>
-          <Designer products={list} styles={styles} initialStyle={initialStyle} />
+          <Designer products={list} styles={styles} initialStyle={initialStyle} initialText={sp.texto?.trim().slice(0, 40) || null} initialColor={sp.tinta ?? null} />
         </Container>
       </section>
     </>

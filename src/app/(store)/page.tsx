@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getBrand } from "@/lib/brand";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { listSiteImages } from "@/lib/site-images";
 import { getBestsellers, getCollectionCounts, getCollections, getCollectionsBySlugs, getDrops, getOpenPoll, getPublishedProducts, getShowcase } from "@/lib/products/queries";
 import { BigMarquee, Hero, Manifesto } from "@/components/home/Hero";
 import { BrandEssentials, BrandPromise, CategoryGrid, ClubTeaser, CollectionsBento, ComingSoonGrid, FiestasCalendar, PersonalizeTeaser, ThemesBento, TrustBar } from "@/components/home/ShopSections";
@@ -16,7 +17,7 @@ import { IconArrow } from "@/components/ui/Icons";
 export const revalidate = 300;
 
 export default async function Home() {
-  const [show, brand, t, collections, counts, bestsellers, newest, drops, poll, themes, locale, catalog] = await Promise.all([
+  const [show, brand, t, collections, counts, bestsellers, newest, drops, poll, themes, locale, catalog, site] = await Promise.all([
     getShowcase(),
     getBrand(),
     getT(),
@@ -29,6 +30,7 @@ export default async function Home() {
     getCollectionsBySlugs(["futbol", "padel", "ciclismo", "motor", "fiestas", "mi-pueblo", "playa", "tapas", "camino"]),
     getLocale(),
     getPublishedProducts({ limit: 500 }),
+    listSiteImages(),
   ]);
   // lookbook line: one piece per design first (tee, hoodie, art…), garments before accessories
   const lookbook = catalog
@@ -44,7 +46,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero brandName={brand.name} jerseyImg={show.jersey} blankImg={show.blank} />
+      <Hero brandName={brand.name} jerseyImg={show.jersey} blankImg={show.blank} persoPhoto={site["hero-personaliza"] ?? null} designPhoto={site["hero-disena"] ?? null} />
       <TrustBar />
       <BrandEssentials />
       <CategoryGrid />

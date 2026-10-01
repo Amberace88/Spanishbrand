@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { JerseyBack } from "@/components/art/Jersey";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useT } from "@/components/providers/I18nProvider";
 import { Mockup } from "@/components/art/Mockup";
 import { IconArrow } from "@/components/ui/Icons";
+import { DesignTile, JerseyTile } from "@/components/home/HeroTiles";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -75,7 +75,7 @@ export function ClubBadge({ text, className = "", tone = "light" }: { text: stri
   );
 }
 
-export function Hero({ brandName, jerseyImg, blankImg }: { brandName: string; jerseyImg?: string | null; blankImg?: string | null }) {
+export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string; jerseyImg?: string | null; blankImg?: string | null; persoPhoto?: string | null; designPhoto?: string | null }) {
   const t = useT();
   const reduce = useReducedMotion();
   const tile = (d: number) => (reduce ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { delay: d, duration: 0.9, ease } });
@@ -119,39 +119,13 @@ export function Hero({ brandName, jerseyImg, blankImg }: { brandName: string; je
           <ClubBadge text={`${brandName} · club · est. 2026`} className="absolute right-5 top-5 z-10 w-24 sm:right-8 sm:top-8 sm:w-32" />
         </motion.div>
 
-        {/* Side tiles: personalize + design-your-own */}
-        <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:row-span-2 lg:grid-cols-1 lg:grid-rows-2">
+        {/* Side tiles: quick live edit (name + number / text), full editors one click away */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-4 lg:row-span-2 lg:grid-cols-1 lg:grid-rows-2">
           <motion.div {...tile(0.12)} className="h-full">
-            <Link href="/personaliza" className="group relative flex h-full min-h-[250px] flex-col overflow-hidden rounded-[28px] bg-surface-2 p-5 sm:min-h-[300px] sm:p-7">
-              <div className="flex items-start justify-between">
-                <span className="rounded-full bg-fg px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-bg">{t("nav.personalize")}</span>
-                <span className="grid h-10 w-10 place-items-center rounded-full border border-line transition-all duration-300 group-hover:rotate-[-45deg] group-hover:bg-fg group-hover:text-bg">
-                  <IconArrow className="h-4 w-4" />
-                </span>
-              </div>
-              {jerseyImg ? (
-                <div className="relative mx-auto my-3 aspect-square w-[78%] overflow-hidden rounded-2xl shadow-[0_24px_50px_-25px_rgba(0,0,0,0.6)] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-rotate-2 group-hover:scale-[1.04] lg:w-[56%]">
-                  <Image src={jerseyImg} alt="" fill sizes="(min-width:1024px) 18vw, 40vw" className="object-cover" />
-                </div>
-              ) : (
-                <div className="mx-auto w-[74%] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-rotate-3 group-hover:scale-105 lg:w-[52%]">
-                  <JerseyBack name="TU NOMBRE" number="10" shirt="#0d0d0d" ink="#e0b84a" trim="#c8102e" />
-                </div>
-              )}
-              <p className="headline mt-auto text-xl uppercase sm:text-3xl">{t("hero3.perso")}</p>
-            </Link>
+            <JerseyTile photo={persoPhoto ?? null} badge={t("nav.personalize")} title={t("hero3.perso")} labels={{ name: t("hero3.tile.name"), number: t("hero3.tile.number"), go: t("hero3.tile.go") }} />
           </motion.div>
           <motion.div {...tile(0.22)} className="h-full">
-            <Link href="/disena" className="group relative flex h-full min-h-[250px] flex-col overflow-hidden rounded-[28px] bg-[#c8102e] p-5 text-white sm:min-h-[300px] sm:p-7">
-              <div className="flex items-start justify-between">
-                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#c8102e]">{t("hero3.designBadge")}</span>
-                <span className="grid h-10 w-10 place-items-center rounded-full border border-white/30 transition-all duration-300 group-hover:rotate-[-45deg] group-hover:bg-white group-hover:text-[#c8102e]">
-                  <IconArrow className="h-4 w-4" />
-                </span>
-              </div>
-              {blankImg ? <DesignerPhoto src={blankImg} /> : <DesignerGlyph />}
-              <p className="headline mt-auto text-xl uppercase sm:text-3xl">{t("hero3.design")}</p>
-            </Link>
+            <DesignTile photo={designPhoto ?? null} badge={t("hero3.designBadge")} title={t("hero3.design")} labels={{ text: t("hero3.tile.text"), go: t("hero3.tile.go") }} />
           </motion.div>
         </div>
       </div>
@@ -159,45 +133,6 @@ export function Hero({ brandName, jerseyImg, blankImg }: { brandName: string; je
   );
 }
 
-/** Real blank tee photo with the designer's animated print-area overlay. */
-function DesignerPhoto({ src }: { src: string }) {
-  return (
-    <div className="relative mx-auto my-3 aspect-square w-[78%] overflow-hidden rounded-2xl shadow-[0_24px_50px_-25px_rgba(0,0,0,0.6)] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:rotate-2 group-hover:scale-[1.04] lg:w-[56%]" aria-hidden>
-      <Image src={src} alt="" fill sizes="(min-width:1024px) 18vw, 40vw" className="object-cover" />
-      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-        <rect x="34" y="30" width="32" height="38" rx="1.5" fill="none" stroke="#c8102e" strokeWidth="0.9" strokeDasharray="2.4 2" className="[animation:dash_1.2s_linear_infinite]" />
-        {[[34, 30], [66, 30], [34, 68], [66, 68]].map(([x, y]) => (
-          <rect key={`${x}${y}`} x={x - 1.6} y={y - 1.6} width="3.2" height="3.2" fill="#fff" stroke="#c8102e" strokeWidth="0.8" />
-        ))}
-        <text x="50" y="47" textAnchor="middle" fontFamily="Cinzel Variable, serif" fontWeight="700" fontSize="7" fill="#0d0d0d">Aa</text>
-        <rect x="41" y="52" width="18" height="6" rx="1" fill="#ffc400" />
-      </svg>
-      <svg viewBox="0 0 24 24" className="absolute bottom-[14%] right-[14%] h-[14%] w-[14%] animate-[floaty_3s_ease-in-out_infinite] drop-shadow" fill="#0d0d0d" stroke="#fff" strokeWidth="1.2">
-        <path d="M4 3 L19 12 L12 13.5 L9 20 Z" />
-      </svg>
-    </div>
-  );
-}
-
-/** Animated illustration of the design tool: shirt, dashed print area, text layer and cursor. */
-function DesignerGlyph() {
-  return (
-    <div className="relative mx-auto w-[74%] lg:w-[52%]" aria-hidden>
-      <svg viewBox="0 0 400 400" className="w-full">
-        <path d="M140 56 L98 70 L34 120 L68 186 L110 166 L110 352 Q110 364 122 364 L278 364 Q290 364 290 352 L290 166 L332 186 L366 120 L302 70 L260 56 Q250 90 200 90 Q150 90 140 56 Z" fill="#ffffff" />
-        <rect x="140" y="130" width="120" height="150" rx="6" fill="none" stroke="#c8102e" strokeWidth="3" strokeDasharray="8 7" className="[animation:dash_1.2s_linear_infinite]" />
-        <text x="200" y="200" textAnchor="middle" fontFamily="Cinzel Variable, serif" fontWeight="700" fontSize="34" fill="#0d0d0d">Aa</text>
-        <rect x="160" y="222" width="80" height="34" rx="4" fill="#ffc400" />
-        {[[140, 130], [260, 130], [140, 280], [260, 280]].map(([x, y]) => (
-          <rect key={`${x}${y}`} x={x - 6} y={y - 6} width="12" height="12" fill="#fff" stroke="#c8102e" strokeWidth="3" />
-        ))}
-      </svg>
-      <svg viewBox="0 0 24 24" className="absolute bottom-[18%] right-[8%] h-[16%] w-[16%] animate-[floaty_3s_ease-in-out_infinite] drop-shadow" fill="#0d0d0d" stroke="#fff" strokeWidth="1.2">
-        <path d="M4 3 L19 12 L12 13.5 L9 20 Z" />
-      </svg>
-    </div>
-  );
-}
 
 /** Oversized scrolling words, alternating solid / outline. */
 export function BigMarquee({ words, reverse = false }: { words: string[]; reverse?: boolean }) {

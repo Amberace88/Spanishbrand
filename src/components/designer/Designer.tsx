@@ -45,7 +45,7 @@ export interface DesignerStyle {
   layers: Layer[];
 }
 
-export function Designer({ products, styles = [], initialStyle = null }: { products: DesignerProduct[]; styles?: DesignerStyle[]; initialStyle?: string | null }) {
+export function Designer({ products, styles = [], initialStyle = null, initialText = null, initialColor = null }: { products: DesignerProduct[]; styles?: DesignerStyle[]; initialStyle?: string | null; initialText?: string | null; initialColor?: string | null }) {
   const t = useT();
   const available = useMemo(() => new Set(products.map((p) => p.kind)), [products]);
   const [kind, setKind] = useState<DesignKind>(products[0]?.kind ?? "tee");
@@ -74,6 +74,14 @@ export function Designer({ products, styles = [], initialStyle = null }: { produ
     const preset = initialStyle ? styles.find((x) => x.slug === initialStyle) : null;
     if (preset) {
       applyStyle(preset);
+      return;
+    }
+    // coming from the homepage mini-designer: start with the customer's text on the chest
+    if (initialText) {
+      const ink = initialColor && /^#[0-9a-f]{6}$/i.test(initialColor) ? initialColor : "#c8102e";
+      const l: Layer = { id: uid(), type: "text", text: initialText.slice(0, 40), font: "serif", color: ink, x: 0.5, y: 0.32, w: 0.7, rotation: 0 };
+      setLayers([l]);
+      setSelected(l.id);
       return;
     }
     try {

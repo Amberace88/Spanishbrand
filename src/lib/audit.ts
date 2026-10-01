@@ -6,6 +6,7 @@ import { log } from "@/lib/logger";
 export type AuditAction =
   | "return.update"
   | "return.claim"
+  | "site.image"
   | "admin.login"
   | "admin.bootstrap"
   | "personalization.approve"

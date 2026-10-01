@@ -22,12 +22,12 @@ export interface TemplateProduct {
 
 const GARMENTS = ["#111111", "#ffffff", "#c8102e", "#14213d"];
 
-export function Studio({ products, initial = "jersey" }: { products: TemplateProduct[]; initial?: TemplateKey }) {
+export function Studio({ products, initial = "jersey", initialValues }: { products: TemplateProduct[]; initial?: TemplateKey; initialValues?: Record<string, string> }) {
   const t = useT();
   const [template, setTemplate] = useState<TemplateKey>(initial);
   const product = products.find((p) => p.config.template === template) ?? null;
   const config = product?.config ?? PRESETS[template];
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(initialValues ?? {});
   const [garment, setGarment] = useState("#111111");
   const [size, setSize] = useState<string | null>(null);
   const [pending, start] = useTransition();
