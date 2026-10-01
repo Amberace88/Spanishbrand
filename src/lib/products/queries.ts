@@ -161,15 +161,67 @@ function publishedQuery() {
     .eq("visibility", "PUBLIC");
 }
 
+/* Listing data: the catalog has ~1500 products × up to 48 colours × sizes, so the full join is heavy.
+ * One shared, lean snapshot per server instance (2 min TTL, stale-while-revalidate) serves every
+ * listing page; product pages still load their own full record via getProductBySlug. */
+const LISTING_TTL = 120_000;
+let snapshot: { at: number; rows: PublicProduct[] } | null = null;
+let inflight: Promise<PublicProduct[]> | null = null;
+
+/** One entry per colour (and per distinct price) is all a listing card needs. */
+function compactVariants(p: PublicProduct): PublicProduct {
+  const seen = new Set<string>();
+  const variants = p.variants.filter((v) => {
+    const k = `${v.colorHex ?? v.color ?? ""}|${v.price}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return { ...p, variants, description: null, story: null };
+}
+
+async function loadListing(): Promise<PublicProduct[]> {
+  const q = publishedQuery();
+  if (!q) return [];
+  const { data, error } = await q.lt("product_images.sort", 4).order("published_at", { ascending: false }).limit(2000);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => compactVariants(mapProduct(r as Row)));
+}
+
+async function listing(): Promise<PublicProduct[]> {
+  const fresh = snapshot && Date.now() - snapshot.at < LISTING_TTL;
+  if (fresh) return snapshot!.rows;
+  if (!inflight) {
+    inflight = loadListing()
+      .then((rows) => {
+        snapshot = { at: Date.now(), rows };
+        return rows;
+      })
+      .finally(() => {
+        inflight = null;
+      });
+  }
+  // stale-while-revalidate: serve the previous snapshot while the new one loads (or if it fails)
+  if (snapshot) {
+    inflight.catch(() => null);
+    return snapshot.rows;
+  }
+  return inflight;
+}
+
 export const getPublishedProducts = cache(async (opts: { collectionId?: string; category?: string; limit?: number; featured?: boolean } = {}) => {
-  let q = publishedQuery();
-  if (!q) return [] as PublicProduct[];
-  if (opts.collectionId) q = q.eq("collection_id", opts.collectionId);
-  if (opts.featured) q = q.eq("featured", true);
-  const { data } = await q.order("published_at", { ascending: false }).limit(opts.limit ?? 60);
-  let rows = (data ?? []).map((r) => mapProduct(r as Row));
+  let rows = await listing().catch(() => [] as PublicProduct[]);
+  if (opts.collectionId) {
+    // collection pages filter by id: resolve through the slug-carrying join
+    const q = publishedQuery();
+    if (q) {
+      const { data } = await q.eq("collection_id", opts.collectionId).lt("product_images.sort", 4).order("published_at", { ascending: false }).limit(opts.limit ?? 60);
+      return (data ?? []).map((r) => compactVariants(mapProduct(r as Row))).filter((p) => !opts.category || p.categoryCode === opts.category);
+    }
+  }
+  if (opts.featured) rows = rows.filter((p) => p.featured);
   if (opts.category) rows = rows.filter((p) => p.categoryCode === opts.category);
-  return rows;
+  return rows.slice(0, opts.limit ?? 60);
 });
 
 export const getProductBySlug = cache(async (slug: string) => {
@@ -334,13 +386,13 @@ export const getShippingPromo = cache(async (country = "ES"): Promise<{ freeOver
 
 /** Products customers can design themselves ("Diseña tú mismo"). */
 export const getDesignerProducts = cache(async () => {
-  const all = await getPublishedProducts({ limit: 200 });
+  const all = await getPublishedProducts({ limit: 2000 });
   return all.filter((p) => p.personalization?.mode === "designer");
 });
 
 /** Brand products with fill-in personalization templates (name + number, Mi Pueblo, year…). */
 export const getTemplateProducts = cache(async () => {
-  const all = await getPublishedProducts({ limit: 200 });
+  const all = await getPublishedProducts({ limit: 2000 });
   return all.filter((p) => p.personalization?.mode === "fields");
 });
 
