@@ -29,11 +29,12 @@ function HeroFilm({ src }: { src: string }) {
   if (skip) return null;
   return (
     // overflow-hidden: the end-of-film drift (scale) must never spill past the left fade into the text column
-    <div className={`absolute inset-0 overflow-hidden transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`} aria-hidden>
+    // inset 3px on the faded edge (bottom on mobile, left on desktop): the GPU video layer otherwise bleeds a 1px seam past the gradient on bright frames
+    <div className={`absolute inset-x-0 bottom-[3px] top-0 overflow-hidden transition-opacity duration-500 lg:bottom-0 lg:left-[3px] ${ready ? "opacity-100" : "opacity-0"}`} aria-hidden>
       {/* the film ends on the lion close-up; the held frame keeps drifting so the end never looks frozen */}
       <video
         ref={ref}
-        className="h-full w-full object-cover object-center will-change-transform"
+        className="h-full w-full object-cover object-center"
         style={{ transform: ended ? "scale(1.06)" : "scale(1)", transition: "transform 16s cubic-bezier(.16,1,.3,1)" }}
         poster="/brand/lookbook-trio.webp"
         autoPlay
@@ -87,7 +88,7 @@ export function Hero({ brandName, jerseyImg, blankImg }: { brandName: string; je
           <motion.div initial={reduce ? false : { scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
             <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill priority sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
             {HERO_VIDEO && !reduce && <HeroFilm src={HERO_VIDEO} />}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
+            <div className="absolute -inset-px bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
           </motion.div>
           <div className="relative z-10 mt-auto flex flex-col p-6 sm:p-10 lg:mt-0 lg:h-full lg:max-w-[58%]">
             <div className="flex items-center gap-3">
