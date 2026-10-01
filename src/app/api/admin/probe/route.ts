@@ -5,6 +5,7 @@ import { getProdigiProduct, quote } from "@/lib/fulfillment/prodigi";
 import * as printify from "@/lib/fulfillment/printify";
 import { z } from "zod";
 import { getCatalogProduct, listCatalogProducts } from "@/lib/fulfillment/printful/catalog";
+import { searchProductsFiltered } from "@/lib/fulfillment/gelato/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,22 @@ export async function GET(req: Request) {
       return NextResponse.json(await quote([{ sku, attributes: Object.fromEntries((attrs ?? "").split(",").filter(Boolean).map((x) => x.split("="))), copies: 1 }], "ES"));
     }
     if (what === "printify-shop") return NextResponse.json({ shop: await printify.shopId() });
+    if (what === "gelato-posters") {
+      const out: Record<string, unknown> = {};
+      for (const [name, filters] of [
+        ["ver+formats", { Orientation: ["ver"], PaperFormat: ["300x400-mm-12x16-inch", "450x600-mm-18x24-inch", "600x800-mm-24x32-inch"] }],
+        ["ver", { Orientation: ["ver"] }],
+        ["none", null],
+      ] as const) {
+        try {
+          const ps = await searchProductsFiltered("posters", filters as Record<string, string[]> | null, 100, 0);
+          out[name] = { count: ps.length, sample: ps.slice(0, 8).map((p) => p.productUid) };
+        } catch (e) {
+          out[name] = { error: isProviderError(e) ? `${e.message} ${e.status ?? ""}` : String(e) };
+        }
+      }
+      return NextResponse.json(out);
+    }
     if (what === "printful-products") {
       const re = new RegExp(arg || ".", "i");
       const all = (await listCatalogProducts()).filter((p) => !p.discontinued && re.test(p.title)).slice(0, 12);

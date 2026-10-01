@@ -1,4 +1,5 @@
 "use client";
+import { LanguageMenu } from "@/components/layout/LanguageMenu";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -101,6 +102,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
               <button onClick={() => setOpen(true)} className="-ml-2 grid h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06] xl:hidden" aria-label={t("nav.menu")}>
                 <IconMenu className="h-6 w-6" />
               </button>
+              <LanguageMenu align="left" className="xl:hidden" />
               <Link href="/" className="hidden text-fg xl:block" aria-label={brandName}>
                 <Wordmark name={brandName} />
               </Link>
@@ -128,6 +130,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
             </nav>
 
             <div className="flex items-center justify-end gap-0.5">
+              <LanguageMenu className="hidden xl:block" />
               <button onClick={() => setSearchOpen(true)} className="grid h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06]" aria-label={t("nav.search")}>
                 <IconSearch className="h-[21px] w-[21px]" />
               </button>
