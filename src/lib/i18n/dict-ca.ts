@@ -74,6 +74,7 @@ export const ca: Dict = {
   "footer.about": "Marca espanyola d'identitat i estil de vida. Roba, accessoris, llar i art amb dissenys d'Espanya, fabricats per encàrrec a Europa.",
   "nav.sports": "Esports",
   "nav.regions": "Regions",
+  "nav.cities": "Ciutats",
   "nav.causes": "Causes solidàries",
   "nav.business": "Empreses i esdeveniments",
   "nav.creators": "Creadors",

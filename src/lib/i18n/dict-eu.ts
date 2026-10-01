@@ -74,6 +74,7 @@ export const eu: Dict = {
   "footer.about": "Nortasun eta bizimodu marka espainiarra. Arropa, osagarriak, etxea eta artea Espainiako diseinuekin, Europan eskaeraren arabera fabrikatuak.",
   "nav.sports": "Kirolak",
   "nav.regions": "Eskualdeak",
+  "nav.cities": "Hiriak",
   "nav.causes": "Kausa solidarioak",
   "nav.business": "Enpresak eta ekitaldiak",
   "nav.creators": "Sortzaileak",

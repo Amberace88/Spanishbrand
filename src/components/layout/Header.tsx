@@ -1,5 +1,6 @@
 "use client";
 import { LanguageMenu } from "@/components/layout/LanguageMenu";
+import { CITIES } from "@/lib/catalog/cities";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -74,6 +75,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
     { href: "/personaliza", label: t("nav.personalize") },
     { href: "/disena", label: t("hero3.design"), badge: true },
     { href: "/collections", label: t("nav.collections") },
+    { href: "/ciudades", label: t("nav.cities") },
     { href: "/regiones", label: t("nav.regions") },
     { href: "/club", label: t("nav.club") },
   ] as { href: string; label: string; badge?: boolean }[];
@@ -87,9 +89,13 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
     { href: "/account", label: t("nav.account") },
   ];
 
+  const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const cityHits = q.trim().length >= 2 ? CITIES.filter((c) => fold(`${c.label} ${c.name}`).includes(fold(q))).slice(0, 6) : [];
   const search = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(q.trim() ? `/shop?q=${encodeURIComponent(q.trim())}` : "/shop");
+    const exact = CITIES.find((c) => fold(c.label) === fold(q) || fold(c.name) === fold(q));
+    setSearchOpen(false);
+    router.push(exact ? `/ciudades/${exact.slug}` : q.trim() ? `/shop?q=${encodeURIComponent(q.trim())}` : "/shop");
   };
 
   return (
@@ -172,7 +178,19 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                   className="headline w-full border-b-2 border-fg bg-transparent pb-4 text-4xl outline-none placeholder:text-fg/25 sm:text-6xl"
                 />
               </form>
+              {cityHits.length > 0 && (
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {cityHits.map((c) => (
+                    <Link key={c.slug} href={`/ciudades/${c.slug}`} onClick={() => setSearchOpen(false)} className="flex items-center gap-2 rounded-full bg-fg px-4 py-2 text-sm font-semibold text-bg">
+                      <span aria-hidden>📍</span> {c.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
               <div className="mt-8 flex flex-wrap gap-2">
+                <Link href="/ciudades" onClick={() => setSearchOpen(false)} className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-fg">
+                  📍 {t("nav.cities")}
+                </Link>
                 {cats.map((l) => (
                   <Link key={l.href} href={l.href} className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-fg">
                     {l.label}

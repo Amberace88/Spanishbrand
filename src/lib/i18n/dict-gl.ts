@@ -74,6 +74,7 @@ export const gl: Dict = {
   "footer.about": "Marca española de identidade e estilo de vida. Roupa, accesorios, fogar e arte con deseños de España, fabricados por encarga en Europa.",
   "nav.sports": "Deportes",
   "nav.regions": "Rexións",
+  "nav.cities": "Cidades",
   "nav.causes": "Causas solidarias",
   "nav.business": "Empresas e eventos",
   "nav.creators": "Creadores",
