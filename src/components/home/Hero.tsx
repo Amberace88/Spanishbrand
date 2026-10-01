@@ -2,7 +2,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { JerseyBack } from "@/components/art/Jersey";
-import { BrandLogo } from "@/components/brand/Wordmark";
 import { useRef, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useT } from "@/components/providers/I18nProvider";
@@ -24,8 +23,9 @@ export function ClubBadge({ text, className = "", tone = "light" }: { text: stri
           <textPath href="#club-circle">{chars}</textPath>
         </text>
       </svg>
-      <div className="absolute inset-[30%] grid place-items-center rounded-full bg-[#0b0b0b] ring-2 ring-[#e0b84a]">
-        <span className="block h-[70%]"><BrandLogo variant="lion" alt="" /></span>
+      <div className="absolute inset-[30%] overflow-hidden rounded-full bg-[#0b0b0b] ring-2 ring-[#e0b84a]">
+        {/* fill + object-contain: keeps the lion's aspect ratio on every browser (iOS Safari stretched h-full/w-auto) */}
+        <Image src="/brand/logo-lion.webp" alt="" fill sizes="80px" className="object-contain p-[16%]" draggable={false} />
       </div>
     </div>
   );

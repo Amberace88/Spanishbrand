@@ -12,7 +12,7 @@ const SRC = {
 
 export function BrandLogo({ variant = "full", className = "", priority = false, alt = "ROJO Y GUALDA" }: { variant?: keyof typeof SRC; className?: string; priority?: boolean; alt?: string }) {
   const s = SRC[variant];
-  return <Image src={s.src} alt={alt} width={s.w} height={s.h} priority={priority} className={`h-full w-auto select-none ${className}`} draggable={false} />;
+  return <Image src={s.src} alt={alt} width={s.w} height={s.h} priority={priority} className={`h-full w-auto max-w-none object-contain select-none ${className}`} draggable={false} />;
 }
 
 /** Header/footer wordmark (kept for API compatibility: `name` is the alt text). */

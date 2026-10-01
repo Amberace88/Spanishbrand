@@ -93,7 +93,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
 
   return (
     <>
-      <div className="sticky top-0 z-50">
+      <div className="sticky top-0 z-50 bg-fg pt-[env(safe-area-inset-top)]">
         <Ticker messages={messages} />
         <header className={`border-b backdrop-blur-xl transition-colors duration-300 ${scrolled ? "border-line bg-bg/80" : "border-transparent bg-bg"}`}>
           <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:h-[68px] sm:px-8">
@@ -147,7 +147,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
       {/* Search overlay */}
       <AnimatePresence>
         {searchOpen && (
-          <motion.div className="fixed inset-0 z-[70] bg-bg/95 backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <motion.div className="fixed inset-0 z-[70] bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <div className="mx-auto max-w-4xl px-4 pt-24 sm:px-8 sm:pt-32">
               <div className="flex items-center justify-between">
                 <p className="kicker text-muted">{t("nav.search")}</p>
@@ -183,7 +183,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-[60] flex flex-col bg-bg"
+            className="fixed inset-0 z-[60] flex flex-col bg-bg pt-[env(safe-area-inset-top)]"
             initial={{ clipPath: "inset(0 0 100% 0)" }}
             animate={{ clipPath: "inset(0 0 0% 0)" }}
             exit={{ clipPath: "inset(0 0 100% 0)" }}
