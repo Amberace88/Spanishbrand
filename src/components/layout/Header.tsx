@@ -6,12 +6,43 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Wordmark } from "@/components/brand/Wordmark";
-import { useT } from "@/components/providers/I18nProvider";
+import { useLocale, useT } from "@/components/providers/I18nProvider";
 import { IconArrow, IconBag, IconClose, IconMenu, IconSearch, IconUser } from "@/components/ui/Icons";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const CATS = ["APPAREL", "HEADWEAR", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING"] as const;
 const ease = [0.16, 1, 0.3, 1] as const;
+
+type L = { es: string; en: string; de: string };
+/** Everything the shop holds, in three tidy columns (desktop mega menu + mobile drawer). */
+const EXPLORE: { title: L; links: { href: string; label: L }[] }[] = [
+  {
+    title: { es: "Colecciones", en: "Collections", de: "Kollektionen" },
+    links: [
+      { href: "/arte", label: { es: "Arte de autor", en: "Author art", de: "Autorenkunst" } },
+      { href: "/lookbook", label: { es: "León Coronado", en: "Crowned Lion", de: "Gekrönter Löwe" } },
+      { href: "/collections/espana", label: { es: "España", en: "Spain", de: "Spanien" } },
+      { href: "/collections/heritage", label: { es: "Heritage", en: "Heritage", de: "Heritage" } },
+      { href: "/collections/mediterraneo", label: { es: "Mediterráneo", en: "Mediterranean", de: "Mittelmeer" } },
+      { href: "/collections/fiestas", label: { es: "Fiestas", en: "Fiestas", de: "Fiestas" } },
+      { href: "/collections/tapas", label: { es: "Tapas y vino", en: "Tapas & wine", de: "Tapas & Wein" } },
+      { href: "/collections/playa", label: { es: "Playa", en: "Beach", de: "Strand" } },
+      { href: "/collections/camino", label: { es: "Camino", en: "The Way", de: "Jakobsweg" } },
+      { href: "/collections/profesiones", label: { es: "Profesiones", en: "Professions", de: "Berufe" } },
+    ],
+  },
+  {
+    title: { es: "Tu tierra y tu equipo", en: "Your place & team", de: "Deine Heimat & dein Team" },
+    links: [
+      { href: "/ciudades", label: { es: "Ciudades", en: "Cities", de: "Städte" } },
+      { href: "/regiones", label: { es: "Regiones", en: "Regions", de: "Regionen" } },
+      { href: "/collections/mi-pueblo", label: { es: "Mi pueblo", en: "My village", de: "Mein Dorf" } },
+      { href: "/deportes", label: { es: "Deportes", en: "Sports", de: "Sport" } },
+      { href: "/collections/futbol", label: { es: "Fútbol", en: "Football", de: "Fußball" } },
+      { href: "/regalos", label: { es: "Regalos", en: "Gifts", de: "Geschenke" } },
+    ],
+  },
+];
 
 /** Continuous ticker — black in day mode, white in night mode. */
 function Ticker({ messages }: { messages: string[] }) {
@@ -36,6 +67,18 @@ function Ticker({ messages }: { messages: string[] }) {
 
 export function Header({ brandName, cartCount, messages }: { brandName: string; cartCount: number; messages: string[] }) {
   const t = useT();
+  const locale = useLocale() as string;
+  const lx = (l: L) => (locale === "en" ? l.en : locale === "de" ? l.de : l.es);
+  const [mega, setMega] = useState(false);
+  const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const megaOpen = () => {
+    if (megaTimer.current) clearTimeout(megaTimer.current);
+    setMega(true);
+  };
+  const megaClose = () => {
+    if (megaTimer.current) clearTimeout(megaTimer.current);
+    megaTimer.current = setTimeout(() => setMega(false), 140);
+  };
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -53,6 +96,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
   useEffect(() => {
     setOpen(false);
     setSearchOpen(false);
+    setMega(false);
   }, [pathname]);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -72,12 +116,10 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
   const nav = [
     { href: "/shop", label: t("nav.shop") },
     { href: "/arte", label: t("nav.art" as never) },
+    { href: "/lookbook", label: locale === "en" ? "Lookbook" : locale === "de" ? "Lookbook" : "Lookbook" },
     { href: "/deportes", label: t("nav.sports") },
     { href: "/personaliza", label: t("nav.personalize") },
     { href: "/disena", label: t("hero3.design"), badge: true },
-    { href: "/collections", label: t("nav.collections") },
-    { href: "/ciudades", label: t("nav.cities") },
-    { href: "/regiones", label: t("nav.regions") },
     { href: "/club", label: t("nav.club") },
   ] as { href: string; label: string; badge?: boolean }[];
   const cats = CATS.map((c) => ({ href: `/shop?c=${c}`, label: t(`nav.cat.${c}` as never) }));
@@ -105,7 +147,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
         {/* installed app (iOS black-translucent status bar): dark strip keeps the white clock readable in both themes */}
         <div className="h-[env(safe-area-inset-top)] bg-[#0b0b0b]" aria-hidden />
         <Ticker messages={messages} />
-        <header className={`border-b backdrop-blur-xl transition-colors duration-300 ${scrolled ? "border-line bg-bg/80" : "border-transparent bg-bg"}`}>
+        <header className={`relative border-b backdrop-blur-xl transition-colors duration-300 ${scrolled ? "border-line bg-bg/80" : "border-transparent bg-bg"}`}>
           <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:h-[68px] sm:px-8">
             <div className="flex items-center gap-1">
               <button onClick={() => setOpen(true)} className="-ml-2 grid h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06] xl:hidden" aria-label={t("nav.menu")}>
@@ -126,9 +168,10 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                   const base = l.href.split("?")[0];
                   const active = l.href.includes("?") ? false : l.href === "/shop" ? pathname === "/shop" : pathname.startsWith(base);
                   return (
-                    <li key={l.href}>
-                      <Link href={l.href} className={`group relative block px-3 py-2 transition-colors ${active ? "text-accent" : "text-fg/80 hover:text-fg"}`}>
+                    <li key={l.href} {...(l.href === "/shop" ? { onMouseEnter: megaOpen, onMouseLeave: megaClose, onFocus: megaOpen } : {})}>
+                      <Link href={l.href} aria-expanded={l.href === "/shop" ? mega : undefined} className={`group relative block px-3 py-2 transition-colors ${active ? "text-accent" : "text-fg/80 hover:text-fg"}`}>
                         {l.label}
+                        {l.href === "/shop" && <span className={`ml-1 inline-block text-[9px] transition-transform ${mega ? "rotate-180" : ""}`} aria-hidden>▾</span>}
                         {l.badge && <span className="ml-1.5 rounded-full bg-accent px-1.5 py-0.5 align-middle text-[9px] font-bold text-white">NEW</span>}
                         <span className={`absolute inset-x-3 -bottom-0.5 h-[2px] origin-left bg-accent transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
                       </Link>
@@ -153,6 +196,56 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
               </Link>
             </div>
           </div>
+          {/* Tienda mega menu: products, collections and places in three calm columns */}
+          <AnimatePresence>
+            {mega && (
+              <motion.div
+                onMouseEnter={megaOpen}
+                onMouseLeave={megaClose}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease }}
+                className="absolute inset-x-0 top-full hidden border-b border-line bg-bg/95 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.45)] backdrop-blur-xl xl:block"
+              >
+                <div className="mx-auto grid max-w-[1440px] grid-cols-[1fr_1.4fr_1fr_1.1fr] gap-10 px-8 py-9">
+                  <div>
+                    <p className="kicker text-muted">{lx({ es: "Productos", en: "Products", de: "Produkte" })}</p>
+                    <ul className="mt-4 space-y-2.5">
+                      {cats.map((c) => (
+                        <li key={c.href}>
+                          <Link href={c.href} className="text-[15px] font-semibold text-fg/85 transition-colors hover:text-accent">{c.label}</Link>
+                        </li>
+                      ))}
+                      <li className="pt-2">
+                        <Link href="/shop?all=1" className="inline-flex items-center gap-1.5 text-[13px] font-bold text-accent">
+                          {lx({ es: "Ver todo", en: "View all", de: "Alles ansehen" })} <IconArrow className="h-3.5 w-3.5" />
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
+                  {EXPLORE.map((g) => (
+                    <div key={g.title.es}>
+                      <p className="kicker text-muted">{lx(g.title)}</p>
+                      <ul className={`mt-4 grid gap-x-6 gap-y-2.5 ${g.links.length > 7 ? "grid-cols-2" : ""}`}>
+                        {g.links.map((x) => (
+                          <li key={x.href}>
+                            <Link href={x.href} className="text-[15px] font-semibold text-fg/85 transition-colors hover:text-accent">{lx(x.label)}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  <Link href="/arte" className="group relative block overflow-hidden rounded-2xl bg-[#f3ead7] p-5 text-[#1c1a17]">
+                    <p className="kicker text-[#a3162b]">{lx({ es: "Nuevo", en: "New", de: "Neu" })}</p>
+                    <p className="headline mt-1 text-2xl uppercase leading-none">{lx({ es: "Arte que se lleva", en: "Wearable art", de: "Tragbare Kunst" })}</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/print-files/site-art/art-toro.png`} alt="" className="ml-auto mt-2 h-32 w-32 object-contain transition-transform duration-500 group-hover:scale-110" />
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </header>
       </div>
 
@@ -231,6 +324,26 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                   </Link>
                 </motion.div>
               ))}
+              <div className="grid gap-6 border-b border-line py-6 sm:grid-cols-3">
+                <div>
+                  <p className="kicker text-muted">{lx({ es: "Productos", en: "Products", de: "Produkte" })}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {cats.map((c) => (
+                      <Link key={c.href} href={c.href} className="rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold hover:border-fg">{c.label}</Link>
+                    ))}
+                  </div>
+                </div>
+                {EXPLORE.map((g) => (
+                  <div key={g.title.es}>
+                    <p className="kicker text-muted">{lx(g.title)}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {g.links.map((x) => (
+                        <Link key={x.href} href={x.href} className="rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold hover:border-fg">{lx(x.label)}</Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
               <div className="flex flex-wrap gap-x-6 gap-y-2 py-6">
                 {secondary.map((l) => (
                   <Link key={l.href} href={l.href} className="text-[15px] font-medium text-muted hover:text-fg">
