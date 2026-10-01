@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
-import { getPublishedProducts } from "@/lib/products/queries";
+import Image from "next/image";
+import { getPublishedProducts, getShowcase } from "@/lib/products/queries";
 import { REGIONS, isRedundantProvince, provincesOf, regionBySlug } from "@/lib/regions";
 import { Container, PageHero, SectionHead } from "@/components/ui/Section";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -31,7 +32,8 @@ export default async function RegionPage({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const r = regionBySlug(slug);
   if (!r || isRedundantProvince(r)) notFound();
-  const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 300 })]);
+  const [t, all, show] = await Promise.all([getT(), getPublishedProducts({ limit: 300 }), getShowcase()]);
+  const ctaPhoto = show.byCollection["mi-pueblo"]?.[0] ?? null;
   const keys = new Set([r.slug, r.parent].filter(Boolean) as string[]);
   const products = all.filter((p) => p.tags.some((tag) => tag.startsWith("region:") && keys.has(tag.slice(7))) || (p.collection && keys.has(p.collection.slug)));
   const parent = r.parent ? regionBySlug(r.parent) : null;
@@ -76,7 +78,13 @@ export default async function RegionPage({ params }: { params: Promise<{ slug: s
               </div>
               <div className="relative flex items-center justify-center bg-accent p-8">
                 <div className="w-[70%] transition-transform duration-700 group-hover:scale-105">
-                  <Mockup kind="tee" color="#111111" slug="mi-pueblo" />
+                  {ctaPhoto ? (
+                    <div className="relative aspect-square rotate-[-4deg] overflow-hidden rounded-[1.4rem] shadow-2xl">
+                      <Image src={ctaPhoto} alt="" fill sizes="(min-width:640px) 30vw, 70vw" className="object-cover" />
+                    </div>
+                  ) : (
+                    <Mockup kind="tee" color="#111111" slug="mi-pueblo" />
+                  )}
                 </div>
               </div>
             </Link>

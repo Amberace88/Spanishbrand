@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getBrand } from "@/lib/brand";
-import { CollectionArt } from "@/components/art/CollectionArt";
+import Image from "next/image";
 import { Container, PageHero } from "@/components/ui/Section";
 import { MaskLines, Reveal } from "@/components/ui/Reveal";
 
@@ -22,8 +22,8 @@ export default async function AboutPage() {
       <section className="bg-bg py-16 sm:py-24">
         <Container>
           <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
-            <Reveal className="relative aspect-[4/5] overflow-hidden rounded-[2rem]">
-              <CollectionArt slug="heritage" className="absolute inset-0" />
+            <Reveal className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#0b0b0b]">
+              <Image src="/brand/lookbook-trio.webp" alt={brand.name} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
             </Reveal>
             <div>
               <h2 className="headline text-4xl sm:text-5xl">

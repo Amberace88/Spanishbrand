@@ -9,6 +9,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Container, SectionHead } from "@/components/ui/Section";
 import { IconArrow, IconLeaf, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { Newsletter } from "@/components/home/Newsletter";
+import { listSiteImages } from "@/lib/site-images";
 import { BrandLogo } from "@/components/brand/Wordmark";
 
 function ArrowDot({ className = "" }: { className?: string }) {
@@ -188,7 +189,9 @@ export async function FiestasCalendar() {
 }
 
 export async function PersonalizeTeaser() {
-  const [t, show] = await Promise.all([getT(), getShowcase()]);
+  const [t, show, site] = await Promise.all([getT(), getShowcase(), listSiteImages()]);
+  const photo = site["campaign-garcia"];
+  const pueblo = show.byCollection["mi-pueblo"]?.[0] ?? show.byType.POSTER ?? null;
   return (
     <section className="bg-bg pb-16 sm:pb-24">
       <Container>
@@ -210,8 +213,9 @@ export async function PersonalizeTeaser() {
               </Link>
             </div>
             <div className="relative flex min-h-[380px] items-center justify-center bg-accent p-8">
+              {photo && <Image src={photo} alt={t("perso.title")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />}
               <div className="grain-soft absolute inset-0" />
-              <div className="floaty relative w-[78%] max-w-[440px]">
+              <div className={`floaty relative w-[78%] max-w-[440px] ${photo ? "hidden" : ""}`}>
                 {show.jersey ? (
                   <div className="relative aspect-square overflow-hidden rounded-[1.6rem] shadow-2xl">
                     <Image src={show.jersey} alt={t("perso.title")} fill sizes="(min-width:1024px) 30vw, 70vw" className="object-cover" />
@@ -221,7 +225,13 @@ export async function PersonalizeTeaser() {
                 )}
               </div>
               <div className="floaty-slow absolute bottom-6 left-6 w-[30%] max-w-[170px] rotate-[-8deg] rounded-2xl bg-white p-2 shadow-2xl">
-                <Mockup kind="poster" slug="mi-pueblo" />
+                {pueblo ? (
+                  <div className="relative aspect-square overflow-hidden rounded-xl">
+                    <Image src={pueblo} alt="" fill sizes="170px" className="object-cover" />
+                  </div>
+                ) : (
+                  <Mockup kind="poster" slug="mi-pueblo" />
+                )}
               </div>
             </div>
           </div>

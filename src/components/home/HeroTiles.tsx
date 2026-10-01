@@ -8,9 +8,11 @@ import { IconArrow } from "@/components/ui/Icons";
 
 /* Homepage hero side tiles: a quick, live edit right in the tile; the full editor is one click away. */
 
-const tileBase = "group relative flex h-full min-h-[300px] flex-col justify-between overflow-hidden rounded-[28px] p-5 sm:min-h-[320px] sm:p-7 [container-type:size]";
+const tileBase = "group relative flex h-full min-h-[300px] flex-col justify-between overflow-hidden rounded-[28px] p-5 sm:min-h-[320px] sm:p-7";
 // square that always covers the tile, so overlay coordinates stay glued to the photo at any tile ratio
-const coverSquare = "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2";
+const coverSquare = "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2";
+// the size container has no padding, so 100cqw/100cqh are the full tile
+const coverBox = "pointer-events-none absolute inset-0 overflow-hidden [container-type:size]";
 const coverStyle = { width: "max(100cqw, 100cqh)", height: "max(100cqw, 100cqh)" } as const;
 
 function Head({ href, badge, badgeCls, ring }: { href: string; badge: string; badgeCls: string; ring: string }) {
@@ -36,17 +38,17 @@ export function JerseyTile({ photo, badge, title, labels }: { photo: string | nu
   return (
     <div className={`${tileBase} ${photo ? "bg-[#0b0b0b] text-white" : "bg-surface-2"}`}>
       {photo ? (
-        <div className={coverSquare} style={coverStyle}>
+        <div className={coverBox}><div className={coverSquare} style={coverStyle}>
           <Image src={photo} alt="" fill sizes="(min-width:1024px) 34vw, 100vw" className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
           {/* live lettering printed on the jersey back */}
-          <div className="absolute inset-x-0 text-center font-[family-name:var(--font-display)] font-bold uppercase leading-none text-[#e0b84a]" style={{ top: "43.5%", fontSize: `${nameSize}cqmax`, letterSpacing: "0.04em", textShadow: "0 1px 0 rgba(0,0,0,.35)", opacity: 0.94 }}>
+          <div className="absolute inset-x-0 text-center font-[family-name:var(--font-display)] font-bold uppercase leading-none text-[#e0b84a]" style={{ top: "41.5%", fontSize: `${nameSize}cqmax`, letterSpacing: "0.04em", textShadow: "0 1px 0 rgba(0,0,0,.35)", opacity: 0.94 }}>
             {shownName}
           </div>
-          <div className="absolute inset-x-0 text-center font-[family-name:var(--font-display)] font-bold leading-none text-[#e0b84a]" style={{ top: "49.5%", fontSize: "15cqmax", textShadow: "0 2px 0 rgba(0,0,0,.35)", opacity: 0.94 }}>
+          <div className="absolute inset-x-0 text-center font-[family-name:var(--font-display)] font-bold leading-none text-[#e0b84a]" style={{ top: "47%", fontSize: "14cqmax", textShadow: "0 2px 0 rgba(0,0,0,.35)", opacity: 0.94 }}>
             {shownNum}
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30" />
-        </div>
+        </div></div>
       ) : (
         <div className="pointer-events-none absolute inset-x-0 top-14 bottom-28 flex items-center justify-center">
           <div className="aspect-square h-full max-w-full">
@@ -92,7 +94,7 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
   return (
     <div className={`${tileBase} bg-[#c8102e] text-white`}>
       {photo && (
-        <div className={coverSquare} style={coverStyle}>
+        <div className={coverBox}><div className={coverSquare} style={coverStyle}>
           <Image src={photo} alt="" fill sizes="(min-width:1024px) 34vw, 100vw" className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
           {/* print area + the customer's text on the chest */}
           <div className="absolute left-1/2 top-[30%] h-[30%] w-[30%] -translate-x-1/2 rounded-[3px] border-2 border-dashed border-[#c8102e]/70 [animation:dash_1.2s_linear_infinite]" />
@@ -100,7 +102,7 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
             {shown}
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-[#7d0a1d]/90 via-transparent to-black/20" />
-        </div>
+        </div></div>
       )}
       <Head href="/disena" badge={badge} badgeCls="bg-white text-[#c8102e]" ring="border-white/40 bg-black/10 backdrop-blur hover:bg-white hover:text-[#c8102e]" />
       <div className="relative z-10">

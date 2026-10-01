@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
-import { getCollectionsBySlugs, getPublishedProducts } from "@/lib/products/queries";
+import Image from "next/image";
+import { getCollectionsBySlugs, getPublishedProducts, getShowcase } from "@/lib/products/queries";
+import { listSiteImages } from "@/lib/site-images";
 import { SPORT_SLUGS, themeFor } from "@/lib/themes";
 import { Container, PageHero, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function SportsPage() {
-  const [t, cols, all] = await Promise.all([getT(), getCollectionsBySlugs(SPORT_SLUGS.length ? ["futbol", "padel", "ciclismo", "motor"] : []), getPublishedProducts({ limit: 300 })]);
+  const [t, cols, all, show, site] = await Promise.all([getT(), getCollectionsBySlugs(SPORT_SLUGS.length ? ["futbol", "padel", "ciclismo", "motor"] : []), getPublishedProducts({ limit: 300 }), getShowcase(), listSiteImages()]);
   const products = all.filter((p) => p.collection && SPORT_SLUGS.includes(p.collection.slug));
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   return (
@@ -40,7 +42,15 @@ export default async function SportsPage() {
                       <IconArrow className="h-6 w-6 -rotate-45 transition-transform group-hover:rotate-0" />
                     </div>
                     <div className="pointer-events-none absolute -bottom-[10%] -right-[6%] w-[52%] transition-transform duration-700 group-hover:-translate-y-2 group-hover:scale-105">
-                      {c.slug === "futbol" ? <JerseyBack name="AFICIÓN" number="10" shirt="#ffffff" ink="#0f7a3d" trim="#c8102e" /> : <Mockup kind={th.kind} color={th.garment} slug={th.art} />}
+                      {show.byCollection[c.slug]?.[0] ? (
+                        <div className="relative aspect-square rotate-[-5deg] overflow-hidden rounded-[1.4rem] shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)] ring-1 ring-black/5">
+                          <Image src={show.byCollection[c.slug][0]} alt={c.name} fill sizes="(min-width:640px) 25vw, 50vw" className="object-cover" />
+                        </div>
+                      ) : c.slug === "futbol" ? (
+                        <JerseyBack name="AFICIÓN" number="10" shirt="#ffffff" ink="#0f7a3d" trim="#c8102e" />
+                      ) : (
+                        <Mockup kind={th.kind} color={th.garment} slug={th.art} />
+                      )}
                     </div>
                   </Link>
                 </Reveal>
@@ -58,11 +68,17 @@ export default async function SportsPage() {
                   {t("perso.cta")} <IconArrow className="h-4 w-4" />
                 </span>
               </div>
-              <div className="flex items-center justify-center bg-accent p-8">
-                <div className="floaty w-[72%]">
-                  <JerseyBack name="TU NOMBRE" number="9" shirt="#0d0d0d" ink="#e0b84a" trim="#c8102e" />
+              {site["campaign-garcia"] ? (
+                <div className="relative min-h-[320px] overflow-hidden">
+                  <Image src={site["campaign-garcia"]} alt={t("sports.jersey")} fill sizes="(min-width:640px) 40vw, 100vw" className="object-cover transition-transform duration-[1.4s] group-hover:scale-105" />
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center justify-center bg-accent p-8">
+                  <div className="floaty w-[72%]">
+                    <JerseyBack name="TU NOMBRE" number="9" shirt="#0d0d0d" ink="#e0b84a" trim="#c8102e" />
+                  </div>
+                </div>
+              )}
             </Link>
           </Reveal>
 
