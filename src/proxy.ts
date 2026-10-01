@@ -10,7 +10,9 @@ export async function proxy(request: NextRequest) {
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (url && key) {
+  // only signed-in visitors carry Supabase auth cookies; anonymous traffic needs no auth round-trip
+  const hasAuth = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+  if (url && key && hasAuth) {
     const supabase = createServerClient(url, key, {
       cookies: {
         getAll: () => request.cookies.getAll(),
@@ -21,7 +23,8 @@ export async function proxy(request: NextRequest) {
         },
       },
     });
-    await supabase.auth.getUser();
+    // never let a slow auth service hold the whole page: refresh in ≤2.5 s or carry on
+    await Promise.race([supabase.auth.getUser().catch(() => null), new Promise((r) => setTimeout(r, 2500))]);
   }
 
   if (!request.cookies.get("sid")) {
