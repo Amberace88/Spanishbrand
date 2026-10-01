@@ -1,4 +1,6 @@
 import { assetBase } from "@/lib/catalog/assets";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import "server-only";
 import sharp from "sharp";
 import { db } from "@/lib/supabase/admin";
@@ -782,9 +784,13 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     // lifestyle photos generated with the PDFs (scripts) → copied into storage like every other product image
     const labels = ["en la pared", "un mes por dentro", "portada y enero"];
     for (let n = 1; n <= 3; n++) {
-      const src = await fetch(`${env.siteUrl()}/catalog/calendars/${st.slug}-${n}.jpg`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+      const file = `catalog/calendars/${st.slug}-${n}.jpg`;
+      // bundled with the function (outputFileTracingIncludes); public URL as a fallback
+      const src: ArrayBuffer | Buffer | null =
+        (await readFile(join(process.cwd(), "public", file)).catch(() => null)) ??
+        (await fetch(`${env.siteUrl()}/${file}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
       if (!src) continue;
-      const url = await uploadObject(`catalog/media/${st.slug}/calendar-${n}.jpg`, Buffer.from(src), "image/jpeg");
+      const url = await uploadObject(`catalog/media/${st.slug}/calendar-${n}.jpg`, (Buffer.isBuffer(src) ? src : Buffer.from(src as ArrayBuffer)), "image/jpeg");
       await addImage(product!.id, url, `${product!.name} — ${labels[n - 1]}`, n - 1, null, n === 1 ? "LIFESTYLE" : "MOCKUP");
     }
     await save(job, { phase: "publish" });

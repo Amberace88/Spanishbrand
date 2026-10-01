@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Print rendering (Satori) reads these at runtime in serverless functions.
-  outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**"] },
+  outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**", "./public/catalog/calendars/*.jpg"] },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
