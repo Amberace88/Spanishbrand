@@ -10,6 +10,7 @@
 import type { FontKey, ImageLayer, Layer, TextLayer } from "@/lib/personalization/types";
 import { artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 import { cityDesigns } from "./cities";
+import { professionDesigns } from "./professions";
 
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
@@ -330,7 +331,113 @@ const BASE_DESIGNS: Design[] = [
     posterBg: "#0d0d0d",
   },
 
-  // ───────── TAPAS & VERMUT ─────────
+  // ───────── ESTILO MILITAR (inspired, generic: no official emblems, ranks or weapons) ─────────
+  {
+    slug: "camo-espana",
+    collection: "militar",
+    name: "Camo España",
+    line: "Camuflaje verde oliva y el nombre de casa en grande.",
+    tone: "dark",
+    layers: [img("camo-olive", 0.26, 0.58), txt("ESPAÑA", "sport", CR, 0.26, 0.11), txt("HECHO PARA RESISTIR", "sans", "#c3b091", 0.5, 0.022)],
+    products: ["tee", "hoodie", "sweat", "mug", "sticker"],
+    tags: ["militar", "camuflaje"],
+  },
+  {
+    slug: "veterano",
+    collection: "militar",
+    name: "Veterano",
+    line: "Un homenaje a quienes sirvieron. Parte de cada venta va a la causa de veteranos.",
+    tone: "dark",
+    layers: [img("dogtags-khaki", 0.2, 0.32), txt("VETERANO", "sport", CR, 0.46, 0.1), txt("HONOR · SERVICIO · ESPAÑA", "sans", "#c3b091", 0.545, 0.02)],
+    products: ["tee", "hoodie", "mug"],
+    tags: ["militar", "veteranos"],
+  },
+  {
+    slug: "parche-espana",
+    collection: "militar",
+    name: "Parche España",
+    line: "El parche de bandera de siempre, con coordenadas del kilómetro cero.",
+    tone: "dark",
+    layers: [img("patchflag-olive", 0.2, 0.36), txt("ESPAÑA", "sport", "#c3b091", 0.37, 0.08), txt("40°25′N · 3°42′O", "sans", CR, 0.44, 0.02)],
+    products: ["tee", "hoodie", "sticker", "mug"],
+    tags: ["militar", "bandera"],
+  },
+  {
+    slug: "operacion-siesta",
+    collection: "militar",
+    name: "Operación Siesta",
+    line: "Misión diaria de alto riesgo: de 14:00 a 17:00, sin novedad.",
+    tone: "dark",
+    layers: [img("compass-gold", 0.21, 0.3), txt("OPERACIÓN SIESTA", "sport", CR, 0.43, 0.07), txt("14:00 – 17:00 · SIN NOVEDAD", "sans", "#c3b091", 0.5, 0.02)],
+    products: ["tee", "mug", "sticker", "pillow"],
+    tags: ["militar", "humor"],
+  },
+  {
+    slug: "disciplina-honor",
+    collection: "militar",
+    name: "Disciplina y Honor",
+    line: "Laurel dorado y tres palabras que no pasan de moda.",
+    tone: "dark",
+    layers: [img("laurel-gold", 0.25, 0.42), txt("D·H", "serif", G2, 0.25, 0.07), txt("DISCIPLINA · HONOR", "sport", CR, 0.47, 0.06), txt("ESPAÑA", "sans", G, 0.54, 0.022)],
+    products: ["tee", "hoodie", "mug", "poster"],
+    posterBg: "#1f2326",
+    tags: ["militar"],
+  },
+  {
+    slug: "sin-novedad",
+    collection: "militar",
+    name: "Sin Novedad",
+    line: "Camuflaje nocturno, minimalista y sin estridencias.",
+    tone: "dark",
+    layers: [img("camo-night", 0.22, 0.4), txt("SIN NOVEDAD", "sport", CR, 0.44, 0.08), txt("EN EL FRENTE", "sans", "#c3b091", 0.51, 0.02)],
+    products: ["tee", "hoodie", "mug"],
+    tags: ["militar", "camuflaje"],
+  },
+
+  // ───────── TAPAS & VINO ─────────
+  {
+    slug: "un-vino",
+    collection: "tapas",
+    name: "¿Un Vino?",
+    line: "La pregunta que nunca tiene una respuesta equivocada.",
+    tone: "light",
+    layers: [img("wineglass-red", 0.25, 0.26), txt("¿UN VINO?", "serif", INK, 0.5, 0.07), txt("siempre", "script", "#8e1f30", 0.58, 0.05)],
+    products: ["tee", "tote", "mug", "apron", "poster"],
+    posterBg: CR,
+    tags: ["vino", "bestseller"],
+  },
+  {
+    slug: "al-porron",
+    collection: "tapas",
+    name: "Al Porrón",
+    line: "Brazo en alto, chorro largo y sin mancharse: como manda la tradición.",
+    tone: "dark",
+    layers: [img("porron-gold", 0.24, 0.36), txt("AL PORRÓN", "sport", CR, 0.48, 0.1), txt("como manda la tradición", "script", G2, 0.57, 0.035)],
+    products: ["tee", "hoodie", "mug", "apron"],
+    tags: ["vino"],
+  },
+  {
+    slug: "tierra-de-vinos",
+    collection: "tapas",
+    name: "Tierra de Vinos",
+    line: "Uva, sol y tiempo: el vino de España, de la viña a la mesa.",
+    tone: "dark",
+    layers: [img("grapes-gold", 0.24, 0.3), txt("TIERRA DE VINOS", "serif", CR, 0.48, 0.05), txt("UVA · SOL · TIEMPO", "sans", G, 0.55, 0.022)],
+    products: ["tee", "mug", "tote", "poster"],
+    posterBg: "#2a1a1f",
+    tags: ["vino"],
+  },
+  {
+    slug: "vino-y-tapas",
+    collection: "tapas",
+    name: "Vino y Tapas",
+    line: "Una botella, unas raciones y la sobremesa que se alarga.",
+    tone: "light",
+    layers: [img("bottle-wine", 0.25, 0.14), txt("VINO & TAPAS", "sport", "#8e1f30", 0.49, 0.1), txt("la mejor compañía", "script", INK, 0.58, 0.04)],
+    products: ["tee", "apron", "mug", "tote"],
+    posterBg: CR,
+    tags: ["vino"],
+  },
   {
     slug: "hora-del-vermut",
     collection: "tapas",
@@ -372,7 +479,7 @@ const BASE_DESIGNS: Design[] = [
   },
 ];
 
-export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns()];
+export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns()];
 
 export const designBySlug = (slug: string) => DESIGNS.find((d) => d.slug === slug) ?? null;
 export const designsFor = (collection: string) => DESIGNS.filter((d) => d.collection === collection);

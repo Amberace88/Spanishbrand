@@ -248,18 +248,57 @@ function Fiestas() {
 function Tapas() {
   return (
     <svg {...VB}>
-      <rect width="400" height="500" fill="#7a1f2b" />
-      <circle cx="200" cy="230" r="120" fill="#f6efe3" />
-      <circle cx="200" cy="230" r="98" fill="none" stroke="#7a1f2b" strokeWidth="3" strokeDasharray="4 8" />
-      <g>
-        <ellipse cx="165" cy="215" rx="34" ry="22" fill="#e9b949" />
-        <ellipse cx="235" cy="205" rx="28" ry="20" fill="#c2410c" />
-        <circle cx="210" cy="262" r="16" fill="#6b7a2a" />
-        <circle cx="185" cy="268" r="12" fill="#6b7a2a" />
-        <path d="M150 200 L180 230" stroke="#7a1f2b" strokeWidth="3" />
+      <rect width="400" height="500" fill="#6e1a2a" />
+      <circle cx="200" cy="215" r="128" fill="#f6efe3" />
+      <g transform="translate(200 215)">
+        <path d="M-46 -78 L46 -78 C 54 -20 40 22 0 30 C -40 22 -54 -20 -46 -78 Z" fill="none" stroke="#2a1a1f" strokeWidth="7" strokeLinejoin="round" />
+        <path d="M-50 -38 L50 -38 C 47 0 32 24 0 28 C -32 24 -47 0 -50 -38 Z" fill="#8e1f30" />
+        <rect x="-4" y="28" width="8" height="62" fill="#2a1a1f" />
+        <ellipse cx="0" cy="92" rx="40" ry="8" fill="#2a1a1f" />
+        <circle cx="74" cy="40" r="12" fill="#6b7a2a" />
+        <circle cx="90" cy="58" r="10" fill="#6b7a2a" />
+        <ellipse cx="-78" cy="52" rx="24" ry="14" fill="#e9b949" />
       </g>
-      <text x="200" y="420" textAnchor="middle" fill="#fff" fontFamily={FONT} fontWeight="800" fontSize="70" letterSpacing="-3">VERMUT</text>
+      <text x="200" y="420" textAnchor="middle" fill="#fff" fontFamily={FONT} fontWeight="800" fontSize="76" letterSpacing="-3">VINO</text>
       <text x="200" y="462" textAnchor="middle" fill="#f2d16b" fontFamily={FONT} fontWeight="700" fontSize="20" letterSpacing="6">Y UNAS TAPAS</text>
+    </svg>
+  );
+}
+
+function Profesiones() {
+  const icons = [
+    <path key="h" d="M0 26 C -30 6 -36 -10 -32 -20 C -26 -34 -8 -34 0 -20 C 8 -34 26 -34 32 -20 C 36 -10 30 6 0 26 Z" fill="#c8102e" />,
+    <path key="f" d="M0 -32 C 6 -14 24 -8 24 12 C 24 26 13 34 0 34 C -13 34 -24 26 -24 12 C -24 0 -16 -6 -12 -14 C -10 -4 -6 0 -2 0 C -6 -12 -4 -22 0 -32 Z" fill="#e8742a" />,
+    <path key="b" d="M6 -34 L-18 4 L-2 4 L-8 34 L18 -6 L2 -6 Z" fill="#f0c75a" />,
+    <path key="w" d="M-26 -26 a16 16 0 1 0 22 22 L20 20 a6 6 0 0 0 8 -8 L4 -12 a16 16 0 0 0 -30 -14 Z" fill="#f6efe3" />,
+  ];
+  return (
+    <svg {...VB}>
+      <rect width="400" height="500" fill="#14213d" />
+      {icons.map((ic, i) => (
+        <g key={i} transform={`translate(${130 + (i % 2) * 140} ${130 + Math.floor(i / 2) * 130})`}>
+          <circle r="54" fill="#1f2f55" />
+          {ic}
+        </g>
+      ))}
+      <text x="200" y="420" textAnchor="middle" fill="#fff" fontFamily={FONT} fontWeight="800" fontSize="54" letterSpacing="-2">PROFESIONES</text>
+      <text x="200" y="460" textAnchor="middle" fill="#f0c75a" fontFamily={FONT} fontWeight="700" fontSize="19" letterSpacing="6">ORGULLO DE OFICIO</text>
+    </svg>
+  );
+}
+
+function Militar() {
+  return (
+    <svg {...VB}>
+      <rect width="400" height="500" fill="#4b5320" />
+      {[[60, 70, 90, 50, 20], [250, 60, 110, 60, -15], [340, 180, 80, 60, 30], [120, 220, 120, 70, -25], [300, 300, 100, 70, 10], [70, 360, 90, 60, 35]].map(([x, y, rx, ry, r], i) => (
+        <ellipse key={i} cx={x} cy={y} rx={rx} ry={ry} fill={["#6b7a3a", "#2f3a1c", "#a89f6a"][i % 3]} transform={`rotate(${r} ${x} ${y})`} />
+      ))}
+      <rect x="110" y="170" width="180" height="104" rx="16" fill="#2f3a1c" />
+      <rect x="126" y="186" width="148" height="72" rx="6" fill="#c8102e" />
+      <rect x="126" y="204" width="148" height="36" fill="#ffc400" />
+      <text x="200" y="420" textAnchor="middle" fill="#f3ead7" fontFamily={FONT} fontWeight="800" fontSize="62" letterSpacing="-2">MILITAR</text>
+      <text x="200" y="460" textAnchor="middle" fill="#c3b091" fontFamily={FONT} fontWeight="700" fontSize="19" letterSpacing="6">HECHO PARA RESISTIR</text>
     </svg>
   );
 }
@@ -318,6 +357,12 @@ export function CollectionArt({ slug, className, style, animated }: Props) {
       break;
     case "tapas":
       art = <Tapas />;
+      break;
+    case "profesiones":
+      art = <Profesiones />;
+      break;
+    case "militar":
+      art = <Militar />;
       break;
     case "camino":
       art = <Camino />;

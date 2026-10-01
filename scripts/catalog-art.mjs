@@ -233,6 +233,138 @@ const M = {
     const d = p.map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`).join(" ") + " Z";
     return `<g transform="translate(20 60) scale(0.9)"><path d="${d}" fill="${a}" stroke="${a}" stroke-width="10" stroke-linejoin="round"/><ellipse cx="934" cy="540" rx="44" ry="30" fill="${a}"/><ellipse cx="1018" cy="503" rx="22" ry="11" fill="${a}"/><ellipse cx="823" cy="601" rx="15" ry="12" fill="${a}"/></g>`;
   },
+  // ───── wine (generic, no designation-of-origin marks) ─────
+  wineglass: ({ a, b }) =>
+    `<path d="M318 300 L682 300 C 680 405 628 482 500 502 C 372 482 320 405 318 300 Z" fill="${b}"/>
+     <path d="M330 110 L670 110 C 700 330 640 482 500 506 C 360 482 300 330 330 110 Z" fill="none" stroke="${a}" stroke-width="28" stroke-linejoin="round"/>
+     <rect x="486" y="500" width="28" height="330" fill="${a}"/><ellipse cx="500" cy="848" rx="175" ry="34" fill="${a}"/>
+     <path d="M380 170 C 372 240 378 280 392 320" fill="none" stroke="${a}" stroke-width="14" stroke-linecap="round" opacity=".55"/>`,
+  porron: ({ a, b }) =>
+    `<path d="M700 640 L935 230" stroke="${a}" stroke-width="56" stroke-linecap="round"/><path d="M712 628 L932 240" stroke="${b}" stroke-width="16" stroke-linecap="round"/>
+     <path d="M445 110 L555 110 L552 380 C 620 450 790 650 800 800 Q 800 875 728 875 L272 875 Q 200 875 200 800 C 210 650 380 450 448 380 Z" fill="none" stroke="${a}" stroke-width="28" stroke-linejoin="round"/>
+     <path d="M232 700 L768 700 C 776 735 780 770 780 800 Q 780 855 728 855 L272 855 Q 220 855 220 800 C 220 770 224 735 232 700 Z" fill="${b}"/>
+     <rect x="425" y="86" width="150" height="40" rx="12" fill="${a}"/>`,
+  grapes: ({ a, b, c }) => {
+    const pos = [[380,380],[500,380],[620,380],[440,480],[560,480],[380,580],[500,580],[620,580],[440,680],[560,680],[500,780]];
+    return `<path d="M500 330 C 500 250 540 190 600 150" fill="none" stroke="${c}" stroke-width="22" stroke-linecap="round"/>
+      <path d="M520 230 C 600 140 760 150 820 230 C 740 300 600 300 520 230 Z" fill="${b}"/>
+      ${pos.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="62" fill="${a}"/><circle cx="${x - 20}" cy="${y - 22}" r="14" fill="#fff" opacity=".35"/>`).join("")}`;
+  },
+  bottle: ({ a, b }) =>
+    `<path d="M440 90 L560 90 L560 300 C 560 340 640 370 640 450 L640 880 Q640 910 610 910 L390 910 Q360 910 360 880 L360 450 C 360 370 440 340 440 300 Z" fill="${a}"/>
+     <rect x="380" y="540" width="240" height="210" rx="10" fill="${b}"/><rect x="430" y="80" width="140" height="40" rx="10" fill="${b}"/>
+     <path d="M410 600 H590 M410 650 H560 M410 700 H520" stroke="${a}" stroke-width="14" stroke-linecap="round"/>`,
+
+  // ───── military-inspired (generic: no armed-forces emblems, ranks, unit crests or weapons) ─────
+  camo: ({ a, b, c, d }) => {
+    const blobs = [[180,200,170,110,20],[520,170,190,120,-15],[820,240,150,120,30],[300,450,210,130,-25],[680,470,200,140,10],[150,720,170,120,35],[480,760,220,130,-10],[830,760,160,120,20],[600,320,110,70,40],[380,620,120,80,-30]];
+    const cols = [b, c, d];
+    return `<defs><clipPath id="cc"><rect x="60" y="60" width="880" height="880" rx="90"/></clipPath></defs><g clip-path="url(#cc)"><rect width="1000" height="1000" fill="${a}"/>
+      ${blobs.map(([x, y, rx, ry, r], i) => `<path d="M${x - rx} ${y} C ${x - rx} ${y - ry * 1.3}, ${x + rx * 0.4} ${y - ry * 1.1}, ${x + rx} ${y - ry * 0.2} C ${x + rx * 1.2} ${y + ry * 0.8}, ${x - rx * 0.2} ${y + ry * 1.2}, ${x - rx} ${y} Z" fill="${cols[i % 3]}" transform="rotate(${r} ${x} ${y})"/>`).join("")}</g>`;
+  },
+  dogtags: ({ a, b }) =>
+    `<path d="M300 80 C 420 300 520 330 560 420 M700 80 C 620 260 600 330 620 400" fill="none" stroke="${b}" stroke-width="12" stroke-dasharray="2 22" stroke-linecap="round"/>
+     <g transform="rotate(-14 420 600)"><rect x="270" y="420" width="300" height="440" rx="120" fill="${a}"/><circle cx="420" cy="480" r="22" fill="${b}"/>
+       <rect x="320" y="560" width="200" height="22" rx="11" fill="${b}" opacity=".55"/><rect x="320" y="610" width="160" height="22" rx="11" fill="${b}" opacity=".55"/><rect x="320" y="660" width="190" height="22" rx="11" fill="${b}" opacity=".55"/></g>
+     <g transform="rotate(10 640 560)"><rect x="500" y="380" width="280" height="410" rx="112" fill="none" stroke="${a}" stroke-width="22"/><circle cx="640" cy="440" r="20" fill="${a}"/></g>`,
+  patchflag: ({ a, b, c }) =>
+    `<rect x="60" y="250" width="880" height="500" rx="70" fill="${c}"/><rect x="95" y="285" width="810" height="430" rx="46" fill="none" stroke="${b}" stroke-width="10" stroke-dasharray="18 14"/>
+     <rect x="140" y="330" width="720" height="340" rx="16" fill="${a}"/><rect x="140" y="415" width="720" height="170" fill="${b}"/>`,
+
+  // ───── professions (generic illustrations — no official emblems, crests or protected signs) ─────
+  stethoscope: ({ a, b }) =>
+    `<path d="M310 120 V300 A190 190 0 0 0 690 300 V120" fill="none" stroke="${a}" stroke-width="40" stroke-linecap="round"/>
+     <circle cx="310" cy="110" r="34" fill="${b}"/><circle cx="690" cy="110" r="34" fill="${b}"/>
+     <path d="M500 490 V610 C 500 760 720 800 730 680" fill="none" stroke="${a}" stroke-width="40" stroke-linecap="round"/>
+     <circle cx="730" cy="640" r="110" fill="${a}"/><circle cx="730" cy="640" r="58" fill="${b}"/>`,
+  heartecg: ({ a, b }) =>
+    `<path d="M500 880 C 160 640 90 470 120 340 C 160 170 380 130 500 300 C 620 130 840 170 880 340 C 910 470 840 640 500 880 Z" fill="${a}"/>
+     <path d="M150 500 L360 500 L420 380 L490 650 L560 300 L630 560 L670 500 L850 500" fill="none" stroke="${b}" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>`,
+  ecg: ({ a, b }) =>
+    `<path d="M40 520 L320 520 L380 380 L450 720 L540 220 L620 620 L670 520 L960 520" fill="none" stroke="${a}" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/><circle cx="960" cy="520" r="26" fill="${b}"/>`,
+  cap: ({ a, b }) =>
+    `<path d="M130 560 C 130 380 320 290 520 290 C 740 290 880 380 880 470 L860 560 Z" fill="${a}"/>
+     <rect x="130" y="556" width="730" height="90" rx="8" fill="${b}"/>
+     <path d="M180 642 Q 500 830 830 642 L800 705 Q 500 870 210 705 Z" fill="${a}"/>
+     <circle cx="500" cy="430" r="62" fill="none" stroke="${b}" stroke-width="20"/><circle cx="500" cy="430" r="20" fill="${b}"/>`,
+  firehelmet: ({ a, b }) =>
+    `<path d="M250 640 C 230 250 770 250 750 640 Z" fill="${a}"/>
+     <path d="M474 250 C 474 230 526 230 526 250 L536 640 L464 640 Z" fill="${b}"/>
+     <path d="M80 640 Q 500 720 920 640 Q 960 700 900 740 Q 500 820 60 720 Q 40 680 80 640 Z" fill="${a}"/>
+     <path d="M500 380 L590 420 L575 530 L500 580 L425 530 L410 420 Z" fill="${b}"/><circle cx="500" cy="470" r="34" fill="${a}"/>`,
+  flame: ({ a, b }) =>
+    `<path d="M500 90 C 560 260 760 330 760 580 C 760 760 640 900 500 900 C 360 900 240 760 240 580 C 240 450 320 380 360 300 C 380 420 430 460 470 470 C 440 330 460 200 500 90 Z" fill="${a}"/>
+     <path d="M500 480 C 540 580 640 620 640 730 C 640 820 580 880 500 880 C 420 880 360 820 360 730 C 360 660 410 620 430 570 C 450 630 480 650 500 650 C 485 590 485 530 500 480 Z" fill="${b}"/>`,
+  taxi: ({ a, b, c }) => {
+    let chk = "";
+    for (let i = 0; i < 14; i++) chk += `<rect x="${170 + i * 47}" y="${i % 2 ? 560 : 590}" width="47" height="30" fill="${c}"/>`;
+    return `<rect x="420" y="250" width="160" height="60" rx="10" fill="${b}"/>
+      <path d="M130 520 L230 330 Q 250 300 290 300 L710 300 Q 750 300 770 330 L870 520 Q 930 530 930 590 L930 690 Q 930 720 900 720 L100 720 Q 70 720 70 690 L70 590 Q 70 530 130 520 Z" fill="${a}"/>
+      <path d="M260 510 L320 360 L480 360 L480 510 Z M520 510 L520 360 L680 360 L740 510 Z" fill="${c}"/>
+      <rect x="160" y="560" width="680" height="60" fill="${b}"/>${chk}
+      <circle cx="260" cy="730" r="92" fill="${c}"/><circle cx="260" cy="730" r="58" fill="${a}"/><circle cx="740" cy="730" r="92" fill="${c}"/><circle cx="740" cy="730" r="58" fill="${a}"/>`;
+  },
+  truck: ({ a, b, c }) =>
+    `<rect x="60" y="250" width="560" height="380" rx="18" fill="${a}"/>
+     <path d="M640 360 L800 360 Q 830 360 850 390 L930 500 Q 945 520 945 545 L945 630 L640 630 Z" fill="${b}"/>
+     <path d="M690 400 L800 400 L870 500 L690 500 Z" fill="${c}"/><rect x="60" y="630" width="885" height="40" fill="${a}"/>
+     ${[200, 360, 790].map((x) => `<circle cx="${x}" cy="700" r="84" fill="${c}"/><circle cx="${x}" cy="700" r="40" fill="${a}"/>`).join("")}`,
+  book: ({ a, b }) =>
+    `<path d="M500 300 C 400 240 230 230 100 270 L100 800 C 230 760 400 770 500 830 Z" fill="${a}"/>
+     <path d="M500 300 C 600 240 770 230 900 270 L900 800 C 770 760 600 770 500 830 Z" fill="${a}" opacity=".85"/>
+     <path d="M160 360 C 260 340 360 350 440 380 M160 450 C 260 430 360 440 440 470 M160 540 C 260 520 360 530 440 560 M560 380 C 640 350 740 340 840 360 M560 470 C 640 440 740 430 840 450" stroke="${b}" stroke-width="16" stroke-linecap="round" fill="none"/>
+     <path d="M500 300 V830" stroke="${b}" stroke-width="16"/>
+     <path d="M640 120 C 700 70 790 110 780 190 C 770 260 720 290 690 270 C 660 290 610 260 600 190 C 595 140 610 120 640 120 Z" fill="${b}"/><path d="M690 120 C 690 90 710 60 740 50" stroke="${a}" stroke-width="12" fill="none" stroke-linecap="round"/>`,
+  chef: ({ a, b }) =>
+    `<path d="M260 520 C 140 520 110 360 220 315 C 230 190 390 155 440 235 C 485 120 660 135 680 250 C 790 195 920 300 840 420 C 900 470 860 560 760 540 L740 700 L270 700 Z" fill="${a}"/>
+     <rect x="250" y="690" width="500" height="130" rx="18" fill="${a}"/><path d="M280 735 H720" stroke="${b}" stroke-width="20" stroke-linecap="round"/>
+     <path d="M400 560 V660 M500 540 V660 M600 560 V660" stroke="${b}" stroke-width="14" stroke-linecap="round" opacity=".55"/>`,
+  wrench: ({ a, b }) =>
+    `<defs><mask id="wm"><rect width="1000" height="1000" fill="white"/><rect x="-60" y="-200" width="120" height="230" transform="translate(300 300) rotate(-45)" fill="black"/><circle cx="700" cy="700" r="48" fill="black"/></mask></defs>
+     <g mask="url(#wm)"><g transform="rotate(-45 500 500)"><rect x="440" y="250" width="120" height="560" rx="40" fill="${a}"/></g>
+     <circle cx="300" cy="300" r="185" fill="${a}"/><circle cx="700" cy="700" r="125" fill="${a}"/></g>
+     <circle cx="700" cy="700" r="48" fill="none" stroke="${b}" stroke-width="18"/>`,
+  tractor: ({ a, b, c }) =>
+    `<path d="M300 300 L540 300 L560 520 L300 520 Z" fill="${a}"/><path d="M340 340 L500 340 L515 480 L340 480 Z" fill="${c}"/>
+     <path d="M540 440 L840 460 Q 880 465 880 510 L880 620 L520 620 Z" fill="${a}"/><rect x="700" y="360" width="30" height="100" fill="${b}"/>
+     <circle cx="330" cy="660" r="200" fill="${b}"/><circle cx="330" cy="660" r="90" fill="${a}"/>
+     <circle cx="770" cy="720" r="120" fill="${b}"/><circle cx="770" cy="720" r="52" fill="${a}"/>`,
+  scissors: ({ a, b }) =>
+    `<g transform="rotate(-18 420 520)">
+       <path d="M400 560 L250 120 L300 110 L455 540 Z" fill="${a}"/><path d="M440 560 L590 120 L540 110 L385 540 Z" fill="${a}"/>
+       <circle cx="330" cy="720" r="95" fill="none" stroke="${a}" stroke-width="42"/><circle cx="510" cy="720" r="95" fill="none" stroke="${a}" stroke-width="42"/>
+       <path d="M395 560 L360 640 M445 560 L480 640" stroke="${a}" stroke-width="42" stroke-linecap="round"/><circle cx="420" cy="540" r="24" fill="${b}"/></g>
+     <g transform="rotate(14 780 520)"><rect x="740" y="160" width="90" height="700" rx="18" fill="${b}"/>${Array.from({ length: 14 }, (_, i) => `<rect x="690" y="${185 + i * 46}" width="70" height="24" rx="8" fill="${b}"/>`).join("")}</g>`,
+  paw: ({ a, b }) =>
+    `<ellipse cx="500" cy="660" rx="210" ry="180" fill="${a}"/>
+     <ellipse cx="270" cy="440" rx="80" ry="105" fill="${a}" transform="rotate(-20 270 440)"/><ellipse cx="410" cy="300" rx="80" ry="110" fill="${a}" transform="rotate(-8 410 300)"/>
+     <ellipse cx="590" cy="300" rx="80" ry="110" fill="${a}" transform="rotate(8 590 300)"/><ellipse cx="730" cy="440" rx="80" ry="105" fill="${a}" transform="rotate(20 730 440)"/>
+     <path d="M500 760 C 400 690 380 640 390 610 C 405 560 470 555 500 600 C 530 555 595 560 610 610 C 620 640 600 690 500 760 Z" fill="${b}"/>`,
+  bolt: ({ a, b }) =>
+    `<circle cx="500" cy="500" r="430" fill="none" stroke="${b}" stroke-width="34"/>
+     <path d="M560 110 L260 560 L470 560 L420 890 L740 410 L530 410 Z" fill="${a}"/>`,
+  hardhat: ({ a, b }) =>
+    `<path d="M220 620 C 220 360 780 360 780 620 Z" fill="${a}"/><path d="M455 330 C 455 300 545 300 545 330 L560 620 L440 620 Z" fill="${b}"/>
+     <path d="M110 620 L890 620 Q 920 620 910 660 L900 690 L100 690 L90 660 Q 80 620 110 620 Z" fill="${a}"/>
+     <rect x="250" y="750" width="230" height="110" fill="${b}"/><rect x="520" y="750" width="230" height="110" fill="${b}"/><rect x="385" y="880" width="230" height="80" fill="${b}"/>`,
+  coffee: ({ a, b }) =>
+    `<path d="M200 400 L740 400 L700 800 Q 690 860 630 860 L310 860 Q 250 860 240 800 Z" fill="${a}"/>
+     <path d="M735 470 C 900 460 910 680 715 700" fill="none" stroke="${a}" stroke-width="44"/>
+     <path d="M120 900 L820 900" stroke="${a}" stroke-width="34" stroke-linecap="round"/>
+     <path d="M350 330 C 300 260 400 220 350 140 M470 330 C 420 260 520 220 470 140 M590 330 C 540 260 640 220 590 140" fill="none" stroke="${b}" stroke-width="26" stroke-linecap="round"/>`,
+  scales: ({ a, b }) =>
+    `<rect x="480" y="160" width="40" height="660" fill="${a}"/><path d="M330 880 L670 880 L620 820 L380 820 Z" fill="${a}"/><circle cx="500" cy="150" r="40" fill="${b}"/>
+     <rect x="160" y="230" width="680" height="30" rx="15" fill="${a}"/>
+     <path d="M200 260 L110 520 M200 260 L290 520 M800 260 L710 520 M800 260 L890 520" stroke="${a}" stroke-width="10"/>
+     <path d="M80 520 L320 520 C 310 620 90 620 80 520 Z M680 520 L920 520 C 910 620 690 620 680 520 Z" fill="${b}"/>`,
+  mortar: ({ a, b }) =>
+    `<path d="M560 520 L840 120" stroke="${b}" stroke-width="70" stroke-linecap="round"/>
+     <path d="M150 480 L850 480 C 850 700 700 820 500 820 C 300 820 150 700 150 480 Z" fill="${a}"/><rect x="120" y="450" width="760" height="60" rx="20" fill="${a}"/>
+     <path d="M360 820 L640 820 L680 900 L320 900 Z" fill="${a}"/><path d="M250 600 H750" stroke="${b}" stroke-width="18" stroke-linecap="round"/>`,
+  code: ({ a, b }) =>
+    `<path d="M330 260 L110 500 L330 740" fill="none" stroke="${a}" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+     <path d="M670 260 L890 500 L670 740" fill="none" stroke="${a}" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+     <path d="M570 180 L430 820" stroke="${b}" stroke-width="56" stroke-linecap="round"/>`,
   dots: ({ a }) => Array.from({ length: 5 }, (_, i) => `<circle cx="${180 + i * 160}" cy="500" r="36" fill="${a}"/>`).join(""),
 };
 
@@ -290,6 +422,61 @@ const ART = [
   ["spain-red", "spain", { a: C.red }],
   ["spain-ink", "spain", { a: C.ink }],
   ["dots-gold", "dots", { a: C.gold }],
+  ["camo-olive", "camo", { a: "#4b5320", b: "#6b7a3a", c: "#2f3a1c", d: "#a89f6a" }],
+  ["camo-sand", "camo", { a: "#c3b091", b: "#a48c63", c: "#7a6a4a", d: "#e0d2b0" }],
+  ["camo-night", "camo", { a: "#1f2326", b: "#3a4046", c: "#0f1112", d: "#5a6168" }],
+  ["dogtags-khaki", "dogtags", { a: "#c3b091", b: "#4b5320" }],
+  ["dogtags-steel", "dogtags", { a: "#c9ccd1", b: "#6b7078" }],
+  ["patchflag-olive", "patchflag", { a: "#c8102e", b: "#ffc400", c: "#4b5320" }],
+  ["patchflag-khaki", "patchflag", { a: "#c8102e", b: "#ffc400", c: "#a48c63" }],
+  ["wineglass-red", "wineglass", { a: C.ink, b: "#7b1e2b" }],
+  ["wineglass-cream", "wineglass", { a: C.cream, b: "#a3263a" }],
+  ["porron-gold", "porron", { a: C.gold, b: "#8e1f30" }],
+  ["porron-ink", "porron", { a: C.ink, b: "#8e1f30" }],
+  ["grapes-wine", "grapes", { a: "#5b1a3a", b: "#4f7a2a", c: "#6b4a2a" }],
+  ["grapes-gold", "grapes", { a: C.gold, b: C.cream, c: C.gold2 }],
+  ["bottle-wine", "bottle", { a: "#2a1a1f", b: C.cream }],
+  ["bottle-cream", "bottle", { a: C.cream, b: C.red }],
+  ["stethoscope-gold", "stethoscope", { a: C.gold, b: C.red, c: C.ink }],
+  ["stethoscope-cream", "stethoscope", { a: C.cream, b: C.gold, c: C.ink }],
+  ["heartecg-gold", "heartecg", { a: C.gold, b: C.red, c: C.ink }],
+  ["heartecg-cream", "heartecg", { a: C.cream, b: C.gold, c: C.ink }],
+  ["ecg-gold", "ecg", { a: C.gold, b: C.red, c: C.ink }],
+  ["ecg-cream", "ecg", { a: C.cream, b: C.gold, c: C.ink }],
+  ["cap-gold", "cap", { a: C.gold, b: C.red, c: C.ink }],
+  ["cap-cream", "cap", { a: C.cream, b: C.gold, c: C.ink }],
+  ["firehelmet-gold", "firehelmet", { a: C.gold, b: C.red, c: C.ink }],
+  ["firehelmet-cream", "firehelmet", { a: C.cream, b: C.gold, c: C.ink }],
+  ["flame-gold", "flame", { a: C.gold, b: C.red, c: C.ink }],
+  ["flame-cream", "flame", { a: C.cream, b: C.gold, c: C.ink }],
+  ["taxi-gold", "taxi", { a: C.gold, b: C.red, c: C.ink }],
+  ["taxi-cream", "taxi", { a: C.cream, b: C.gold, c: C.ink }],
+  ["truck-gold", "truck", { a: C.gold, b: C.red, c: C.ink }],
+  ["truck-cream", "truck", { a: C.cream, b: C.gold, c: C.ink }],
+  ["book-gold", "book", { a: C.gold, b: C.red, c: C.ink }],
+  ["book-cream", "book", { a: C.cream, b: C.gold, c: C.ink }],
+  ["chef-gold", "chef", { a: C.gold, b: C.red, c: C.ink }],
+  ["chef-cream", "chef", { a: C.cream, b: C.gold, c: C.ink }],
+  ["wrench-gold", "wrench", { a: C.gold, b: C.red, c: C.ink }],
+  ["wrench-cream", "wrench", { a: C.cream, b: C.gold, c: C.ink }],
+  ["tractor-gold", "tractor", { a: C.gold, b: C.red, c: C.ink }],
+  ["tractor-cream", "tractor", { a: C.cream, b: C.gold, c: C.ink }],
+  ["scissors-gold", "scissors", { a: C.gold, b: C.red, c: C.ink }],
+  ["scissors-cream", "scissors", { a: C.cream, b: C.gold, c: C.ink }],
+  ["paw-gold", "paw", { a: C.gold, b: C.red, c: C.ink }],
+  ["paw-cream", "paw", { a: C.cream, b: C.gold, c: C.ink }],
+  ["bolt-gold", "bolt", { a: C.gold, b: C.red, c: C.ink }],
+  ["bolt-cream", "bolt", { a: C.cream, b: C.gold, c: C.ink }],
+  ["hardhat-gold", "hardhat", { a: C.gold, b: C.red, c: C.ink }],
+  ["hardhat-cream", "hardhat", { a: C.cream, b: C.gold, c: C.ink }],
+  ["coffee-gold", "coffee", { a: C.gold, b: C.red, c: C.ink }],
+  ["coffee-cream", "coffee", { a: C.cream, b: C.gold, c: C.ink }],
+  ["scales-gold", "scales", { a: C.gold, b: C.red, c: C.ink }],
+  ["scales-cream", "scales", { a: C.cream, b: C.gold, c: C.ink }],
+  ["mortar-gold", "mortar", { a: C.gold, b: C.red, c: C.ink }],
+  ["mortar-cream", "mortar", { a: C.cream, b: C.gold, c: C.ink }],
+  ["code-gold", "code", { a: C.gold, b: C.red, c: C.ink }],
+  ["code-cream", "code", { a: C.cream, b: C.gold, c: C.ink }],
 ];
 
 await mkdir(OUT, { recursive: true });
