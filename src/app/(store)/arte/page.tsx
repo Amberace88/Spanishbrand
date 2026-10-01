@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { listSiteImages } from "@/lib/site-images";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
 import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
@@ -31,7 +33,8 @@ const rankType = (p: PublicProduct) => {
 };
 
 export default async function ArtePage() {
-  const [locale, t, all] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 1500 })]);
+  const [locale, t, all, site] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 1500 }), listSiteImages()]);
+  const looks = ([["look-flamenca-mujer", "La Flamenca", "art-flamenca"], ["look-toro-hombre", "Toro Bravo", "art-toro"], ["look-quijote-hombre", "Quijote y Sancho", "art-quijote"], ["look-faro-pareja", "El Faro", "art-faro"], ["look-barca-nino", "La Barca", "art-barca"]] as const).filter(([k]) => site[k]);
   const en = locale === "en";
   const from = t("common.from");
   const byDesign = new Map<string, PublicProduct[]>();
@@ -73,6 +76,22 @@ export default async function ArtePage() {
           </div>
         </div>
       </section>
+
+      {looks.length > 0 && (
+        <section className="bg-bg pt-12 sm:pt-16">
+          <Container>
+            <SectionHead eyebrow={en ? "On the street" : "En la calle"} title={en ? "Worn in Spain" : "Llevado en España"} sub={en ? "Seville, La Mancha, Asturias, the Costa Blanca: the series where it belongs." : "Sevilla, La Mancha, Asturias, la Costa Blanca: la serie donde pertenece."} />
+            <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-5">
+              {looks.map(([k, alt, art]) => (
+                <Link key={k} href={`/disena?arte=${art}`} className="group relative block aspect-[4/5] w-[64vw] shrink-0 snap-start overflow-hidden rounded-2xl sm:w-auto">
+                  <Image src={site[k]} alt={alt} fill sizes="(min-width:1024px) 19vw, 64vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-12 text-sm font-semibold text-white">{alt}</span>
+                </Link>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
 
       <div id="series" className="scroll-mt-28">
         {SERIES.map((s) => (

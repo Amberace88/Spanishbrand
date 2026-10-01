@@ -41,6 +41,14 @@ export default async function Home() {
     .filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i || arr.length < 8);
   // art series: one garment per illustration, newest pieces first
   const arte = catalog.filter((p) => p.tags.includes("serie-arte") && p.categoryCode === "APPAREL").filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i);
+  const LOOKS: [string, string, string][] = [
+    ["look-flamenca-mujer", "La Flamenca", "art-flamenca"],
+    ["look-toro-hombre", "Toro Bravo", "art-toro"],
+    ["look-quijote-hombre", "Quijote y Sancho", "art-quijote"],
+    ["look-faro-pareja", "El Faro", "art-faro"],
+    ["look-barca-nino", "La Barca", "art-barca"],
+  ];
+  const looks = LOOKS.filter(([k]) => site[k]).map(([k, alt, art]) => ({ src: site[k], alt, href: `/disena?arte=${art}` }));
   const arts = ART_SERIES.map((p) => ({ key: p.art, name: p.name, src: siteArtSrc(p.art) }));
   const core = collections.filter((c) => ["espana", "heritage", "mediterraneo"].includes(c.slug));
   const products = bestsellers.length ? bestsellers : newest;
@@ -55,8 +63,8 @@ export default async function Home() {
       <TrustBar />
       <BrandEssentials />
       <CategoryGrid />
-      <LookbookLeon products={lookbook} en={locale === "en"} labels={{ madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") }} />
-      <ArteBand arts={arts} products={arte} en={locale === "en"} labels={cardLabels} />
+      <LookbookLeon products={lookbook} photo={site["look-leon-mujer"] ?? null} en={locale === "en"} labels={{ madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") }} />
+      <ArteBand arts={arts} looks={looks} products={arte} en={locale === "en"} labels={cardLabels} />
 
       {products.length ? (
         <section className="bg-bg py-16 sm:py-24">

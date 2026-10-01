@@ -7,7 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
 
 /** The lookbook line — the crowned lion of the homepage film, as a feature band with its products. */
-export function LookbookLeon({ products, en, labels }: { products: PublicProduct[]; en: boolean; labels: { madeToOrder: string; from: string; limited: string } }) {
+export function LookbookLeon({ products, en, labels, photo = null }: { products: PublicProduct[]; en: boolean; labels: { madeToOrder: string; from: string; limited: string }; photo?: string | null }) {
   const picks = products.slice(0, 4);
   return (
     <section className="bg-bg pb-16 sm:pb-24">
@@ -40,7 +40,18 @@ export function LookbookLeon({ products, en, labels }: { products: PublicProduct
               </div>
             </div>
             <div className="relative order-1 min-h-[360px] lg:order-2 lg:col-span-6 lg:min-h-[560px]">
-              <Image src="/catalog/art/lion-crowned.png" alt={en ? "Crowned lion — ROJO Y GUALDA" : "León coronado — ROJO Y GUALDA"} fill sizes="(min-width:1024px) 45vw, 100vw" className="lion-float object-contain p-8 drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)] sm:p-12" />
+              {photo ? (
+                <>
+                  {/* the lion worn in Barcelona; the art floats beside it */}
+                  <Image src={photo} alt={en ? "Crowned lion hoodie, Barcelona" : "Sudadera León Coronado en Barcelona"} fill sizes="(min-width:1024px) 45vw, 100vw" className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b]/70 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-transparent" />
+                  <div className="absolute bottom-5 right-5 h-28 w-28 sm:h-36 sm:w-36">
+                    <Image src="/catalog/art/lion-crowned.png" alt="" fill sizes="144px" className="lion-float object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]" />
+                  </div>
+                </>
+              ) : (
+                <Image src="/catalog/art/lion-crowned.png" alt={en ? "Crowned lion — ROJO Y GUALDA" : "León coronado — ROJO Y GUALDA"} fill sizes="(min-width:1024px) 45vw, 100vw" className="lion-float object-contain p-8 drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)] sm:p-12" />
+              )}
             </div>
           </div>
         </Reveal>

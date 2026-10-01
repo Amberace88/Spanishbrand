@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { PublicProduct } from "@/lib/products/queries";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Container } from "@/components/ui/Section";
@@ -6,7 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
 
 /** "Arte de autor" — the illustration series as two drifting rows of art, with the latest pieces below. */
-export function ArteBand({ arts, products, en, labels }: { arts: { key: string; name: string; src: string }[]; products: PublicProduct[]; en: boolean; labels: { madeToOrder: string; from: string; limited: string } }) {
+export function ArteBand({ arts, looks = [], products, en, labels }: { arts: { key: string; name: string; src: string }[]; looks?: { src: string; alt: string; href: string }[]; products: PublicProduct[]; en: boolean; labels: { madeToOrder: string; from: string; limited: string } }) {
   const half = Math.ceil(arts.length / 2);
   const rows = [arts.slice(0, half), arts.slice(half)];
   const picks = products.slice(0, 4);
@@ -42,6 +43,17 @@ export function ArteBand({ arts, products, en, labels }: { arts: { key: string; 
                 </div>
               </div>
             </div>
+            {looks.length > 0 && (
+              // on the street: people in Spain wearing the series
+              <div className="no-scrollbar -mt-2 flex snap-x gap-3 overflow-x-auto px-7 pb-6 sm:px-12 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-16 lg:pb-10">
+                {looks.map((l) => (
+                  <Link key={l.src} href={l.href} className="group relative block aspect-[4/5] w-[62vw] shrink-0 snap-start overflow-hidden rounded-2xl sm:w-[38vw] lg:w-auto">
+                    <Image src={l.src} alt={l.alt} fill sizes="(min-width:1024px) 18vw, 60vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-10 text-[12px] font-semibold text-white">{l.alt}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
             <div className="space-y-3 pb-8 sm:pb-12 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
               {rows.map((row, r) => (
                 <div key={r} className="overflow-hidden">

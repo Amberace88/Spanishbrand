@@ -49,13 +49,14 @@ export async function TrustBar() {
   );
 }
 
-const CATEGORY_TILES: { key: string; cat: string; kind: MockupKind; color: string; slug: string; print?: "art" | "logo"; photo: (s: Showcase) => string | undefined }[] = [
-  { key: "cats.TEES", cat: "APPAREL", kind: "tee", color: "#111111", slug: "espana", print: "logo", photo: (s) => s.byType.TSHIRT },
-  { key: "cats.HOODIES", cat: "APPAREL", kind: "hoodie", color: "#111111", slug: "heritage", print: "logo", photo: (s) => s.byType.HOODIE },
-  { key: "cats.HEADWEAR", cat: "HEADWEAR", kind: "cap", color: "#111111", slug: "espana", print: "logo", photo: (s) => s.byType.CAP ?? s.byType.BEANIE },
-  { key: "cats.DRINKWARE", cat: "DRINKWARE", kind: "mug", color: "#ffffff", slug: "tapas", photo: (s) => s.byCategory.DRINKWARE },
+/* site: our own campaign photo (models in Spain wearing the house designs) preferred over the provider mockup */
+const CATEGORY_TILES: { key: string; cat: string; kind: MockupKind; color: string; slug: string; print?: "art" | "logo"; site?: string; photo: (s: Showcase) => string | undefined }[] = [
+  { key: "cats.TEES", cat: "APPAREL", kind: "tee", color: "#111111", slug: "espana", print: "logo", site: "look-toro-hombre", photo: (s) => s.byType.TSHIRT },
+  { key: "cats.HOODIES", cat: "APPAREL", kind: "hoodie", color: "#111111", slug: "heritage", print: "logo", site: "look-quijote-hombre", photo: (s) => s.byType.HOODIE },
+  { key: "cats.HEADWEAR", cat: "HEADWEAR", kind: "cap", color: "#111111", slug: "espana", print: "logo", site: "cat-gorras", photo: (s) => s.byType.CAP ?? s.byType.BEANIE },
+  { key: "cats.DRINKWARE", cat: "DRINKWARE", kind: "mug", color: "#ffffff", slug: "tapas", site: "cat-tazas", photo: (s) => s.byCategory.DRINKWARE },
   { key: "cats.WALL_ART", cat: "WALL_ART", kind: "poster", color: "#ffffff", slug: "futbol", photo: (s) => s.byType.FRAMED_PRINT ?? s.byCategory.WALL_ART },
-  { key: "cats.BAGS", cat: "BAGS", kind: "tote", color: "#111111", slug: "camino", print: "logo", photo: (s) => s.byCategory.BAGS },
+  { key: "cats.BAGS", cat: "BAGS", kind: "tote", color: "#111111", slug: "camino", print: "logo", site: "cat-bolsas", photo: (s) => s.byCategory.BAGS },
   { key: "cats.HOME_LIVING", cat: "HOME_LIVING", kind: "poster", color: "#ffffff", slug: "playa", photo: (s) => s.byType.BLANKET ?? s.byType.PILLOW ?? s.byCategory.HOME_LIVING },
   { key: "cats.EMBROIDERY", cat: "EMB", kind: "tee", color: "#111111", slug: "heritage", print: "logo", photo: (s) => s.byTag.bordado },
 ];
@@ -70,7 +71,8 @@ function Photo({ src, alt, className = "", sizes = "(min-width:1024px) 16vw, 45v
 }
 
 export async function CategoryGrid() {
-  const [t, show] = await Promise.all([getT(), getShowcase()]);
+  const [t, show, site] = await Promise.all([getT(), getShowcase(), listSiteImages()]);
+  const photoOf = (c: (typeof CATEGORY_TILES)[number]) => (c.site && site[c.site]) || c.photo(show);
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
@@ -88,8 +90,8 @@ export async function CategoryGrid() {
             <Reveal key={c.key} delay={i * 0.04}>
               <Link href={c.cat === "EMB" ? "/collections/esenciales" : `/shop?c=${c.cat}`} className="group relative block overflow-hidden rounded-3xl bg-surface-2 p-4 transition-colors duration-500 hover:bg-fg hover:text-bg sm:p-5">
                 <span className="text-[11px] font-bold tabular-nums text-muted group-hover:text-bg/60">{String(i + 1).padStart(2, "0")}</span>
-                {c.photo(show) ? (
-                  <Photo src={c.photo(show)!} alt={t(c.key as never)} className="my-3" />
+                {photoOf(c) ? (
+                  <Photo src={photoOf(c)!} alt={t(c.key as never)} className="my-3" />
                 ) : (
                   <div className="px-2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-1 group-hover:scale-[1.06]">
                     <Mockup kind={c.kind} color={c.color} slug={c.slug} print={c.print} />
