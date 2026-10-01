@@ -52,7 +52,7 @@ export function MobileTabBar({ cartCount }: { cartCount: number }) {
       <div className="h-[calc(64px+env(safe-area-inset-bottom))] lg:hidden" aria-hidden />
       <nav
         aria-label="App"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl supports-[backdrop-filter]:bg-bg/75 lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:hidden"
       >
         <ul className="mx-auto grid h-16 max-w-md grid-cols-5">
           {items.map((it) => (

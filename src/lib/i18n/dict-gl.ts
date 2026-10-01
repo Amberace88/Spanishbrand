@@ -292,7 +292,7 @@ export const gl: Dict = {
   "account.title": "A miña conta",
   "account.orders": "Pedidos",
   "account.profile": "Perfil",
-  "account.signin": "Accede co teu email",
+  "account.signin": "Accede á túa conta",
   "account.signin.body": "Entra co teu contrasinal ou cunha ligazón máxica por correo.",
   "account.signin.send": "Enviar ligazón",
   "account.signin.sent": "Revisa o teu email para acceder.",

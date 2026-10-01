@@ -292,7 +292,7 @@ export const ca: Dict = {
   "account.title": "El meu compte",
   "account.orders": "Comandes",
   "account.profile": "Perfil",
-  "account.signin": "Accedeix amb el teu correu",
+  "account.signin": "Accedeix al teu compte",
   "account.signin.body": "Entra amb la teva contrasenya o amb un enllaç màgic per correu.",
   "account.signin.send": "Envia l'enllaç",
   "account.signin.sent": "Revisa el teu correu per accedir.",

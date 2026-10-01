@@ -292,7 +292,7 @@ export const eu: Dict = {
   "account.title": "Nire kontua",
   "account.orders": "Eskaerak",
   "account.profile": "Profila",
-  "account.signin": "Sartu zure emailarekin",
+  "account.signin": "Sartu zure kontuan",
   "account.signin.body": "Sartu zure pasahitzarekin edo posta bidezko esteka magiko batekin.",
   "account.signin.send": "Bidali esteka",
   "account.signin.sent": "Begiratu zure emaila sartzeko.",

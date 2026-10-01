@@ -5,6 +5,8 @@
 [build.environment]
   NODE_VERSION = "22"
   NEXT_TELEMETRY_DISABLED = "1"
+  # Turbopack's persistent build cache (never published) records env values; skip it in the secret scan.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**,.next/cache/**"
 
 [functions]
   directory = "netlify/functions"
