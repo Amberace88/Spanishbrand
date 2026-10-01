@@ -15,7 +15,7 @@ import { professionDesigns } from "./professions";
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
 export type Tone = "dark" | "light";
-export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket" | "cap" | "beanie" | "embtee" | "embhoodie" | "patch" | "glass" | "coaster" | "tumbler" | "flag" | "postcard";
+export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket" | "cap" | "beanie" | "embtee" | "embhoodie" | "patch" | "glass" | "coaster" | "tumbler" | "flag" | "postcard" | "calendar";
 
 export interface Design {
   slug: string;
@@ -371,6 +371,28 @@ const BASE_DESIGNS: Design[] = [
     layers: [txt("ESPAÑA", "sport", "#A67843", 0.3, 0.12), img("flag-emb", 0.42, 0.22)],
     products: ["cap", "beanie", "embtee"],
     tags: ["bordado"],
+  },
+
+  // ───────── CALENDARIOS 2027 (static print-ready PDFs in /public/catalog/calendars, built by scripts) ─────────
+  {
+    slug: "calendario-espana-2027",
+    collection: "esenciales",
+    name: "Calendario España 2027",
+    line: "Doce meses de sol, fiesta, mar y orgullo: un diseño de la casa para cada mes y los festivos nacionales marcados.",
+    tone: "dark",
+    layers: [img("sun-gold", 0.2, 0.3), txt("ESPAÑA", "sport", G2, 0.4, 0.1), txt("2027", "sport", CR, 0.5, 0.07), txt("CALENDARIO DE PARED", "sans", G, 0.57, 0.02)],
+    products: ["calendar"],
+    tags: ["calendario", "regalo"],
+  },
+  {
+    slug: "calendario-ciudades-2027",
+    collection: "ciudades",
+    name: "Calendario Ciudades 2027",
+    line: "Doce ciudades de España en coordenadas, de Madrid a Palma, con los festivos nacionales marcados.",
+    tone: "light",
+    layers: [img("compass-navy", 0.2, 0.3), txt("CIUDADES", "serif", INK, 0.42, 0.06), txt("2027", "sport", R, 0.51, 0.07), txt("CALENDARIO DE PARED", "sans", NAVY, 0.58, 0.02)],
+    products: ["calendar"],
+    tags: ["calendario", "regalo", "ciudad"],
   },
 
   // ───────── ESTILO MILITAR (inspired, generic: no official emblems, ranks or weapons) ─────────

@@ -1,3 +1,4 @@
+import { assetBase } from "@/lib/catalog/assets";
 import "server-only";
 import sharp from "sharp";
 import { db } from "@/lib/supabase/admin";
@@ -266,6 +267,21 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: Math.round(pf.width * cap), height: Math.round(pf.height * cap) }, placements, placement: place, sizeGuide, variantIds };
 }
 
+/** Gelato A3 portrait wall calendar (printed in Spain). The print file is a static 14-page PDF per design. */
+async function resolveGelatoCalendar(bp: Blueprint): Promise<Resolved> {
+  let found: { productUid: string } | undefined;
+  for (let offset = 0; offset < 600 && !found; offset += 100) {
+    const page = await searchProductsFiltered("calendars", null, 100, offset).catch(() => []);
+    found = page.find((p) => bp.match.test(p.productUid) && /250-gsm/.test(p.productUid)) ?? page.find((p) => bp.match.test(p.productUid));
+    if (page.length < 100) break;
+  }
+  if (!found) throw new Error("No Gelato A3 portrait wall calendar found");
+  const price = await getUnitPrice(found.productUid).catch(() => null);
+  const rowId = await upsertProviderProduct("gelato", "calendars", { title: "Wall calendar A3", type: "CALENDAR", internal_category_code: "STATIONERY", techniques: ["DIGITAL"], placements: ["default"], variant_count: 1, discontinued: false, currency: "EUR" });
+  await upsertVariants(rowId, "gelato", [{ externalId: found.productUid, name: "A3 · 29,7 × 42 cm", size: "A3", color: null, colorCode: null, cost: price?.price ?? null, currency: price?.currency ?? "EUR", status: "ACTIVE", raw: found }]);
+  return { provider: "gelato", rowId, externalId: "calendars", title: "Calendario A3", printfile: { width: 3602, height: 5055 }, placements: ["default"], variantIds: [found.productUid] };
+}
+
 async function resolveGelatoPoster(bp: Blueprint): Promise<Resolved> {
   const formats = ["300x400-mm-12x16-inch", "450x600-mm-18x24-inch", "600x800-mm-24x32-inch"];
   let products: Awaited<ReturnType<typeof searchProductsFiltered>> = [];
@@ -381,7 +397,7 @@ async function resolveProdigi(bp: Blueprint): Promise<Resolved> {
 async function stepResolve(job: JobRow): Promise<StepResult> {
   const [, bpKey, tone] = job.key.split(":") as [string, BlueprintKey, Tone | undefined];
   const bp = BLUEPRINTS[bpKey];
-  const r = bp.provider === "gelato" ? await resolveGelatoPoster(bp) : bp.provider === "printify" ? await resolvePrintify(bp) : bp.provider === "prodigi" ? await resolveProdigi(bp) : await resolvePrintful(bp, tone ?? null);
+  const r = bp.provider === "gelato" ? (bp.key === "calendar" ? await resolveGelatoCalendar(bp) : await resolveGelatoPoster(bp)) : bp.provider === "printify" ? await resolvePrintify(bp) : bp.provider === "prodigi" ? await resolveProdigi(bp) : await resolvePrintful(bp, tone ?? null);
   await save(job, { phase: "done", state: { resolved: r }, error: null });
   return { key: job.key, phase: "done", done: true, message: `${r.title} (${r.externalId}) · ${r.printfile.width}×${r.printfile.height}` };
 }
@@ -427,7 +443,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
@@ -537,7 +553,9 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
 
   // Print file (brand designs only — personalised products are rendered per order).
   const files: { type: string; url: string }[] = [];
-  if (spec.kind === "design") {
+  if (spec.kind === "design" && bp.key === "calendar") {
+    files.push({ type: "default", url: `${assetBase()}/catalog/calendars/${design.slug}.pdf` });
+  } else if (spec.kind === "design") {
     const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
     const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}.png`, png, "image/png");
     files.push({ type: res.placement ?? bp.placement, url });
@@ -757,6 +775,19 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     await sb.rpc("refresh_product_eligibility", { p_product_id: product!.id });
     await save(job, { phase: "images", state: { ...st, printifyProductId: created.id, pending, done: 0 } });
     return { key: job.key, phase: "images", done: false, message: `Printify ${created.id} · ${pending.length} mockups` };
+  }
+
+  if (res.provider === "gelato" && bp.key === "calendar") {
+    // lifestyle photos generated with the PDFs (scripts) → copied into storage like every other product image
+    const labels = ["en la pared", "un mes por dentro", "portada y enero"];
+    for (let n = 1; n <= 3; n++) {
+      const src = await fetch(`${assetBase()}/catalog/calendars/${st.slug}-${n}.jpg`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+      if (!src) continue;
+      const url = await uploadObject(`catalog/media/${st.slug}/calendar-${n}.jpg`, Buffer.from(src), "image/jpeg");
+      await addImage(product!.id, url, `${product!.name} — ${labels[n - 1]}`, n - 1, null, n === 1 ? "LIFESTYLE" : "MOCKUP");
+    }
+    await save(job, { phase: "publish" });
+    return { key: job.key, phase: "publish", done: false };
   }
 
   if (res.provider === "gelato") {
