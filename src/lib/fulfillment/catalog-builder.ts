@@ -911,10 +911,6 @@ async function stepPublish(job: JobRow, staff: StaffSession): Promise<StepResult
     if (old) {
       await sb.from("products").update({ status: "ARCHIVED", visibility: "HIDDEN", slug: `${old.slug}-v${Date.now().toString(36)}` }).eq("id", replaces);
       await sb.from("products").update({ slug: old.slug }).eq("id", job.product_id!);
-      // free storage: the retired product's mockup photos (its print file stays for order history)
-      const prefix = `catalog/media/${old.slug}`;
-      const { data: files } = await sb.storage.from("print-files").list(prefix, { limit: 200 });
-      if (files?.length) await sb.storage.from("print-files").remove(files.map((f) => `${prefix}/${f.name}`)).catch(() => null);
     }
   }
   const r = await publishProduct(staff, job.product_id!);
