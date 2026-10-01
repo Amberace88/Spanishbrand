@@ -6,6 +6,7 @@ import { isProviderError } from "@/lib/fulfillment/errors";
 import { slugify } from "@/lib/format";
 import { audit } from "@/lib/audit";
 import { getUnitPrice } from "@/lib/fulfillment/gelato";
+import { assetBase } from "@/lib/catalog/assets";
 import type { StaffSession } from "@/lib/auth/rbac";
 
 /** Test destination for the non-charging fulfillment test (estimate/quote only — no order is created). */
@@ -145,7 +146,7 @@ export async function runFulfillmentTest(staff: StaffSession, productId: string,
   let files = (Array.isArray(vm.files) && vm.files.length ? vm.files : cfgFiles) as { type: string; url: string }[];
   // Customer-designed (blank) products: test with a sample print file — the real one is rendered per order.
   if (!files.length && (m.print_config as { personalized?: boolean } | null)?.personalized) {
-    files = [{ type: "front", url: `${(process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "")}/brand/print-sample.png` }];
+    files = [{ type: (m.print_config as { placement?: string } | null)?.placement ?? "front", url: `${assetBase()}/brand/print-sample.png` }];
   }
   if (!files.length) throw new Error("Add print files (print_config.files) before testing");
 

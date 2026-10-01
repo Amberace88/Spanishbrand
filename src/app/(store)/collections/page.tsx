@@ -1,48 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCollectionCounts, getCollections } from "@/lib/products/queries";
+import Image from "next/image";
+import { FALLBACK_COLLECTIONS, getCollections, getPublishedProducts } from "@/lib/products/queries";
 import { getT } from "@/lib/i18n/server";
-import { Mockup, type MockupKind } from "@/components/art/Mockup";
+import { designsFor } from "@/lib/catalog/designs";
+import { DesignArt } from "@/components/catalog/DesignArt";
 import { IconArrow } from "@/components/ui/Icons";
-
 import { Container, PageHero } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 
-export const metadata: Metadata = { title: "Colecciones", alternates: { canonical: "/collections" } };
+export const metadata: Metadata = { title: "Colecciones", description: "España, Heritage, Mediterráneo, Motor, fútbol, pádel, fiestas, playa, tapas y Camino: colecciones con diseños originales de identidad española.", alternates: { canonical: "/collections" } };
 export const revalidate = 300;
 
-const KIND: Record<string, MockupKind> = { espana: "tee", heritage: "hoodie", mediterraneo: "tote", motor: "tee", "1492": "poster", madrid: "mug", valencia: "tote", alicante: "cap", cities: "poster", founders: "hoodie" };
-const BG = ["bg-surface-2", "bg-surface-2", "bg-surface-2", "bg-surface-2", "bg-surface-2", "bg-surface-2"];
-
 export default async function CollectionsPage() {
-  const [t, collections, counts] = await Promise.all([getT(), getCollections(), getCollectionCounts()]);
+  const [t, dbCollections, products] = await Promise.all([getT(), getCollections(), getPublishedProducts({ limit: 500 })]);
+  // DB collections first, then the theme hubs that always exist editorially.
+  const collections = [...dbCollections, ...FALLBACK_COLLECTIONS.filter((f) => !dbCollections.some((c) => c.slug === f.slug))].filter((c) => designsFor(c.slug).length || products.some((p) => p.collection?.slug === c.slug));
+
   return (
     <>
       <PageHero eyebrow={`${collections.length} · ${t("nav.collections")}`} title={t("collections.title")} sub={t("home.collections.sub")} />
       <section className="bg-bg py-12 sm:py-16">
         <Container>
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {collections.map((c, i) => (
-              <Reveal key={c.slug} delay={(i % 3) * 0.05}>
-                <Link href={`/collections/${c.slug}`} className="group block overflow-hidden rounded-[1.75rem] border border-line bg-surface transition-shadow hover:shadow-[0_22px_44px_-24px_rgba(28,23,18,0.35)]">
-                  <div className={`relative p-8 ${BG[i % BG.length]}`}>
-                    <div className="mx-auto w-3/4 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105">
-                      <Mockup kind={KIND[c.slug] ?? "tee"} color={c.slug === "heritage" ? "#efe4cf" : "#fffcf7"} slug={c.slug} />
+            {collections.map((c, i) => {
+              const own = products.filter((p) => p.collection?.slug === c.slug);
+              const cover = own.find((p) => p.featured && p.images[0])?.images[0] ?? own.find((p) => p.images[0])?.images[0];
+              const designs = designsFor(c.slug);
+              return (
+                <Reveal key={c.slug} delay={(i % 3) * 0.05}>
+                  <Link href={`/collections/${c.slug}`} className="group block overflow-hidden rounded-[1.75rem] border border-line bg-surface transition-shadow hover:shadow-[0_22px_44px_-24px_rgba(28,23,18,0.35)]">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-surface-2">
+                      {cover ? (
+                        <Image src={cover.url} alt={cover.alt ?? c.name} fill sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
+                      ) : designs.length ? (
+                        <div className="absolute inset-0 grid grid-cols-2 gap-2 p-5">
+                          {designs.slice(0, 2).map((d) => (
+                            <div key={d.slug} className="transition-transform duration-700 group-hover:scale-105">
+                              <DesignArt layers={d.layers} tone={d.tone} kind="tee" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                      <span className="absolute left-4 top-4 rounded-full bg-surface px-2.5 py-1 text-[11px] font-bold text-accent shadow-sm">
+                        {own.length ? t("collections.pieces", { n: own.length }) : t("collections.designs", { n: designs.length })}
+                      </span>
                     </div>
-                    <span className="absolute left-4 top-4 rounded-full bg-surface px-2.5 py-1 text-[11px] font-bold text-accent shadow-sm">{counts[c.slug] ? t("collections.pieces", { n: counts[c.slug] }) : t("collections.soon")}</span>
-                  </div>
-                  <div className="flex items-end justify-between gap-4 p-6">
-                    <div>
-                      <h2 className="headline text-3xl">{c.name}</h2>
-                      <p className="mt-1 text-muted">{c.tagline}</p>
+                    <div className="flex items-end justify-between gap-4 p-6">
+                      <div>
+                        <h2 className="headline text-3xl">{c.name}</h2>
+                        <p className="mt-1 text-muted">{c.tagline}</p>
+                      </div>
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-2 transition-colors group-hover:bg-accent group-hover:text-white">
+                        <IconArrow className="h-4 w-4" />
+                      </span>
                     </div>
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-2 transition-colors group-hover:bg-accent group-hover:text-white">
-                      <IconArrow className="h-4 w-4" />
-                    </span>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
+                  </Link>
+                </Reveal>
+              );
+            })}
           </div>
         </Container>
       </section>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getT } from "@/lib/i18n/server";
 import { getDesignerProducts } from "@/lib/products/queries";
-import { Designer, type DesignKind, type DesignerProduct } from "@/components/designer/Designer";
+import { Designer, type DesignKind, type DesignerProduct, type DesignerStyle } from "@/components/designer/Designer";
+import { DESIGNS } from "@/lib/catalog/designs";
 import { Container, PageHero } from "@/components/ui/Section";
 
 export const metadata: Metadata = {
@@ -20,8 +21,10 @@ function kindOf(productType: string): DesignKind | null {
   return null;
 }
 
-export default async function DesignPage() {
-  const [t, products] = await Promise.all([getT(), getDesignerProducts()]);
+export default async function DesignPage({ searchParams }: { searchParams: Promise<{ style?: string }> }) {
+  const [t, products, sp] = await Promise.all([getT(), getDesignerProducts(), searchParams]);
+  const styles: DesignerStyle[] = DESIGNS.map((d) => ({ slug: d.slug, name: d.name, collection: d.collection, tone: d.tone, layers: d.layers }));
+  const initialStyle = sp.style && styles.some((s) => s.slug === sp.style) ? sp.style : null;
   const list: DesignerProduct[] = products
     .map((p) => {
       const kind = kindOf(p.productType);
@@ -45,7 +48,7 @@ export default async function DesignPage() {
       <PageHero eyebrow={t("designer.kicker")} title={t("hero3.design")} sub={t("designer.sub")} />
       <section className="bg-bg py-10 sm:py-14">
         <Container>
-          <Designer products={list} />
+          <Designer products={list} styles={styles} initialStyle={initialStyle} />
         </Container>
       </section>
     </>

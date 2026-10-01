@@ -6,7 +6,8 @@ import { IconLock } from "@/components/ui/Icons";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { BrandLogo } from "@/components/brand/Wordmark";
 
-const PAY = ["Visa", "Mastercard", "Amex", "Apple Pay", "Google Pay"];
+// Bizum is shown only once it is enabled in Stripe (Dashboard → Payment methods) and flagged here.
+const PAY = ["Visa", "Mastercard", "Amex", "Apple Pay", "Google Pay", ...(process.env.NEXT_PUBLIC_PAYMENT_BIZUM === "1" ? ["Bizum"] : [])];
 
 export async function Footer({ brand }: { brand: BrandSettings }) {
   const [t, locale] = await Promise.all([getT(), getLocale()]);

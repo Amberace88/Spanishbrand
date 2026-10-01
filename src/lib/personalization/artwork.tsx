@@ -24,7 +24,7 @@ const WIDTH_FACTOR: Record<FontKey, number> = { display: 0.6, serif: 0.78, sans:
 /** Font size so that `text` spans roughly `targetWidth` px. Same formula for preview and print. */
 export function fitFontSize(text: string, font: FontKey, targetWidth: number) {
   const n = Math.max(1, [...text].length);
-  return Math.max(8, targetWidth / (n * WIDTH_FACTOR[font]));
+  return Math.max(1, targetWidth / (n * WIDTH_FACTOR[font]));
 }
 
 const abs = (s: CSSProperties): CSSProperties => ({ position: "absolute", display: "flex", ...s });

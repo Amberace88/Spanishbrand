@@ -35,8 +35,13 @@ export interface PublicProduct {
   limitedType: string | null;
   limitedUntil: string | null;
   limitedRemaining: number | null; // only when technically enforced (QUANTITY)
-  images: { url: string; alt: string | null }[];
+  images: { url: string; alt: string | null; color: string | null; kind: string }[];
   variants: PublicVariant[];
+  /** Library design this product was made from (for "Diseña en este estilo" and "Completa el look"). */
+  design: string | null;
+  sizeGuide: SizeGuide | null;
+  featured: boolean;
+  publishedAt: string | null;
   collection: { slug: string; name: string } | null;
   personalization: import("@/lib/personalization/types").PersoConfig | null;
   tags: string[];
@@ -44,6 +49,28 @@ export interface PublicProduct {
   seoDescription: string | null;
   ogImage: string | null;
   updatedAt: string;
+}
+
+export interface SizeGuide {
+  unit: string;
+  sizes: string[];
+  rows: { label: string; values: string[] }[];
+  note?: string;
+}
+
+/** Reduce a provider size table to a neutral public table (no provider identifiers). */
+function toSizeGuide(raw: unknown): SizeGuide | null {
+  const r = raw as { size_tables?: { type: string; unit?: string; description?: string; measurements?: { type_label: string; values: { size: string; value?: string; min_value?: string; max_value?: string }[] }[] }[] } | null;
+  const table = r?.size_tables?.find((t) => t.type === "product_measure") ?? r?.size_tables?.[0];
+  if (!table?.measurements?.length) return null;
+  const sizes = [...new Set(table.measurements.flatMap((m) => m.values.map((v) => v.size)))];
+  const fmt = (v?: { value?: string; min_value?: string; max_value?: string }) => (!v ? "—" : v.value ?? (v.min_value && v.max_value ? `${v.min_value}–${v.max_value}` : (v.min_value ?? v.max_value ?? "—")));
+  const LABEL: Record<string, string> = { Length: "Largo", Width: "Ancho", Chest: "Pecho", "Sleeve length": "Manga", Waist: "Cintura", Hips: "Cadera" };
+  return {
+    unit: table.unit === "inches" ? "in" : "cm",
+    sizes,
+    rows: table.measurements.map((m) => ({ label: LABEL[m.type_label] ?? m.type_label, values: sizes.map((s) => fmt(m.values.find((v) => v.size === s))) })),
+  };
 }
 
 export interface PublicCollection {
@@ -61,14 +88,14 @@ export interface PublicCollection {
 }
 
 const PRODUCT_SELECT = `id, name, slug, short_description, description, story, retail_price, compare_at_price, currency, product_type,
-  limited, limited_type, limited_until, limited_quantity, limited_sold, personalization, tags, seo_title, seo_description, og_image, updated_at,
+  limited, limited_type, limited_until, limited_quantity, limited_sold, personalization, tags, seo_title, seo_description, og_image, updated_at, featured, published_at, metadata,
   categories:category_id(code),
   collections:collection_id(slug, name),
-  product_images(url, alt, sort, kind),
+  product_images(url, alt, sort, kind, variant_id),
   product_variants(id, variant_name, size, color, color_hex, retail_price, compare_at_price, active, stock_status, sort)`;
 
 type Row = Record<string, unknown> & {
-  product_images?: { url: string; alt: string | null; sort: number; kind: string }[];
+  product_images?: { url: string; alt: string | null; sort: number; kind: string; variant_id: string | null }[];
   product_variants?: { id: string; variant_name: string; size: string | null; color: string | null; color_hex: string | null; retail_price: number | null; compare_at_price: number | null; active: boolean; stock_status: string; sort: number }[];
 };
 
@@ -91,7 +118,14 @@ function mapProduct(r: Row): PublicProduct {
     limitedType,
     limitedUntil: (r.limited_until as string) ?? null,
     limitedRemaining: limitedType === "QUANTITY" ? Math.max(0, Number(r.limited_quantity ?? 0) - Number(r.limited_sold ?? 0)) : null,
-    images: (r.product_images ?? []).filter((i) => i.kind !== "PRINT_FILE").sort((a, b) => a.sort - b.sort).map((i) => ({ url: i.url, alt: i.alt })),
+    images: (r.product_images ?? [])
+      .filter((i) => i.kind !== "PRINT_FILE")
+      .sort((a, b) => a.sort - b.sort)
+      .map((i) => ({ url: i.url, alt: i.alt, kind: i.kind, color: (i.variant_id && r.product_variants?.find((v) => v.id === i.variant_id)?.color) || null })),
+    design: ((r.metadata as { catalog?: { design?: string | null } } | null)?.catalog?.design as string) ?? null,
+    sizeGuide: toSizeGuide((r.metadata as { size_guide?: unknown } | null)?.size_guide ?? null),
+    featured: Boolean(r.featured),
+    publishedAt: (r.published_at as string) ?? null,
     variants: (r.product_variants ?? [])
       .filter((v) => v.active)
       .sort((a, b) => a.sort - b.sort)
@@ -196,6 +230,7 @@ export const FALLBACK_COLLECTIONS: PublicCollection[] = [
   { id: "fiestas", slug: "fiestas", name: "FIESTAS", tagline: "Fallas, Hogueras, ferias y verbenas.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
   { id: "playa", slug: "playa", name: "PLAYA", tagline: "Verano, chiringuito y Mediterráneo.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
   { id: "tapas", slug: "tapas", name: "TAPAS & VERMUT", tagline: "La hora del vermut es sagrada.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "ciudades", slug: "ciudades", name: "CIUDADES", tagline: "Tu ciudad, en coordenadas.", story: "Una serie para las ciudades de España: nombre, coordenadas y un detalle de su paisaje. De Madrid a Tenerife.", heroImage: null, accentColor: null, featured: true, seoTitle: "Camisetas de ciudades de España", seoDescription: "Camisetas, tazas, bolsas y pósters de Madrid, Barcelona, València, Sevilla, Bilbao, Málaga y más ciudades de España.", ogImage: null },
   { id: "camino", slug: "camino", name: "CAMINO", tagline: "Buen Camino hasta Santiago.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
 ];
 

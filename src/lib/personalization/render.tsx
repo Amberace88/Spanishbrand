@@ -6,7 +6,7 @@ import { PRINT_CANVAS, type FontKey, type Personalization } from "./types";
 
 let fontsCache: { name: string; data: ArrayBuffer; weight: 400 | 700 | 800; style: "normal" }[] | null = null;
 
-async function loadFonts() {
+export async function loadFonts() {
   if (fontsCache) return fontsCache;
   const load = async (file: string) => {
     const buf = await readFile(new URL(`./fonts/${file}`, import.meta.url));
@@ -46,9 +46,11 @@ async function inlineImages(value: Personalization): Promise<Map<string, string>
 }
 
 /** Render a transparent PNG print file for one placement. */
-export async function renderPrintFile(value: Personalization, opts: { ink?: string; font?: FontKey } = {}): Promise<Buffer> {
+export async function renderPrintFile(value: Personalization, opts: { ink?: string; font?: FontKey; width?: number; height?: number } = {}): Promise<Buffer> {
   const [fonts, images] = await Promise.all([loadFonts(), inlineImages(value)]);
-  const { width, height } = PRINT_CANVAS;
+  // Provider print-file size when known (same 3:4 layout, exact pixels), else the default canvas.
+  const width = opts.width ?? PRINT_CANVAS.width;
+  const height = opts.height ?? PRINT_CANVAS.height;
   const res = new ImageResponse(<Artwork value={value} width={width} height={height} fonts={PRINT_FONTS} ink={opts.ink} font={opts.font} imageSrc={(path, url) => images.get(path) ?? url} />, {
     width,
     height,

@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/format";
 /**
  * Mobile-first variant selection: works for products with size+color, size only, or a single variant.
  */
-export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[]; currency: string }) {
+export function ProductBuyBox({ variants, currency, onColorChange }: { variants: PublicVariant[]; currency: string; onColorChange?: (color: string | null) => void }) {
   const t = useT();
   const router = useRouter();
   const colors = useMemo(() => [...new Map(variants.filter((v) => v.color).map((v) => [v.color!, v.colorHex])).entries()], [variants]);
@@ -59,6 +59,7 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
                 onClick={() => {
                   setColor(c);
                   setSize(null);
+                  onColorChange?.(c);
                 }}
                 aria-label={c}
                 aria-pressed={color === c}

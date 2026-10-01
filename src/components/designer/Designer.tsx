@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { Shape } from "@/components/art/Mockup";
-import { BROWSER_FONTS, fitFontSize } from "@/lib/personalization/artwork";
+import { Artwork, BROWSER_FONTS, fitFontSize } from "@/lib/personalization/artwork";
 import { FONTS, FONT_LABEL, type FontKey, type Layer, type Placement } from "@/lib/personalization/types";
 import { addToCartAction } from "@/app/actions/cart";
 import { formatMoney } from "@/lib/format";
@@ -37,7 +37,15 @@ const STORAGE_KEY = "ryg-design-v1";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-export function Designer({ products }: { products: DesignerProduct[] }) {
+export interface DesignerStyle {
+  slug: string;
+  name: string;
+  collection: string;
+  tone: "dark" | "light";
+  layers: Layer[];
+}
+
+export function Designer({ products, styles = [], initialStyle = null }: { products: DesignerProduct[]; styles?: DesignerStyle[]; initialStyle?: string | null }) {
   const t = useT();
   const available = useMemo(() => new Set(products.map((p) => p.kind)), [products]);
   const [kind, setKind] = useState<DesignKind>(products[0]?.kind ?? "tee");
@@ -55,12 +63,19 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
   const [uploading, setUploading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
+  // uploaded images with an automatic transparent version: layer id → both sources
+  const [alts, setAlts] = useState<Record<string, { original: { path: string; url: string }; nobg: { path: string; url: string } }>>({});
   const [pending, start] = useTransition();
   const zoneRef = useRef<HTMLDivElement>(null);
   const [zoneW, setZoneW] = useState(200);
 
   // restore / persist the draft design (per browser convenience only)
   useEffect(() => {
+    const preset = initialStyle ? styles.find((x) => x.slug === initialStyle) : null;
+    if (preset) {
+      applyStyle(preset);
+      return;
+    }
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -70,6 +85,7 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
         if (d.placement) setPlacement(d.placement);
       }
     } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
     try {
@@ -103,6 +119,16 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
       return c;
     });
 
+  function applyStyle(st: DesignerStyle) {
+    setLayers(st.layers.map((l) => ({ ...l, id: uid() })));
+    setSelected(null);
+    setPlacement("front");
+    const want = st.tone === "dark" ? ["#111111", "#0c0c0c", "#000000", "#14213d"] : ["#ffffff", "#f1e7d3", "#fafafa"];
+    const hit = colors.find((c) => want.includes(c.toLowerCase())) ?? (st.tone === "dark" ? colors.find((c) => isDark(c)) : colors.find((c) => !isDark(c)));
+    if (hit) setColor(hit);
+    setNotice(t("designer.styleLoaded", { name: st.name }));
+  }
+
   const addText = () => {
     const text = draft.trim().slice(0, 40);
     if (!text) return;
@@ -129,10 +155,12 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
       setNotice(t(`designer.err.${body.error ?? "BAD_IMAGE"}` as never) || t("common.error"));
       return;
     }
-    const l: Layer = { id: uid(), type: "image", path: body.path, url: body.url, aspect: body.aspect, x: 0.5, y: 0.45, w: 0.6, rotation: 0 };
+    const nobg = body.nobg as { path: string; url: string } | null;
+    const l: Layer = { id: uid(), type: "image", path: nobg ? nobg.path : body.path, url: nobg ? nobg.url : body.url, aspect: body.aspect, x: 0.5, y: 0.45, w: 0.6, rotation: 0 };
+    if (nobg) setAlts((a) => ({ ...a, [l.id]: { original: { path: body.path, url: body.url }, nobg: { path: nobg.path, url: nobg.url } } }));
     setLayers((ls) => [...ls, l].slice(0, 8));
     setSelected(l.id);
-    if (body.lowRes) setNotice(t("designer.lowRes"));
+    setNotice(body.lowRes ? t("designer.lowRes") : nobg ? t("designer.bgRemoved") : null);
   };
 
   // pointer interactions
@@ -180,7 +208,7 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
   const variantsForColor = (product?.variants ?? []).filter((v) => !v.colorHex || v.colorHex === color);
   const variant = variantsForColor.find((v) => (v.size ?? v.name) === size) ?? null;
   const price = (variant?.price ?? product?.price ?? 0) + (product?.extra ?? 0);
-  const hasImages = layers.some((l) => l.type === "image");
+  const hasImages = layers.some((l) => l.type === "image" && !l.path.startsWith("art/"));
 
   const addToCart = () => {
     if (!product || !variant || !layers.length) return;
@@ -242,7 +270,7 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
       </div>
 
       {/* Panel */}
-      <div className="space-y-7">
+      <div className="min-w-0 space-y-7">
         <section>
           <p className="kicker text-muted">1 · {t("designer.product")}</p>
           <div className="mt-3 grid grid-cols-4 gap-2">
@@ -266,6 +294,25 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
             ))}
           </div>
         </section>
+
+        {styles.length > 0 && (
+          <section>
+            <p className="kicker text-muted">{t("designer.styles")}</p>
+            <p className="mt-1 text-xs text-muted">{t("designer.stylesSub")}</p>
+            <div className="no-scrollbar -mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+              {styles.map((st) => (
+                <button key={st.slug} onClick={() => applyStyle(st)} className="group w-24 shrink-0 text-left">
+                  <span className="relative block aspect-[3/4] overflow-hidden rounded-xl border border-line transition-colors group-hover:border-fg" style={{ background: st.tone === "dark" ? "#141414" : "#f4f1ea" }}>
+                    <span className="absolute inset-[8%] flex">
+                      <StyleThumb layers={st.layers} />
+                    </span>
+                  </span>
+                  <span className="mt-1 block truncate text-[11px] font-semibold">{st.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section>
           <p className="kicker text-muted">3 · {t("designer.text")}</p>
@@ -312,6 +359,26 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
             {uploading ? t("designer.uploading") : t("designer.upload")}
           </label>
           <p className="mt-2 text-xs text-muted">{t("designer.uploadNote")}</p>
+          {sel?.type === "image" && alts[sel.id] && (
+            <div className="mt-4 rounded-2xl border border-line p-4">
+              <p className="text-sm font-semibold">{t("designer.bgTitle")}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {(["nobg", "original"] as const).map((k) => {
+                  const src = alts[sel.id][k];
+                  const active = sel.path === src.path;
+                  return (
+                    <button key={k} onClick={() => update(sel.id, { path: src.path, url: src.url })} className={`flex items-center gap-3 rounded-xl border p-2 text-left text-[13px] transition-colors ${active ? "border-fg bg-surface-2 font-semibold" : "border-line hover:border-fg/40"}`}>
+                      <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg" style={{ background: "repeating-conic-gradient(#d9d4c8 0% 25%, #fff 0% 50%) 0 0 / 12px 12px" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src.url} alt="" className="h-full w-full object-contain" />
+                      </span>
+                      {k === "nobg" ? t("designer.bgRemove") : t("designer.bgKeep")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
 
         {layers.length > 0 && (
@@ -377,5 +444,29 @@ export function Designer({ products }: { products: DesignerProduct[] }) {
         </section>
       </div>
     </div>
+  );
+}
+
+function isDark(hex: string) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return 0.299 * r + 0.587 * g + 0.114 * b < 110;
+}
+
+/** Small live preview of a house style (same renderer as the print file). */
+function StyleThumb({ layers }: { layers: Layer[] }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [w, setW] = useState(80);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <span ref={ref} className="block h-full w-full">
+      <Artwork value={{ mode: "designer", placement: "front", layers }} width={w} height={(w * 4) / 3} fonts={BROWSER_FONTS} />
+    </span>
   );
 }

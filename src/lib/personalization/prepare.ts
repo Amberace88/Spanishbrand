@@ -1,4 +1,5 @@
 import "server-only";
+import sharp from "sharp";
 import { db } from "@/lib/supabase/admin";
 import { log } from "@/lib/logger";
 import type { PersoConfig, Placement } from "./types";
@@ -33,7 +34,15 @@ export async function preparePersonalization(orderId: string): Promise<PrepareRe
     const existing = Array.isArray(it.print_files) ? it.print_files : [];
     if (existing.length > 0) continue;
     const placement: Placement = v.data.value.mode === "designer" ? v.data.value.placement : config && config.mode === "fields" ? config.placement : "front";
-    const png = await renderPrintFile(v.data.value, config && config.mode === "fields" ? { ink: config.ink, font: config.font } : {});
+    const { data: map } = await sb.from("product_provider_mappings").select("print_config").eq("product_id", it.product_id).eq("role", "PRIMARY").maybeSingle();
+    const canvas = (map?.print_config as { canvas?: { width: number; height: number } } | null)?.canvas;
+    // Render the 3:4 design as large as fits the provider print area, then pad to its exact size.
+    const fit = canvas && canvas.width > 0 && canvas.height > 0 ? (canvas.height * 0.75 <= canvas.width ? { width: Math.round(canvas.height * 0.75), height: canvas.height } : { width: canvas.width, height: Math.round((canvas.width * 4) / 3) }) : undefined;
+    let png = await renderPrintFile(v.data.value, { ...(config && config.mode === "fields" ? { ink: config.ink, font: config.font } : {}), ...(fit ?? {}) });
+    if (canvas && fit && (fit.width !== canvas.width || fit.height !== canvas.height)) {
+      const left = Math.floor((canvas.width - fit.width) / 2);
+      png = await sharp(png).extend({ top: 0, bottom: canvas.height - fit.height, left, right: canvas.width - fit.width - left, background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+    }
     const url = await uploadObject(`orders/${order.order_number}/${it.id}-${placement}.png`, png, "image/png");
     await sb.from("order_items").update({ print_files: [{ type: placement, url }] }).eq("id", it.id);
     log.info("FULFILLMENT", "personalization print file rendered", { orderId, itemId: it.id, placement });

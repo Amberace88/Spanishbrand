@@ -23,7 +23,7 @@ describe("security invariants", () => {
     expect(offenders).toEqual([]);
   });
   it("server-side modules with secrets are guarded by server-only", () => {
-    const guarded = ["lib/env.ts", "lib/supabase/admin.ts", "lib/payments/stripe.ts", "lib/fulfillment/printful/client.ts", "lib/fulfillment/gelato/client.ts"];
+    const guarded = ["lib/env.ts", "lib/supabase/admin.ts", "lib/payments/stripe.ts", "lib/fulfillment/printful/client.ts", "lib/fulfillment/gelato/client.ts", "lib/fulfillment/printify/index.ts", "lib/fulfillment/prodigi/index.ts"];
     for (const g of guarded) expect(readFileSync(path.resolve(__dirname, "../src", g), "utf8")).toContain('import "server-only"');
   });
 });

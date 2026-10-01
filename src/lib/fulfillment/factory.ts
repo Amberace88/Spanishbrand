@@ -2,6 +2,8 @@ import "server-only";
 import type { FulfillmentProvider, ProviderId } from "./types";
 import { PrintfulProvider } from "./printful";
 import { GelatoProvider } from "./gelato";
+import { PrintifyProvider } from "./printify";
+import { ProdigiProvider } from "./prodigi";
 
 /**
  * The ONLY place that knows concrete provider classes.
@@ -11,6 +13,8 @@ import { GelatoProvider } from "./gelato";
 const registry = new Map<string, () => FulfillmentProvider>([
   ["printful", () => new PrintfulProvider()],
   ["gelato", () => new GelatoProvider()],
+  ["printify", () => new PrintifyProvider()],
+  ["prodigi", () => new ProdigiProvider()],
 ]);
 
 const instances = new Map<string, FulfillmentProvider>();

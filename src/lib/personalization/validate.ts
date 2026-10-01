@@ -4,12 +4,16 @@
  * enum/regex checked, image layers must point at our own upload area, and coordinates are clamped.
  */
 import { createHash } from "node:crypto";
+import { assetBase } from "@/lib/catalog/assets";
+import artManifest from "@/lib/catalog/art-manifest.json";
 import { FONTS, type FontKey, type Layer, type PersoConfig, type Personalization, type ValidatedPersonalization } from "./types";
 
 export type PersoError = "NOT_PERSONALIZABLE" | "MODE_MISMATCH" | "FIELD_REQUIRED" | "FIELD_INVALID" | "TOO_MANY_LAYERS" | "EMPTY_DESIGN" | "BAD_LAYER" | "BAD_PLACEMENT";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-const UPLOAD_PATH = /^uploads\/[0-9a-f-]{36}\.(png|jpg|jpeg|webp)$/;
+const UPLOAD_PATH = /^uploads\/[0-9a-f-]{36}(-nobg)?\.(png|jpg|jpeg|webp)$/;
+/** Brand-owned motifs from the design library ("Diseña en este estilo"). */
+const ART_PATH = /^art\/([a-z0-9-]+)\.png$/;
 const MAX_TEXT = 40;
 
 /** Words that send a design to manual review (not an automatic rejection). */
@@ -44,7 +48,7 @@ function stableKey(v: unknown): string {
 export function validatePersonalization(
   config: PersoConfig | null | undefined,
   input: unknown,
-  opts: { publicUrlFor: (path: string) => string },
+  opts: { publicUrlFor: (path: string) => string; artBase?: string },
 ): { ok: true; data: ValidatedPersonalization } | { ok: false; error: PersoError } {
   if (!config) return { ok: false, error: "NOT_PERSONALIZABLE" };
   const raw = (input ?? {}) as Record<string, unknown>;
@@ -91,6 +95,13 @@ export function validatePersonalization(
       layers.push({ ...base, type: "text", text, font, color });
     } else if (o.type === "image") {
       const path = typeof o.path === "string" ? o.path : "";
+      const art = path.match(ART_PATH);
+      if (art) {
+        const aspect = (artManifest as Record<string, number>)[art[1]];
+        if (!aspect) return { ok: false, error: "BAD_LAYER" };
+        layers.push({ ...base, type: "image", path, url: `${opts.artBase ?? assetBase()}/catalog/art/${art[1]}.png`, aspect });
+        continue;
+      }
       if (!UPLOAD_PATH.test(path)) return { ok: false, error: "BAD_LAYER" };
       images++;
       layers.push({ ...base, type: "image", path, url: opts.publicUrlFor(path), aspect: clamp(o.aspect, 0.1, 10, 1) });
@@ -102,7 +113,7 @@ export function validatePersonalization(
   if (images > 0) review = true; // uploaded artwork is always checked by a human before printing
   const value: Personalization = { mode: "designer", placement, layers };
   const texts = layers.filter((l): l is Extract<Layer, { type: "text" }> => l.type === "text").map((l) => `“${l.text}”`);
-  const summary = [placement === "back" ? "Espalda" : "Frontal", ...texts, images ? `${images} imagen${images > 1 ? "es" : ""}` : ""].filter(Boolean).join(" · ");
+  const summary = [placement === "back" ? "Espalda" : "Frontal", ...texts, images ? `${images} imagen${images > 1 ? "es" : ""}` : "", layers.some((l) => l.type === "image" && l.path.startsWith("art/")) ? "arte de la casa" : ""].filter(Boolean).join(" · ");
   return { ok: true, data: { value, key: stableKey(value), needsReview: review, summary } };
 }
 

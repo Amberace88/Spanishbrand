@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { isConfigured } from "@/lib/env";
 import { uploadObject } from "@/lib/personalization/storage";
+import { removeSolidBackground } from "@/lib/personalization/background";
 import { log } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -49,11 +50,24 @@ export async function POST(req: Request) {
     const meta = await img.metadata();
     if (!meta.width || !meta.height) return NextResponse.json({ error: "BAD_IMAGE" }, { status: 415 });
     const out = await img.resize({ width: MAX_SIDE, height: MAX_SIDE, fit: "inside", withoutEnlargement: true }).png({ compressionLevel: 9 }).toBuffer({ resolveWithObject: true });
-    const path = `uploads/${randomUUID()}.png`;
+    const id = randomUUID();
+    const path = `uploads/${id}.png`;
     const url = await uploadObject(path, out.data, "image/png");
     recent.set(sid, [...list, now]);
     const { width, height } = out.info;
-    return NextResponse.json({ path, url, width, height, aspect: height / width, lowRes: Math.min(width, height) < 1200 });
+    // Solid backgrounds (logo on black, scan on white…) → also offer a transparent version.
+    let nobg: { path: string; url: string; background: string } | null = null;
+    try {
+      const r = await removeSolidBackground(out.data, { maxSide: 2400 });
+      if (r.detected) {
+        const npath = `uploads/${id}-nobg.png`;
+        const png = r.width === width ? r.png : await sharp(r.png).resize(width, height).png().toBuffer();
+        nobg = { path: npath, url: await uploadObject(npath, png, "image/png"), background: r.background };
+      }
+    } catch (e) {
+      log.warn("API", "background removal failed", { msg: e instanceof Error ? e.message : String(e) });
+    }
+    return NextResponse.json({ path, url, width, height, aspect: height / width, lowRes: Math.min(width, height) < 1200, nobg });
   } catch (e) {
     log.warn("API", "designer upload failed", { msg: e instanceof Error ? e.message : String(e) });
     return NextResponse.json({ error: "BAD_IMAGE" }, { status: 415 });

@@ -57,3 +57,12 @@ export async function getStockAvailability(productUids: string[]): Promise<Avail
   }
   return out;
 }
+
+/** POST /v3/catalogs/{uid}/products:search with optional attribute filters (one page). */
+export async function searchProductsFiltered(catalogUid: string, attributeFilters: Record<string, string[]> | null, limit = 100, offset = 0) {
+  const res = await gl("product", `/catalogs/${encodeURIComponent(catalogUid)}/products:search`, glProductSearch, {
+    method: "POST",
+    body: { limit, offset, ...(attributeFilters ? { attributeFilters } : {}) },
+  });
+  return res.products;
+}
