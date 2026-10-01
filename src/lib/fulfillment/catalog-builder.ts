@@ -554,7 +554,8 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
   // Print file (brand designs only — personalised products are rendered per order).
   const files: { type: string; url: string }[] = [];
   if (spec.kind === "design" && bp.key === "calendar") {
-    files.push({ type: "default", url: `${assetBase()}/catalog/calendars/${design.slug}.pdf` });
+    // stable public domain: Gelato downloads the PDF when the order is produced (deploy-specific URLs can disappear)
+    files.push({ type: "default", url: `${env.siteUrl()}/catalog/calendars/${design.slug}.pdf` });
   } else if (spec.kind === "design") {
     const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
     const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}.png`, png, "image/png");
@@ -781,7 +782,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     // lifestyle photos generated with the PDFs (scripts) → copied into storage like every other product image
     const labels = ["en la pared", "un mes por dentro", "portada y enero"];
     for (let n = 1; n <= 3; n++) {
-      const src = await fetch(`${assetBase()}/catalog/calendars/${st.slug}-${n}.jpg`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
+      const src = await fetch(`${env.siteUrl()}/catalog/calendars/${st.slug}-${n}.jpg`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null);
       if (!src) continue;
       const url = await uploadObject(`catalog/media/${st.slug}/calendar-${n}.jpg`, Buffer.from(src), "image/jpeg");
       await addImage(product!.id, url, `${product!.name} — ${labels[n - 1]}`, n - 1, null, n === 1 ? "LIFESTYLE" : "MOCKUP");
