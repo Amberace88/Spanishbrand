@@ -405,6 +405,16 @@ const es = {
   "auth.good": "Buena",
   "auth.strong": "Fuerte",
   "auth.security": "Seguridad",
+  "nav.home": "Inicio",
+  "nav.design": "Diseña",
+  "app.installTitle": "Instala la app ROJO Y GUALDA",
+  "app.installBody": "Acceso directo, pantalla completa y tus diseños siempre a mano.",
+  "app.iosBody": "Añádela a tu pantalla de inicio en dos toques.",
+  "app.iosStep1": "Pulsa «Compartir» en Safari",
+  "app.iosStep2": "Elige «Añadir a pantalla de inicio»",
+  "app.install": "Instalar",
+  "app.later": "Ahora no",
+  "app.getApp": "Descarga la app",
 };
 
 export type TKey = keyof typeof es;
@@ -807,6 +817,16 @@ const en: Dict = {
   "auth.good": "Good",
   "auth.strong": "Strong",
   "auth.security": "Security",
+  "nav.home": "Home",
+  "nav.design": "Design",
+  "app.installTitle": "Install the ROJO Y GUALDA app",
+  "app.installBody": "One-tap access, full screen and your designs always at hand.",
+  "app.iosBody": "Add it to your home screen in two taps.",
+  "app.iosStep1": "Tap “Share” in Safari",
+  "app.iosStep2": "Choose “Add to Home Screen”",
+  "app.install": "Install",
+  "app.later": "Not now",
+  "app.getApp": "Get the app",
 };
 
 const de: Dict = {
@@ -1206,6 +1226,16 @@ const de: Dict = {
   "auth.good": "Gut",
   "auth.strong": "Stark",
   "auth.security": "Sicherheit",
+  "nav.home": "Start",
+  "nav.design": "Gestalten",
+  "app.installTitle": "ROJO-Y-GUALDA-App installieren",
+  "app.installBody": "Direkter Zugriff, Vollbild und deine Designs immer zur Hand.",
+  "app.iosBody": "In zwei Schritten zum Home-Bildschirm hinzufügen.",
+  "app.iosStep1": "In Safari auf „Teilen“ tippen",
+  "app.iosStep2": "„Zum Home-Bildschirm“ wählen",
+  "app.install": "Installieren",
+  "app.later": "Später",
+  "app.getApp": "App holen",
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = { es, en, fr: {}, de, it: {}, pt: {}, ca, eu, gl };

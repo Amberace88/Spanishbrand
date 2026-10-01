@@ -56,6 +56,11 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
     document.body.style.overflow = open ? "hidden" : "";
   }, [open]);
   useEffect(() => {
+    const onSearch = () => setSearchOpen(true);
+    window.addEventListener("ryg:search", onSearch);
+    return () => window.removeEventListener("ryg:search", onSearch);
+  }, []);
+  useEffect(() => {
     if (searchOpen) setTimeout(() => inputRef.current?.focus(), 50);
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSearchOpen(false);
     window.addEventListener("keydown", onKey);

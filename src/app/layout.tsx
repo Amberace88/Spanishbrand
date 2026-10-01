@@ -16,6 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: { type: "website", siteName: brand.name, locale: "es_ES", title: brand.name, description: brand.description },
     twitter: { card: "summary_large_image" },
     alternates: { canonical: "/" },
+    appleWebApp: { capable: true, title: brand.name, statusBarStyle: "black-translucent" },
+    formatDetection: { telephone: false },
+    icons: { apple: "/icons/apple-touch-icon.png" },
   };
 }
 
@@ -26,6 +29,7 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

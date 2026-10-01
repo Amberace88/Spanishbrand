@@ -7,6 +7,8 @@ import { formatMoney } from "@/lib/format";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CookieBanner } from "@/components/layout/CookieBanner";
+import { MobileTabBar } from "@/components/app/MobileTabBar";
+import { AppShell } from "@/components/app/AppShell";
 
 export default async function StoreLayout({ children }: { children: ReactNode }) {
   const [brand, cart, promo, t] = await Promise.all([getBrand(), getCart().catch(() => ({ itemCount: 0 })), getShippingPromo().catch(() => null), getT()]);
@@ -20,6 +22,8 @@ export default async function StoreLayout({ children }: { children: ReactNode })
       <Header brandName={brand.name} cartCount={cart.itemCount} messages={messages} />
       <main id="main">{children}</main>
       <Footer brand={brand} />
+      <MobileTabBar cartCount={cart.itemCount} />
+      <AppShell />
       <CookieBanner />
     </div>
   );

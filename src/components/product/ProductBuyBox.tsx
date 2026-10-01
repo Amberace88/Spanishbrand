@@ -108,7 +108,7 @@ export function ProductBuyBox({ variants, currency, onColorChange }: { variants:
         </select>
       )}
 
-      <div className="sticky bottom-3 z-20 sm:static">
+      <div className="sticky bottom-[calc(72px+env(safe-area-inset-bottom))] z-20 sm:static">
         <button onClick={add} disabled={!selected || !selected.available || pending} className="btn btn-primary w-full py-5 text-[0.78rem] shadow-xl sm:shadow-none">
           {pending ? t("product.adding") : state === "added" ? `✓ ${t("product.added")}` : !selected ? t("product.selectVariant") : !selected.available ? t("product.unavailable") : `${t("product.addToCart")} — ${formatMoney(price, currency)}`}
         </button>
