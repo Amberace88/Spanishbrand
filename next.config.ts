@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Print rendering (Satori) reads these at runtime in serverless functions.
+  outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**"] },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -11,6 +13,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.gelato.com" },
       { protocol: "https", hostname: "*.gelatoapis.com" },
       { protocol: "https", hostname: "*.amazonaws.com" },
+      { protocol: "https", hostname: "images-api.printify.com" },
+      { protocol: "https", hostname: "*.printify.com" },
     ],
   },
   async headers() {

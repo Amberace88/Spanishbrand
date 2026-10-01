@@ -1,5 +1,7 @@
 import "server-only";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { assetBase } from "@/lib/catalog/assets";
 import { ImageResponse } from "next/og";
 import { Artwork, PRINT_FONTS } from "./artwork";
 import { PRINT_CANVAS, type FontKey, type Personalization } from "./types";
@@ -8,9 +10,21 @@ let fontsCache: { name: string; data: ArrayBuffer; weight: 400 | 700 | 800; styl
 
 export async function loadFonts() {
   if (fontsCache) return fontsCache;
+  // Serverless bundles do not always ship emitted assets: try the traced source folder, the
+  // public copy on disk, then fetch the public copy from the site itself.
   const load = async (file: string) => {
-    const buf = await readFile(new URL(`./fonts/${file}`, import.meta.url));
-    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+    const candidates = [path.join(process.cwd(), "src/lib/personalization/fonts", file), path.join(process.cwd(), "public/fonts/print", file)];
+    for (const c of candidates) {
+      try {
+        const buf = await readFile(c);
+        return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+      } catch {
+        /* next */
+      }
+    }
+    const res = await fetch(`${assetBase()}/fonts/print/${file}`, { cache: "force-cache" });
+    if (!res.ok) throw new Error(`FONT_MISSING: ${file} (${res.status})`);
+    return await res.arrayBuffer();
   };
   const [cinzel, brico, inter, pacifico, anton] = await Promise.all([
     load("Cinzel_700Bold.ttf"),
