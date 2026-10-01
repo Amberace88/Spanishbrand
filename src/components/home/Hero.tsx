@@ -2,13 +2,45 @@
 import Link from "next/link";
 import Image from "next/image";
 import { JerseyBack } from "@/components/art/Jersey";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useT } from "@/components/providers/I18nProvider";
 import { Mockup } from "@/components/art/Mockup";
 import { IconArrow } from "@/components/ui/Icons";
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
+/** Hero film (Grok Imagine, from the lookbook still). null = still image only. */
+const HERO_VIDEO: string | null = null;
+
+/**
+ * Plays the hero film once over the poster still and holds the final close-up frame.
+ * Skipped on reduced motion and data-saver; the still underneath stays the LCP image.
+ */
+function HeroFilm({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [ready, setReady] = useState(false);
+  const [skip, setSkip] = useState(false);
+  useEffect(() => {
+    const c = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (c?.saveData) setSkip(true);
+  }, []);
+  if (skip) return null;
+  return (
+    <video
+      ref={ref}
+      className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
+      src={src}
+      poster="/brand/lookbook-trio.webp"
+      autoPlay
+      muted
+      playsInline
+      preload="auto"
+      aria-hidden
+      onPlaying={() => setReady(true)}
+    />
+  );
+}
 
 /** Rotating circular "club" emblem. */
 export function ClubBadge({ text, className = "", tone = "light" }: { text: string; className?: string; tone?: "light" | "dark" }) {
@@ -43,6 +75,7 @@ export function Hero({ brandName, jerseyImg, blankImg }: { brandName: string; je
         <motion.div {...tile(0)} className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
           <motion.div initial={reduce ? false : { scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
             <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill priority sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
+            {HERO_VIDEO && !reduce && <HeroFilm src={HERO_VIDEO} />}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
           </motion.div>
           <div className="relative z-10 mt-auto flex flex-col p-6 sm:p-10 lg:mt-0 lg:h-full lg:max-w-[58%]">
