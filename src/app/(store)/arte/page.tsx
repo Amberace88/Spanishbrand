@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
-import { ART_SERIES } from "@/lib/catalog/art-series";
+import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
 import { Container, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
@@ -60,7 +60,7 @@ export default async function ArtePage() {
               <a href="#series" className="btn bg-[#a3162b] px-7 py-4 text-[15px] text-white">
                 {en ? "See the series" : "Ver las series"} <IconArrow className="h-4 w-4" />
               </a>
-              <Link href="/disena?style=arte-toro" className="btn btn-ghost px-7 py-4 text-[15px]">
+              <Link href="/disena?style=arte-toro" className="btn border border-[#1c1a17]/25 px-7 py-4 text-[15px] text-[#1c1a17] hover:bg-[#1c1a17] hover:text-[#f3ead7]">
                 {en ? "Make it yours" : "Hazlo tuyo"}
               </Link>
             </div>
@@ -68,7 +68,7 @@ export default async function ArtePage() {
           <div className="relative grid min-h-[420px] grid-cols-3 gap-2 p-4 sm:p-8 lg:min-h-[640px]" aria-hidden>
             {["toro", "flamenca", "quijote", "alhambra", "faro", "fallas", "paella", "galeon", "castellers"].map((k, i) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={k} src={`/catalog/art/art-${k}.png`} alt="" loading={i < 3 ? "eager" : "lazy"} className="aspect-square h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.18)]" />
+              <img key={k} src={siteArtSrc(`art-${k}`)} alt="" loading="eager" fetchPriority={i < 3 ? "high" : "auto"} className="aspect-square h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.18)]" />
             ))}
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function ArtePage() {
                       <div className="group overflow-hidden rounded-[1.6rem] border border-line bg-surface">
                         <Link href={lead ? `/products/${lead.slug}` : `/disena?style=arte-${k}`} className="relative block aspect-square overflow-hidden bg-[#f3ead7]">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={lead?.images[0]?.url ?? `/catalog/art/${pc.art}.png`} alt={pc.name} loading="lazy" className={`h-full w-full transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105 ${lead?.images[0] ? "object-cover" : "object-contain p-8"}`} />
+                          <img src={lead?.images[0]?.url ?? siteArtSrc(pc.art)} alt={pc.name} loading="lazy" className={`h-full w-full transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105 ${lead?.images[0] ? "object-cover" : "object-contain p-8"}`} />
                         </Link>
                         <div className="p-4 sm:p-5">
                           <div className="flex items-baseline justify-between gap-3">

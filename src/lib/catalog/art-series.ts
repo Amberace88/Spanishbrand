@@ -24,6 +24,9 @@ function art(name: string, y: number, maxW: number, maxH: number, x = 0.5): Imag
   return { id: id(), type: "image", path: artPath(name as ArtName), url: artUrl(name), aspect: a, x, y, w, rotation: 0 };
 }
 
+/** Direct CDN URL of an imported illustration (faster than the /catalog/art rewrite). */
+export const siteArtSrc = (name: string) => `${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/print-files/site-art/${name}.png`;
+
 const INK = "#1c1a17";
 const RED = "#a3162b";
 

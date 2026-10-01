@@ -1,3 +1,4 @@
+import { siteArtSrc } from "@/lib/catalog/art-series";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -163,7 +164,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <div className="grid grid-cols-3 gap-1 p-4 sm:p-6" aria-hidden>
                 {["toro", "flamenca", "faro", "paella", "fallas", "quijote"].map((k) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={k} src={`/catalog/art/art-${k}.png`} alt="" loading="lazy" className="aspect-square w-full object-contain transition-transform duration-700 group-hover:scale-105" />
+                  <img key={k} src={siteArtSrc(`art-${k}`)} alt="" loading="lazy" className="aspect-square w-full object-contain transition-transform duration-700 group-hover:scale-105" />
                 ))}
               </div>
             </Link>
