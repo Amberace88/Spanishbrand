@@ -23,7 +23,9 @@ async function artDataUri(file: string): Promise<string> {
     const supa = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
     const urls = [supa && `${supa}/storage/v1/object/public/print-files/site-art/${file}`, `${assetBase()}/catalog/art/${file}`].filter(Boolean) as string[];
     for (const u of urls) {
-      const res = await fetch(u, { cache: "force-cache" }).catch(() => null);
+      // no-store: the data cache outlives deploys, so a force-cached art file kept serving an old crown after the art changed
+      const v = process.env.DEPLOY_ID ?? process.env.COMMIT_REF ?? "";
+      const res = await fetch(v ? `${u}${u.includes("?") ? "&" : "?"}v=${v}` : u, { cache: "no-store" }).catch(() => null);
       if (res?.ok) {
         buf = Buffer.from(await res.arrayBuffer());
         break;
