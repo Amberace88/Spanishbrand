@@ -29,11 +29,12 @@ export const glCatalog = z
 export const glProduct = z
   .object({
     productUid: z.string(),
-    attributes: z.record(z.string(), z.string()).optional().default({}),
-    supportedCountries: z.array(z.string()).optional(),
-    notSupportedCountries: z.array(z.string()).optional(),
-    isStockable: z.boolean().optional(),
-    isPrintable: z.boolean().optional(),
+    // Gelato sends null for unknown flags/lists — accept it rather than failing the whole search
+    attributes: z.record(z.string(), z.string().nullish().transform((v) => v ?? "")).nullish().transform((v) => v ?? {}),
+    supportedCountries: z.array(z.string()).nullish().transform((v) => v ?? undefined),
+    notSupportedCountries: z.array(z.string()).nullish().transform((v) => v ?? undefined),
+    isStockable: z.boolean().nullish().transform((v) => v ?? undefined),
+    isPrintable: z.boolean().nullish().transform((v) => v ?? undefined),
   })
   .passthrough();
 export type GlProduct = z.infer<typeof glProduct>;
