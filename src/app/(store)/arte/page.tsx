@@ -111,7 +111,7 @@ export default async function ArtePage() {
                             ) : (
                               <span className="rounded-full bg-surface-2 px-3 py-1.5 text-muted">{en ? "In production" : "En producción"}</span>
                             )}
-                            <Link href={`/disena?style=arte-${k}`} className="rounded-full border border-line px-3 py-1.5 hover:border-fg/40">
+                            <Link href={`/disena?arte=${pc.art}`} className="rounded-full border border-line px-3 py-1.5 hover:border-fg/40">
                               {en ? "Customise" : "Personalizar"}
                             </Link>
                           </div>
