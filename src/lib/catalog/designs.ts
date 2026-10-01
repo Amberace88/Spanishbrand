@@ -15,7 +15,7 @@ import { professionDesigns } from "./professions";
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
 export type Tone = "dark" | "light";
-export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket";
+export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket" | "cap" | "beanie" | "embtee" | "embhoodie" | "patch" | "glass" | "coaster" | "tumbler" | "flag" | "postcard";
 
 export interface Design {
   slug: string;
@@ -329,6 +329,48 @@ const BASE_DESIGNS: Design[] = [
     layers: [img("sunset-cream", 0.27, 0.66), txt("COSTA", "serif", CR, 0.55, 0.08), txt("VERANO ETERNO", "sans", G, 0.63, 0.022)],
     products: ["tee", "hoodie", "poster"],
     posterBg: "#0d0d0d",
+  },
+
+  // ───────── BORDADOS (embroidery: flat Printful thread colours only — old gold, red, flag yellow, white) ─────────
+  {
+    slug: "corona-bordada",
+    collection: "esenciales",
+    name: "Corona Bordada",
+    line: "La corona y el nombre de la casa, bordados en oro viejo, blanco y rojo.",
+    tone: "dark",
+    layers: [img("crown-emb", 0.2, 0.36), txt("ROJO Y", "serif", "#FFFFFF", 0.36, 0.06), txt("GUALDA", "serif", "#A67843", 0.44, 0.07), img("flag-emb", 0.51, 0.2)],
+    products: ["cap", "beanie", "embtee", "embhoodie", "patch"],
+    tags: ["bordado", "logo", "bestseller"],
+  },
+  {
+    slug: "monograma-ryg",
+    collection: "esenciales",
+    name: "Monograma RyG",
+    line: "Las iniciales de la casa, discretas y bordadas a la altura del corazón.",
+    tone: "dark",
+    layers: [txt("RyG", "serif", "#A67843", 0.3, 0.16), txt("ESPAÑA", "sans", "#FFFFFF", 0.42, 0.035)],
+    products: ["cap", "beanie", "embtee", "embhoodie"],
+    tags: ["bordado", "minimal"],
+  },
+  {
+    slug: "bandera-bordada",
+    collection: "esenciales",
+    name: "Bandera Bordada",
+    line: "La rojigualda en pequeño: bordada, limpia y para siempre.",
+    tone: "dark",
+    layers: [img("flag-emb", 0.3, 0.5)],
+    products: ["cap", "embtee", "embhoodie", "patch"],
+    tags: ["bordado", "bandera"],
+  },
+  {
+    slug: "espana-bordada",
+    collection: "esenciales",
+    name: "España Bordada",
+    line: "El nombre del país en letra de club, bordado en oro viejo.",
+    tone: "dark",
+    layers: [txt("ESPAÑA", "sport", "#A67843", 0.3, 0.12), img("flag-emb", 0.42, 0.22)],
+    products: ["cap", "beanie", "embtee"],
+    tags: ["bordado"],
   },
 
   // ───────── ESTILO MILITAR (inspired, generic: no official emblems, ranks or weapons) ─────────

@@ -5,7 +5,7 @@ import { getProdigiProduct, quote } from "@/lib/fulfillment/prodigi";
 import * as printify from "@/lib/fulfillment/printify";
 import { z } from "zod";
 import { getCatalogProduct, listCatalogProducts } from "@/lib/fulfillment/printful/catalog";
-import { searchProductsFiltered } from "@/lib/fulfillment/gelato/catalog";
+import { listCatalogs, searchProductsFiltered } from "@/lib/fulfillment/gelato/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +28,14 @@ export async function GET(req: Request) {
       return NextResponse.json(await quote([{ sku, attributes: Object.fromEntries((attrs ?? "").split(",").filter(Boolean).map((x) => x.split("="))), copies: 1 }], "ES"));
     }
     if (what === "printify-shop") return NextResponse.json({ shop: await printify.shopId() });
+    if (what === "gelato-catalogs") {
+      const cats = await listCatalogs();
+      const sample: Record<string, string[]> = {};
+      for (const c of cats.filter((c) => !arg || new RegExp(arg, "i").test(c.externalId + " " + c.title)).slice(0, 6)) {
+        sample[c.externalId] = (await searchProductsFiltered(c.externalId, null, 8, 0).catch(() => [])).map((p) => p.productUid);
+      }
+      return NextResponse.json({ catalogs: cats.map((c) => `${c.externalId} · ${c.title}`), sample });
+    }
     if (what === "gelato-posters") {
       const out: Record<string, unknown> = {};
       for (const [name, filters] of [

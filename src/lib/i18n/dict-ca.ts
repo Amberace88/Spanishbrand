@@ -51,6 +51,7 @@ export const ca: Dict = {
   "cats.DRINKWARE": "Tasses",
   "cats.WALL_ART": "Pòsters i làmines",
   "cats.HOME_LIVING": "Llar",
+  "cats.EMBROIDERY": "Brodats",
   "cats.shop": "Mira els productes",
   "soon.eyebrow": "Primers productes",
   "soon.title": "Molt aviat a la botiga",

@@ -51,6 +51,7 @@ export const eu: Dict = {
   "cats.DRINKWARE": "Katiluak",
   "cats.WALL_ART": "Posterrak eta irudiak",
   "cats.HOME_LIVING": "Etxea",
+  "cats.EMBROIDERY": "Brodatuak",
   "cats.shop": "Ikusi produktuak",
   "soon.eyebrow": "Lehen produktuak",
   "soon.title": "Laster dendan",

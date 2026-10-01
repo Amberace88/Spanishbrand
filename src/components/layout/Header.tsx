@@ -9,7 +9,7 @@ import { useT } from "@/components/providers/I18nProvider";
 import { IconArrow, IconBag, IconClose, IconMenu, IconSearch, IconUser } from "@/components/ui/Icons";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
-const CATS = ["APPAREL", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING"] as const;
+const CATS = ["APPAREL", "HEADWEAR", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING"] as const;
 const ease = [0.16, 1, 0.3, 1] as const;
 
 /** Continuous ticker — black in day mode, white in night mode. */

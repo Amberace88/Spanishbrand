@@ -22,9 +22,16 @@ export function fillMissingOption(body: PfBody, message: string): boolean {
   const allowed = m[4].split(",").map((x) => x.trim().replace(/[.!]$/, "")).filter(Boolean);
   const item = body.items[idx];
   if (!item || !allowed.length) return false;
-  const value = PREFERRED_OPTION_VALUES[id]?.find((v) => allowed.includes(v)) ?? allowed[0];
+  // Embroidery: list the brand thread colours the designs are drawn with (old gold, red, flag yellow, white, black).
+  const BRAND_THREADS = ["#A67843", "#CC3333", "#FFCC00", "#FFFFFF", "#000000"];
+  const value: unknown = /thread_colors/i.test(id)
+    ? (() => {
+        const v = BRAND_THREADS.filter((c) => allowed.map((a) => a.toUpperCase()).includes(c));
+        return v.length ? v : [allowed[0]];
+      })()
+    : (PREFERRED_OPTION_VALUES[id]?.find((v) => allowed.includes(v)) ?? allowed[0]);
   const opts = (item.options ?? []).filter((o) => o.id !== id);
-  if ((item.options ?? []).some((o) => o.id === id && o.value === value)) return false; // already tried
+  if ((item.options ?? []).some((o) => o.id === id && JSON.stringify(o.value) === JSON.stringify(value))) return false; // already tried
   item.options = [...opts, { id, value }];
   return true;
 }

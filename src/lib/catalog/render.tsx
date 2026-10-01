@@ -51,7 +51,7 @@ export function contentBox(layers: Layer[], pad = 0.03) {
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
 }
 
-export type RenderMode = "print" | "mug" | "poster" | "sticker" | "fill";
+export type RenderMode = "print" | "mug" | "poster" | "sticker" | "fill" | "emb";
 
 /**
  * Render a library design to PNG at an exact provider print-file size.
@@ -95,6 +95,9 @@ export async function renderDesign(design: Pick<Design, "layers" | "posterBg" | 
         {placed({ left: W * 0.75 - side.width / 2, top: (H - side.height) / 2, ...side }, true, "b")}
       </>
     );
+  } else if (mode === "emb") {
+    // embroidery / clear products: content only, cropped and centred on transparent (thread colours come from the layers)
+    body = placed({ left: W * 0.02, top: H * 0.02, width: W * 0.96, height: H * 0.96 }, true, "e");
   } else if (mode === "sticker") {
     // Light-ink designs get a dark rounded backdrop so they read on white vinyl.
     body =

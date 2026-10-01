@@ -51,6 +51,7 @@ export const gl: Dict = {
   "cats.DRINKWARE": "Tazas",
   "cats.WALL_ART": "Pósteres e láminas",
   "cats.HOME_LIVING": "Fogar",
+  "cats.EMBROIDERY": "Bordados",
   "cats.shop": "Ver produtos",
   "soon.eyebrow": "Primeiros produtos",
   "soon.title": "Moi pronto na tenda",

@@ -51,10 +51,12 @@ export async function TrustBar() {
 const CATEGORY_TILES: { key: string; cat: string; kind: MockupKind; color: string; slug: string; print?: "art" | "logo"; photo: (s: Showcase) => string | undefined }[] = [
   { key: "cats.TEES", cat: "APPAREL", kind: "tee", color: "#111111", slug: "espana", print: "logo", photo: (s) => s.byType.TSHIRT },
   { key: "cats.HOODIES", cat: "APPAREL", kind: "hoodie", color: "#111111", slug: "heritage", print: "logo", photo: (s) => s.byType.HOODIE },
+  { key: "cats.HEADWEAR", cat: "HEADWEAR", kind: "cap", color: "#111111", slug: "espana", print: "logo", photo: (s) => s.byType.CAP ?? s.byType.BEANIE },
   { key: "cats.DRINKWARE", cat: "DRINKWARE", kind: "mug", color: "#ffffff", slug: "tapas", photo: (s) => s.byCategory.DRINKWARE },
   { key: "cats.WALL_ART", cat: "WALL_ART", kind: "poster", color: "#ffffff", slug: "futbol", photo: (s) => s.byType.FRAMED_PRINT ?? s.byCategory.WALL_ART },
   { key: "cats.BAGS", cat: "BAGS", kind: "tote", color: "#111111", slug: "camino", print: "logo", photo: (s) => s.byCategory.BAGS },
   { key: "cats.HOME_LIVING", cat: "HOME_LIVING", kind: "poster", color: "#ffffff", slug: "playa", photo: (s) => s.byType.BLANKET ?? s.byType.PILLOW ?? s.byCategory.HOME_LIVING },
+  { key: "cats.EMBROIDERY", cat: "EMB", kind: "tee", color: "#111111", slug: "heritage", print: "logo", photo: (s) => s.byTag.bordado },
 ];
 
 /** Real product photo (provider mockup) in a rounded frame. */
@@ -80,10 +82,10 @@ export async function CategoryGrid() {
             </Link>
           }
         />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {CATEGORY_TILES.map((c, i) => (
             <Reveal key={c.key} delay={i * 0.04}>
-              <Link href={`/shop?c=${c.cat}`} className="group relative block overflow-hidden rounded-3xl bg-surface-2 p-4 transition-colors duration-500 hover:bg-fg hover:text-bg sm:p-5">
+              <Link href={c.cat === "EMB" ? "/collections/esenciales" : `/shop?c=${c.cat}`} className="group relative block overflow-hidden rounded-3xl bg-surface-2 p-4 transition-colors duration-500 hover:bg-fg hover:text-bg sm:p-5">
                 <span className="text-[11px] font-bold tabular-nums text-muted group-hover:text-bg/60">{String(i + 1).padStart(2, "0")}</span>
                 {c.photo(show) ? (
                   <Photo src={c.photo(show)!} alt={t(c.key as never)} className="my-3" />

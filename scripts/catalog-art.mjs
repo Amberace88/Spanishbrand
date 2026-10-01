@@ -255,6 +255,15 @@ const M = {
      <rect x="380" y="540" width="240" height="210" rx="10" fill="${b}"/><rect x="430" y="80" width="140" height="40" rx="10" fill="${b}"/>
      <path d="M410 600 H590 M410 650 H560 M410 700 H520" stroke="${a}" stroke-width="14" stroke-linecap="round"/>`,
 
+  // ───── embroidery-safe (flat, Printful thread colours only) ─────
+  crownemb: ({ a, b }) =>
+    `<path d="M170 700 L120 330 L330 500 L500 230 L670 500 L880 330 L830 700 Z" fill="${a}"/>
+     <rect x="160" y="710" width="680" height="90" rx="14" fill="${a}"/>
+     <circle cx="120" cy="300" r="42" fill="${a}"/><circle cx="500" cy="190" r="46" fill="${a}"/><circle cx="880" cy="300" r="42" fill="${a}"/>
+     <circle cx="330" cy="755" r="26" fill="${b}"/><circle cx="500" cy="755" r="26" fill="${b}"/><circle cx="670" cy="755" r="26" fill="${b}"/>
+     <path d="M500 330 L540 470 L500 610 L460 470 Z" fill="${b}"/>`,
+  flagemb: ({ a, b }) => `<rect x="60" y="260" width="880" height="480" rx="40" fill="${a}"/><rect x="60" y="380" width="880" height="240" fill="${b}"/>`,
+
   // ───── military-inspired (generic: no armed-forces emblems, ranks, unit crests or weapons) ─────
   camo: ({ a, b, c, d }) => {
     const blobs = [[180,200,170,110,20],[520,170,190,120,-15],[820,240,150,120,30],[300,450,210,130,-25],[680,470,200,140,10],[150,720,170,120,35],[480,760,220,130,-10],[830,760,160,120,20],[600,320,110,70,40],[380,620,120,80,-30]];
@@ -422,6 +431,8 @@ const ART = [
   ["spain-red", "spain", { a: C.red }],
   ["spain-ink", "spain", { a: C.ink }],
   ["dots-gold", "dots", { a: C.gold }],
+  ["crown-emb", "crownemb", { a: "#A67843", b: "#CC3333" }],
+  ["flag-emb", "flagemb", { a: "#CC3333", b: "#FFCC00" }],
   ["camo-olive", "camo", { a: "#4b5320", b: "#6b7a3a", c: "#2f3a1c", d: "#a89f6a" }],
   ["camo-sand", "camo", { a: "#c3b091", b: "#a48c63", c: "#7a6a4a", d: "#e0d2b0" }],
   ["camo-night", "camo", { a: "#1f2326", b: "#3a4046", c: "#0f1112", d: "#5a6168" }],

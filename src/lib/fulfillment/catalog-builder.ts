@@ -56,6 +56,11 @@ const EXTRAS: Partial<Record<BlueprintKey, string[]>> = {
   bandana: ["aficion-balon", "espana-bandas", "firma-texto", "verbena"],
   phonecase: ["firma-leon", "espana-bandas", "sol-de-espana", "atardecer-mediterraneo", "aficion-balon", "padel-club", "casa-azulejo"],
   // Puzzles and doormats: no EU print provider at Printful/Printify/Gelato/Prodigi → not offered (customs + slow delivery).
+  glass: ["un-vino", "vino-y-tapas", "hora-del-vermut", "hecho-en-espana", "casa-azulejo"],
+  coaster: ["tapeo", "un-vino", "al-porron", "casa-azulejo", "hecho-en-espana", "ciudad-madrid", "ciudad-sevilla", "ciudad-barcelona"],
+  tumbler: ["firma-leon", "camo-espana", "oficio-medicina", "oficio-enfermeria", "oficio-bomberos", "oficio-docente", "aficion-balon"],
+  flag: ["espana-bandas", "aficion-balon", "hecho-en-espana", "firma-leon", "parche-espana", "ciudad-madrid", "ciudad-barcelona", "ciudad-sevilla", "ciudad-valencia"],
+  postcard: ["ciudad-madrid", "ciudad-barcelona", "ciudad-valencia", "ciudad-sevilla", "ciudad-malaga", "ciudad-bilbao", "ciudad-granada", "ciudad-cadiz", "ciudad-santiago", "ciudad-alicante", "casa-azulejo", "buen-camino"],
   blanket: ["casa-azulejo", "sol-de-espana", "firma-leon", "espana-bandas", "aficion-balon", "rosa-de-los-vientos", "ciudad-madrid", "ciudad-barcelona", "ciudad-sevilla"],
 };
 
@@ -189,7 +194,9 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   const ok = (title: string) => spec.match.test(title) && !(spec.exclude?.test(title) ?? false);
   // Candidates: preferred IDs first, then catalog matches. A candidate must have a printable (non-embroidery)
   // placement for the blueprint — some Printful products only offer embroidery in a region.
-  const printable = (pl: string) => !/embroider/i.test(pl);
+  // Embroidery blueprints need an embroidery placement; every other blueprint needs a printable one.
+  const wantsEmb = bp.technique === "EMBROIDERY";
+  const printable = (pl: string) => (wantsEmb ? /embroider/i.test(pl) : !/embroider/i.test(pl));
   const tried = new Set<string>();
   let found: Awaited<ReturnType<typeof getCatalogProduct>> | null = null;
   let pfiles: Awaited<ReturnType<typeof getPrintfiles>> | null = null;
@@ -202,7 +209,7 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
       if (p.product.discontinued || !ok(p.product.title)) return;
       const pf = await getPrintfiles(cid);
       const pls = Object.keys(pf.variant_printfiles[0]?.placements ?? {}).filter(printable);
-      const pick = pls.includes(bp.placement) ? bp.placement : pls.includes("default") ? "default" : pls.find((x) => x === "front" || x.startsWith("front")) ?? null;
+      const pick = pls.includes(bp.placement) ? bp.placement : wantsEmb ? (pls.find((x) => /front|chest_left|chest_center/.test(x)) ?? pls[0] ?? null) : pls.includes("default") ? "default" : pls.find((x) => x === "front" || x.startsWith("front")) ?? null;
       if (!pick) return;
       found = p;
       pfiles = pf;
@@ -420,7 +427,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
