@@ -1,4 +1,5 @@
 export type LogCategory =
+  | "RETURNS"
   | "AUTH"
   | "PAYMENT"
   | "ORDER"

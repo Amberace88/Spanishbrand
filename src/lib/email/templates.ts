@@ -19,7 +19,10 @@ export type EmailTemplate =
   | "GIFT_CARD"
   | "GIFT_CARD_RECEIPT"
   | "B2B_REQUEST"
-  | "CLUB_WELCOME";
+  | "CLUB_WELCOME"
+  | "RETURN_RECEIVED"
+  | "RETURN_UPDATED"
+  | "RETURN_ADMIN";
 
 /** Marketing templates require explicit consent (GDPR). */
 export const MARKETING_TEMPLATES: EmailTemplate[] = ["ABANDONED_CART", "NEW_DROP", "LIMITED_COLLECTION", "POST_PURCHASE"];
@@ -46,6 +49,12 @@ export interface EmailContext {
   senderName?: string | null;
   memberNumber?: string;
   lines?: [string, string][];
+  rma?: string;
+  returnUrl?: string;
+  returnStatus?: string;
+  message?: string | null;
+  returnAddress?: string | null;
+  returnDeadline?: string | null;
 }
 
 const esc = (s: unknown) =>
@@ -140,6 +149,36 @@ export function renderEmail(t: EmailTemplate, ctx: EmailContext): { subject: str
       };
     case "CLUB_WELCOME":
       return { subject: `Bienvenido al club · Socio nº ${ctx.memberNumber ?? ""}`, html: layout(ctx, `Socio nº ${ctx.memberNumber ?? ""}`, p(hi) + p("Ya eres socio del club. Tienes 50 puntos de bienvenida y sumarás 1 punto por cada euro de tus compras."), { label: "Ver mi carnet", url: `${ctx.siteUrl}/account` }) };
+    case "RETURN_RECEIVED":
+      return {
+        subject: `Solicitud ${ctx.rma ?? ""} recibida · pedido ${order}`,
+        html: layout(
+          ctx,
+          `Solicitud ${ctx.rma ?? ""} recibida`,
+          p(hi) +
+            p(`Hemos registrado tu solicitud sobre el pedido ${order}. Este correo es el acuse de recibo en soporte duradero.`) +
+            (ctx.lines ?? []).map(([k, v]) => p(`<strong>${esc(k)}:</strong> ${esc(v)}`)).join("") +
+            (ctx.returnAddress
+              ? p(`<strong>Dirección de devolución:</strong><br>${esc(ctx.returnAddress).replace(/\n/g, "<br>")}`) + (ctx.returnDeadline ? p(`Envía los artículos como muy tarde el <strong>${esc(ctx.returnDeadline)}</strong>. Los gastos de envío de la devolución corren de tu cuenta; guarda el justificante.`) : "")
+              : ""),
+          ctx.returnUrl ? { label: "Ver estado", url: ctx.returnUrl } : undefined,
+        ),
+      };
+    case "RETURN_UPDATED":
+      return {
+        subject: `Actualización de tu solicitud ${ctx.rma ?? ""}`,
+        html: layout(
+          ctx,
+          ctx.returnStatus ?? "Actualización",
+          p(hi) + (ctx.message ? p(esc(ctx.message).replace(/\n/g, "<br>")) : p(`Tu solicitud ${esc(ctx.rma)} ha cambiado de estado.`)) + (ctx.returnAddress ? p(`<strong>Dirección de devolución:</strong><br>${esc(ctx.returnAddress).replace(/\n/g, "<br>")}`) : ""),
+          ctx.returnUrl ? { label: "Ver estado", url: ctx.returnUrl } : undefined,
+        ),
+      };
+    case "RETURN_ADMIN":
+      return {
+        subject: `Nueva solicitud ${ctx.rma ?? ""} · pedido ${order}`,
+        html: layout(ctx, `Nueva solicitud ${ctx.rma ?? ""}`, (ctx.lines ?? []).map(([k, v]) => p(`<strong>${esc(k)}:</strong> ${esc(v)}`)).join(""), ctx.returnUrl ? { label: "Abrir en admin", url: ctx.returnUrl } : undefined),
+      };
     case "POST_PURCHASE":
       return { subject: "¿Qué tal tu pedido?", html: layout(ctx, "Cuéntanos", p(hi) + p("Nos encantaría saber qué te ha parecido. Tu opinión decide los próximos diseños."), { label: "Comunidad", url: `${ctx.siteUrl}/community` }) };
   }

@@ -19,6 +19,8 @@ export interface BrandSettings {
   defaultCurrency: string;
   supportedCountries: string[];
   supportEmail: string | null;
+  /** Seller identity for legal texts (razón social, NIF, dirección). */
+  legalEntity: { name?: string; taxId?: string; address?: string; email?: string; phone?: string };
   settings: {
     payment_fee_percent?: number;
     payment_fee_fixed?: number;
@@ -46,6 +48,7 @@ const FALLBACK: BrandSettings = {
   defaultCurrency: "EUR",
   supportedCountries: ["ES"],
   supportEmail: null,
+  legalEntity: {},
   settings: { payment_fee_percent: 0.015, payment_fee_fixed: 0.25, refund_reserve_percent: 0.02, prices_include_tax: true, abandoned_cart_hours: 4 },
 };
 
@@ -70,6 +73,7 @@ export const getBrand = cache(async (): Promise<BrandSettings> => {
     defaultCurrency: data.default_currency,
     supportedCountries: data.supported_countries ?? ["ES"],
     supportEmail: data.support_email,
+    legalEntity: (data.legal_entity ?? {}) as BrandSettings["legalEntity"],
     settings: data.settings ?? {},
   };
 });

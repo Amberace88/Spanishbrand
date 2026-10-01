@@ -134,6 +134,7 @@ export function Studio({ products, initial = "jersey" }: { products: TemplatePro
                   {pending ? t("product.adding") : t("product.addToCart")}
                 </button>
               </div>
+              <Link href="/returns" className="mt-3 block text-xs text-bg/60 underline-offset-2 hover:underline">✦ {t("product.returns.perso")}</Link>
             </>
           ) : (
             <>

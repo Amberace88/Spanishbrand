@@ -26,7 +26,7 @@ export default async function CheckoutPage() {
         </Link>
         <h1 className="headline mt-2 text-4xl sm:text-5xl">{t("checkout.title")}</h1>
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-20">
-          <CheckoutForm countries={brand.supportedCountries} defaultEmail={user?.email ?? undefined} />
+          <CheckoutForm countries={brand.supportedCountries} defaultEmail={user?.email ?? undefined} hasPersonalized={cart.lines.some((l) => !!l.personalization && Object.keys(l.personalization).length > 0)} />
           <aside className="h-fit border border-line bg-surface-2 p-6 sm:p-8">
             <ul className="space-y-4">
               {cart.lines.map((l) => (

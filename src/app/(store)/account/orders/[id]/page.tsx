@@ -38,6 +38,11 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         <p className="mt-2 text-sm text-muted">
           {formatDate(o.created_at)} · <span className="eyebrow text-[0.62rem] text-fg">{t(`status.${o.status}` as TKey)}</span>
         </p>
+        {["SHIPPED", "DELIVERED", "PROVIDER_ACCEPTED", "IN_PRODUCTION", "SENT_TO_PROVIDER"].includes(o.status) && (
+          <Link href={`/returns/new?order=${o.order_number}&email=${encodeURIComponent(customer.email ?? "")}`} className="btn btn-ghost mt-4 px-5 py-2.5 text-[0.7rem]">
+            ↩ {t("returns.cta")}
+          </Link>
+        )}
 
         {rank >= 0 && (
           <ol className="mt-10 grid grid-cols-4 gap-2">

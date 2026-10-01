@@ -44,6 +44,8 @@ const checkoutSchema = z.object({
   marketing: z.string().optional(),
   discount: z.string().max(40).optional(),
   cause: z.enum(["VETERANOS", "MAYORES", "INFANCIA", "ANIMALES"]).optional(),
+  terms: z.string().optional(),
+  perso: z.string().optional(),
 });
 
 export async function checkoutAction(_prev: { error?: string } | null, formData: FormData): Promise<{ error?: string }> {
@@ -53,9 +55,11 @@ export async function checkoutAction(_prev: { error?: string } | null, formData:
     marketing: formData.get("marketing") ?? undefined,
     discount: (formData.get("discount") as string) || undefined,
     cause: (formData.get("cause") as string) || undefined,
+    terms: (formData.get("terms") as string) || undefined,
+    perso: (formData.get("perso") as string) || undefined,
   });
   if (!parsed.success) return { error: "generic" };
-  const res = await createCheckout({ email: parsed.data.email, country: parsed.data.country, marketingConsent: parsed.data.marketing === "on", discountCode: parsed.data.discount, cause: parsed.data.cause });
+  const res = await createCheckout({ email: parsed.data.email, country: parsed.data.country, marketingConsent: parsed.data.marketing === "on", discountCode: parsed.data.discount, cause: parsed.data.cause, consents: { terms: parsed.data.terms === "on", personalized: parsed.data.perso === "on" } });
   if (!res.ok) return { error: res.error };
   redirect(res.url);
 }

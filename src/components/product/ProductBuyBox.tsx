@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { PublicVariant } from "@/lib/products/queries";
@@ -117,6 +118,9 @@ export function ProductBuyBox({ variants, currency, onColorChange }: { variants:
       <p className="flex items-center gap-2 text-xs text-muted">
         <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {t("product.madeToOrder")}
       </p>
+      <Link href="/returns" className="flex items-center gap-2 text-xs text-muted hover:text-fg">
+        <span className="h-1.5 w-1.5 rounded-full bg-gold" /> {t("product.returns.std")}
+      </Link>
     </div>
   );
 }

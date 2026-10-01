@@ -14,7 +14,7 @@ export async function Footer({ brand }: { brand: BrandSettings }) {
   const year = new Date().getFullYear();
   const cols = [
     { title: t("footer.shop"), links: [["/shop", t("nav.new")], ["/deportes", t("nav.sports")], ["/personaliza", t("nav.personalize")], ["/regalos", t("nav.gifts")], ["/collections", t("nav.collections")], ["/regiones", t("nav.regions")]] },
-    { title: t("footer.help"), links: [["/shipping", t("footer.shipping")], ["/returns", t("footer.returns")], ["/contact", t("footer.contact")], ["/account", t("nav.account")]] },
+    { title: t("footer.help"), links: [["/shipping", t("footer.shipping")], ["/returns", t("footer.returns")], ["/returns/new", t("returns.cta")], ["/contact", t("footer.contact")], ["/account", t("nav.account")]] },
     { title: t("footer.brand"), links: [["/about", t("nav.about")], ["/club", t("nav.club")], ["/empresas", t("nav.business")], ["/creadores", t("nav.creators")], ["/journal", t("nav.journal")], ["/community", t("nav.community")]] },
     { title: t("footer.legal"), links: [["/privacy", t("footer.privacy")], ["/terms", t("footer.terms")], ["/cookies", t("footer.cookies")]] },
   ];

@@ -24,6 +24,7 @@ const NAV: { group: string; items: { href: string; label: string; roles: StaffRo
     items: [
       { href: "/admin/orders", label: "Pedidos", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
       { href: "/admin/fulfillment", label: "Fulfillment", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
+      { href: "/admin/devoluciones", label: "Devoluciones", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
       { href: "/admin/customers", label: "Clientes (CRM)", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
       { href: "/admin/b2b", label: "Empresas / B2B", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
     ],

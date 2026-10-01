@@ -430,6 +430,7 @@ export function Designer({ products, styles = [], initialStyle = null }: { produ
                 </button>
               </div>
               {hasImages && <p className="mt-3 text-xs text-bg/60">{t("designer.reviewNote")}</p>}
+              <Link href="/returns" className="mt-2 block text-xs text-bg/60 underline-offset-2 hover:underline">✦ {t("product.returns.perso")}</Link>
             </>
           ) : (
             <>

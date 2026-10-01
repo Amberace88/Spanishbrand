@@ -19,6 +19,7 @@ export type CheckoutError =
   | "DESTINATION_UNSUPPORTED"
   | "PROVIDER_UNAVAILABLE"
   | "INVALID_DISCOUNT"
+  | "CONSENT_REQUIRED"
   | "FAILED";
 
 export interface CheckoutInput {
@@ -27,6 +28,8 @@ export interface CheckoutInput {
   marketingConsent: boolean;
   discountCode?: string | null;
   cause?: "VETERANOS" | "MAYORES" | "INFANCIA" | "ANIMALES";
+  /** Pre-contract acknowledgments (evidence for returns): terms + returns policy, personalised = no withdrawal (art. 103 c TRLGDCU). */
+  consents?: { terms: boolean; personalized: boolean };
 }
 
 async function validateDiscount(code: string | null | undefined, subtotal: number) {
@@ -57,6 +60,9 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
   if (!cart.id || cart.lines.length === 0) return { ok: false, error: "EMPTY_CART" };
   if (cart.hasIssues) return { ok: false, error: "CART_HAS_ISSUES" };
   if (cart.lines.some((l) => l.issue === "PRICE_CHANGED")) return { ok: false, error: "PRICE_CHANGED" };
+  const hasPersonalized = cart.lines.some((l) => l.personalization && Object.keys(l.personalization).length > 0);
+  if (!input.consents?.terms || (hasPersonalized && !input.consents.personalized)) return { ok: false, error: "CONSENT_REQUIRED" };
+  const consentAt = new Date().toISOString();
 
   // Provider availability: primary healthy, or an approved backup exists.
   const productIds = [...new Set(cart.lines.map((l) => l.productId))];
@@ -133,7 +139,7 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
       discount_code: discount && !discount.error ? discount.code : null,
       creator_id: creatorId,
       campaign_id: campaignId,
-      metadata: { shipping_source: shipping.source, tax_rate: taxResult.rate, tax_requires_review: taxResult.requiresReview, marketing_consent: input.marketingConsent, discount_id: discount && !discount.error ? discount.id : null, cause: input.cause ?? null },
+      metadata: { shipping_source: shipping.source, tax_rate: taxResult.rate, tax_requires_review: taxResult.requiresReview, marketing_consent: input.marketingConsent, discount_id: discount && !discount.error ? discount.id : null, cause: input.cause ?? null, consents: { terms_and_returns_at: consentAt, personalized_no_withdrawal_at: hasPersonalized ? consentAt : null, personalized_lines: cart.lines.filter((l) => l.personalization && Object.keys(l.personalization).length > 0).map((l) => l.id) } },
     })
     .select("id, order_number")
     .single();

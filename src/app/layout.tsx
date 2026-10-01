@@ -18,7 +18,16 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: { canonical: "/" },
     appleWebApp: { capable: true, title: brand.name, statusBarStyle: "black-translucent" },
     formatDetection: { telephone: false },
-    icons: { apple: "/icons/apple-touch-icon.png" },
+    // explicit list: metadata.icons replaces the file-based icon convention, so the favicon must be listed here
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      ],
+      shortcut: "/favicon.ico",
+      apple: "/icons/apple-touch-icon.png",
+    },
   };
 }
 

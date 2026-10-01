@@ -1,5 +1,6 @@
 "use client";
 import { useActionState } from "react";
+import Link from "next/link";
 import { checkoutAction } from "@/app/actions/cart";
 import { useT } from "@/components/providers/I18nProvider";
 import type { TKey } from "@/lib/i18n/dictionaries";
@@ -7,7 +8,7 @@ import type { TKey } from "@/lib/i18n/dictionaries";
 const CAUSES = ["VETERANOS", "MAYORES", "INFANCIA", "ANIMALES"] as const;
 const COUNTRY_NAMES: Record<string, string> = { ES: "España", PT: "Portugal", FR: "Francia", DE: "Alemania", IT: "Italia", NL: "Países Bajos", BE: "Bélgica", AT: "Austria", IE: "Irlanda" };
 
-export function CheckoutForm({ countries, defaultEmail }: { countries: string[]; defaultEmail?: string }) {
+export function CheckoutForm({ countries, defaultEmail, hasPersonalized = false }: { countries: string[]; defaultEmail?: string; hasPersonalized?: boolean }) {
   const t = useT();
   const [state, action, pending] = useActionState(checkoutAction, null);
   const errKey = state?.error ? (`checkout.error.${state.error}` as TKey) : null;
@@ -48,6 +49,31 @@ export function CheckoutForm({ countries, defaultEmail }: { countries: string[];
         <input type="checkbox" name="marketing" className="mt-1 accent-[var(--accent)]" />
         <span>{t("checkout.marketing")}</span>
       </label>
+      <div className="space-y-3 rounded-2xl border border-line p-4">
+        <label className="flex cursor-pointer items-start gap-3 text-sm">
+          <input type="checkbox" name="terms" required className="mt-1 accent-[var(--accent)]" />
+          <span>
+            {t("checkout.terms.a")}{" "}
+            <Link href="/terms" target="_blank" className="underline">
+              {t("checkout.terms.terms")}
+            </Link>{" "}
+            {t("checkout.terms.and")}{" "}
+            <Link href="/returns" target="_blank" className="underline">
+              {t("checkout.terms.returns")}
+            </Link>
+            . {t("checkout.terms.size")}
+          </span>
+        </label>
+        {hasPersonalized && (
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-gold/10 p-3 text-sm">
+            <input type="checkbox" name="perso" required className="mt-1 accent-[var(--accent)]" />
+            <span>
+              <strong>✦ {t("checkout.perso.title")}</strong> {t("checkout.perso.body")}
+            </span>
+          </label>
+        )}
+        <p className="text-xs text-muted">{t("checkout.returnsNote")}</p>
+      </div>
       {errKey && <p className="border-l-2 border-accent pl-3 text-sm text-accent">{t(errKey) === errKey ? t("checkout.error.generic") : t(errKey)}</p>}
       <button type="submit" disabled={pending} className="btn btn-primary w-full py-5">
         {pending ? "…" : t("checkout.pay")} {!pending && <span aria-hidden>→</span>}

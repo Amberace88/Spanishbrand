@@ -4,6 +4,8 @@ import { env } from "@/lib/env";
 import { log } from "@/lib/logger";
 
 export type AuditAction =
+  | "return.update"
+  | "return.claim"
   | "admin.login"
   | "admin.bootstrap"
   | "personalization.approve"
