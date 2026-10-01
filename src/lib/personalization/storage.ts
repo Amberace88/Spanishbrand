@@ -11,7 +11,13 @@ export function publicUrlFor(path: string): string {
 }
 
 export async function uploadObject(path: string, data: Buffer, contentType: string) {
-  const { error } = await db().storage.from(PRINT_BUCKET).upload(path, data, { contentType, upsert: true, cacheControl: "31536000" });
-  if (error) throw new Error(`STORAGE_UPLOAD_FAILED: ${error.message}`);
+  // storage answers 502/504 (empty message) under parallel load: a few short retries
+  let error: { message?: string } | null = null;
+  for (let i = 0; i < 3; i++) {
+    ({ error } = await db().storage.from(PRINT_BUCKET).upload(path, data, { contentType, upsert: true, cacheControl: "31536000" }));
+    if (!error) break;
+    await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+  }
+  if (error) throw new Error(`STORAGE_UPLOAD_FAILED: ${error.message || "storage unavailable"}`);
   return publicUrlFor(path);
 }

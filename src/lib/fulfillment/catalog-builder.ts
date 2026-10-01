@@ -1011,7 +1011,7 @@ async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSess
     }
   } catch (e) {
     const msg = isProviderError(e) ? `${e.message} (${e.endpoint ?? ""} ${e.status ?? ""})` : e instanceof Error ? e.message : String(e);
-    const transient = (isProviderError(e) && (e.status === 429 || e.status === null || (e.status ?? 0) >= 500)) || /Bad Gateway|Gateway Timeout|Service Unavailable|fetch failed|ECONNRESET|ETIMEDOUT|socket hang up/i.test(msg);
+    const transient = (isProviderError(e) && (e.status === 429 || e.status === null || (e.status ?? 0) >= 500)) || /Bad Gateway|Gateway Timeout|Service Unavailable|fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|STORAGE_UPLOAD_FAILED/i.test(msg);
     if (transient && job.attempts < 6) {
       await save(job, { attempts: job.attempts + 1, error: msg });
       return { key, phase: job.phase, done: false, waitMs: isProviderError(e) && e.status === 429 ? 30_000 : 5_000, error: msg };

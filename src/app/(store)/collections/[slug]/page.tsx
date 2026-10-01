@@ -32,7 +32,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
-  const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 500 })]);
+  const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 })]);
   const rank = (p: (typeof all)[number]) => (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
   const own = all.filter((p) => p.collection?.slug === c.slug).sort((a, b) => rank(b) - rank(a));
   const designs = designsFor(c.slug);
@@ -43,6 +43,19 @@ export default async function CollectionPage({ params, searchParams }: { params:
   if (design) products = products.filter((p) => p.design === design.slug);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const hero = own.find((p) => p.images.some((i) => i.kind === "LIFESTYLE"))?.images.find((i) => i.kind === "LIFESTYLE") ?? own.find((p) => p.featured && p.images[0])?.images[0] ?? own[0]?.images[0];
+  // sections by design: garments first inside each, designs ordered by their best rank
+  const typeRank = (p: (typeof all)[number]) => (p.categoryCode === "APPAREL" ? 0 : 1);
+  const bySlug = new Map<string, (typeof all)[number][]>();
+  for (const p of own) {
+    const k = p.design ?? "_";
+    bySlug.set(k, [...(bySlug.get(k) ?? []), p]);
+  }
+  const sections = [...bySlug.entries()]
+    .map(([key, items]) => {
+      const d = designs.find((x) => x.slug === key);
+      return { key, title: d?.name ?? c.name, line: d?.line ?? "", items: [...items].sort((a, b) => typeRank(a) - typeRank(b)), score: Math.max(...items.map(rank)) };
+    })
+    .sort((a, b) => b.score - a.score || b.items.length - a.items.length);
   const presentTypes = TYPES.filter((x) => own.some((p) => p.categoryCode === x));
   const chip = (active: boolean) => `shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${active ? "border-fg bg-fg text-bg" : "border-line bg-surface hover:border-fg/40"}`;
 
@@ -100,7 +113,33 @@ export default async function CollectionPage({ params, searchParams }: { params:
               {design && <span className={chip(true)}>{design.name}</span>}
             </nav>
           )}
-          {products.length ? (
+          {!type && !design && sections.length > 1 ? (
+            // unfiltered: one section per design (art pieces first), max 8 each — never hundreds of cards at once
+            <div className="space-y-16">
+              {sections.map((sec) => (
+                <div key={sec.key}>
+                  <div className="mb-6 flex items-end justify-between gap-4 border-b border-line pb-3">
+                    <div>
+                      <h2 className="headline text-2xl leading-tight sm:text-3xl">{sec.title}</h2>
+                      {sec.line && <p className="mt-1 line-clamp-1 max-w-2xl text-sm text-muted">{sec.line}</p>}
+                    </div>
+                    {sec.items.length > 8 && sec.key !== "_" && (
+                      <Link href={`/collections/${c.slug}?d=${sec.key}#productos`} className="shrink-0 text-sm font-semibold text-accent hover:underline">
+                        {t("collections.all")} ({sec.items.length})
+                      </Link>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-5 lg:grid-cols-4">
+                    {sec.items.slice(0, 8).map((p, i) => (
+                      <Reveal key={p.id} delay={(i % 4) * 0.05}>
+                        <ProductCard p={p} labels={labels} />
+                      </Reveal>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : products.length ? (
             <div className="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-5 lg:grid-cols-4">
               {products.map((p, i) => (
                 <Reveal key={p.id} delay={(i % 4) * 0.05}>
