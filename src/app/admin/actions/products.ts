@@ -199,3 +199,31 @@ export async function createManualProductAction() {
   await audit({ action: "product.create", actorId: staff.userId, actorEmail: staff.email, entityType: "product", entityId: data?.id });
   redirect(`/admin/products/${data?.id}`);
 }
+
+/** Configure customer personalization for a product (template presets or the free designer). */
+export async function savePersonalizationAction(formData: FormData) {
+  const staff = await requireStaff(["ADMIN", "CONTENT_MANAGER"]);
+  const id = String(formData.get("id"));
+  const kind = String(formData.get("kind"));
+  const extraPrice = Math.max(0, Math.min(100, Number(formData.get("extraPrice") ?? 0) || 0));
+  const { PRESETS } = await import("@/lib/personalization/presets");
+  let config: Record<string, unknown> | null = null;
+  if (kind === "designer") {
+    const placements = String(formData.get("placements") ?? "front").split(",").filter((x) => x === "front" || x === "back");
+    config = { mode: "designer", placements: placements.length ? placements : ["front"], extraPrice, maxLayers: 8 };
+  } else if (kind in PRESETS) {
+    config = { ...PRESETS[kind as keyof typeof PRESETS], extraPrice };
+  }
+  const sb = db();
+  await sb.from("products").update({ personalization: config }).eq("id", id);
+  if (config?.mode === "designer") {
+    // Blank products have no brand artwork: mark the mapping as personalized so eligibility/test know.
+    const { data: maps } = await sb.from("product_provider_mappings").select("id, print_config").eq("product_id", id);
+    for (const m of maps ?? []) {
+      const pc = (m.print_config as Record<string, unknown> | null) ?? {};
+      await sb.from("product_provider_mappings").update({ print_config: { ...pc, personalized: true } }).eq("id", m.id);
+    }
+  }
+  await audit({ action: "product.update", actorId: staff.userId, actorEmail: staff.email, entityType: "product", entityId: id, after: { personalization: config } });
+  revalidatePath(`/admin/products/${id}`);
+}

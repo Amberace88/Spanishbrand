@@ -26,6 +26,7 @@ export interface CheckoutInput {
   country: string;
   marketingConsent: boolean;
   discountCode?: string | null;
+  cause?: "VETERANOS" | "MAYORES" | "INFANCIA" | "ANIMALES";
 }
 
 async function validateDiscount(code: string | null | undefined, subtotal: number) {
@@ -132,7 +133,7 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
       discount_code: discount && !discount.error ? discount.code : null,
       creator_id: creatorId,
       campaign_id: campaignId,
-      metadata: { shipping_source: shipping.source, tax_rate: taxResult.rate, tax_requires_review: taxResult.requiresReview, marketing_consent: input.marketingConsent, discount_id: discount && !discount.error ? discount.id : null },
+      metadata: { shipping_source: shipping.source, tax_rate: taxResult.rate, tax_requires_review: taxResult.requiresReview, marketing_consent: input.marketingConsent, discount_id: discount && !discount.error ? discount.id : null, cause: input.cause ?? null },
     })
     .select("id, order_number")
     .single();
@@ -153,6 +154,7 @@ export async function createCheckout(input: CheckoutInput): Promise<{ ok: true; 
       total: l.lineTotal,
       production_cost: variantCosts?.find((v) => v.id === l.variantId)?.production_cost ?? null,
       image: l.image,
+      personalization: l.personalization ?? {},
     })),
   );
   if (itemsErr) {

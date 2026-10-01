@@ -1,4 +1,5 @@
 import "server-only";
+import { activateGiftCard } from "./gift-cards";
 import type Stripe from "stripe";
 import { db } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
@@ -28,6 +29,7 @@ function toAddress(name: string | null | undefined, a: Addr, phone?: string | nu
 
 /** checkout.session.completed / async_payment_succeeded → PAID → PAYMENT_CONFIRMED. Idempotent. */
 export async function handleCheckoutPaid(session: Stripe.Checkout.Session) {
+  if (session.metadata?.type === "gift_card") return activateGiftCard(session);
   const sb = db();
   const orderId = session.metadata?.order_id ?? session.client_reference_id;
   if (!orderId) throw new Error("session without order_id");
@@ -89,6 +91,7 @@ export async function handleCheckoutPaid(session: Stripe.Checkout.Session) {
     await sb.from("discount_usage").upsert({ discount_id: meta.discount_id, order_id: orderId, customer_id: order.customer_id, amount: 0 }, { onConflict: "discount_id,order_id" });
     const { data: d } = await sb.from("discounts").select("uses").eq("id", meta.discount_id).single();
     if (d) await sb.from("discounts").update({ uses: d.uses + 1 }).eq("id", meta.discount_id);
+    await sb.from("gift_cards").update({ status: "REDEEMED" }).eq("discount_id", meta.discount_id).eq("status", "ACTIVE");
   }
   if (order.creator_id) {
     const { data: creator } = await sb.from("creators").select("id, commission_rate, total_orders, total_revenue").eq("id", order.creator_id).single();
@@ -103,6 +106,7 @@ export async function handleCheckoutPaid(session: Stripe.Checkout.Session) {
   }
   if (order.customer_id) {
     await sb.rpc("recalc_customer", { p_customer_id: order.customer_id });
+    await sb.rpc("award_order_points", { p_order_id: orderId }); // club members: 1 point per €
     await sb.from("customer_events").insert({ brand_id: env.brandId(), customer_id: order.customer_id, type: "purchase", data: { order_id: orderId, total: paid } });
   }
 
@@ -126,6 +130,10 @@ export async function handleCheckoutPaid(session: Stripe.Checkout.Session) {
 }
 
 export async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
+  if (session.metadata?.type === "gift_card") {
+    if (session.metadata.gift_card_id) await db().from("gift_cards").update({ status: "CANCELLED" }).eq("id", session.metadata.gift_card_id).eq("status", "PENDING");
+    return;
+  }
   const sb = db();
   const orderId = session.metadata?.order_id ?? session.client_reference_id;
   if (!orderId) return;
@@ -135,6 +143,7 @@ export async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
 }
 
 export async function handlePaymentFailed(session: Stripe.Checkout.Session) {
+  if (session.metadata?.type === "gift_card") return;
   const orderId = session.metadata?.order_id ?? session.client_reference_id;
   if (!orderId) return;
   await db().from("orders").update({ payment_status: "FAILED" }).eq("id", orderId).eq("payment_status", "PENDING");
@@ -145,6 +154,12 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
   const sb = db();
   const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!piId) return;
+  if (charge.metadata?.type === "gift_card" && charge.metadata.gift_card_id && charge.refunded) {
+    // Refunded gift card → code no longer valid (if unused).
+    const { data: card } = await sb.from("gift_cards").update({ status: "CANCELLED" }).eq("id", charge.metadata.gift_card_id).neq("status", "REDEEMED").select("discount_id");
+    if (card?.[0]?.discount_id) await sb.from("discounts").update({ active: false }).eq("id", card[0].discount_id);
+    return;
+  }
   const { data: order } = await sb.from("orders").select("id, total, status, customer_id").eq("stripe_payment_intent_id", piId).maybeSingle();
   if (!order) return;
   const refunded = fromCents(charge.amount_refunded);

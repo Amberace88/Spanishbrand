@@ -1,4 +1,5 @@
 import "server-only";
+import { mergeFiles, preparePersonalization, type PrepareResult } from "@/lib/personalization/prepare";
 import { db } from "@/lib/supabase/admin";
 import { fulfillmentProviderFactory } from "@/lib/fulfillment/factory";
 import { isProviderError, ProviderNotConfiguredError } from "@/lib/fulfillment/errors";
@@ -46,7 +47,7 @@ async function loadProviderStates(): Promise<ProviderState[]> {
 /** Loads routable items (with primary/backup mappings) for an order. */
 async function loadRoutableItems(orderId: string): Promise<RoutableItem[]> {
   const sb = db();
-  const { data: items, error } = await sb.from("order_items").select("id, product_id, variant_id, quantity").eq("order_id", orderId);
+  const { data: items, error } = await sb.from("order_items").select("id, product_id, variant_id, quantity, print_files").eq("order_id", orderId);
   if (error) throw error;
   const productIds = [...new Set((items ?? []).map((i) => i.product_id))];
   const { data: maps } = await sb
@@ -73,7 +74,7 @@ async function loadRoutableItems(orderId: string): Promise<RoutableItem[]> {
           providerProductId: m.provider_product_id,
           providerVariantId: vm?.provider_variant_id ?? null,
           variantMappingStatus: vm?.status ?? null,
-          files: vFiles.length ? vFiles : filesFrom(m.print_config),
+          files: mergeFiles(vFiles.length ? vFiles : filesFrom(m.print_config), it.print_files),
         };
       }),
   }));
@@ -128,6 +129,18 @@ export async function processPaidOrder(orderId: string) {
   const country = (order.shipping_address as { country?: string } | null)?.country;
   if (!country) {
     await holdForReview(orderId, "MISSING_SHIPPING_ADDRESS");
+    return;
+  }
+
+  // Customer personalization / own designs: render print files, hold uploads for human approval.
+  const perso = await preparePersonalization(orderId).catch((e): PrepareResult => ({ status: "FAILED", reason: e instanceof Error ? e.message : String(e) }));
+  if (perso.status === "FAILED") {
+    await recordFulfillmentError({ orderId, code: "PERSONALIZATION_FAILED", message: perso.reason ?? "unknown", permanent: false });
+    await holdForReview(orderId, `PERSONALIZATION_FAILED: ${perso.reason ?? ""}`);
+    return;
+  }
+  if (perso.status === "NEEDS_REVIEW") {
+    await holdForReview(orderId, `PERSONALIZATION_REVIEW: ${perso.reason ?? ""}`);
     return;
   }
 

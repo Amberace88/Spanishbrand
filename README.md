@@ -1,4 +1,4 @@
-# HISPANIA — Spanish Identity & Lifestyle Brand OS
+# ROJO Y GUALDA — Spanish Identity & Lifestyle Brand OS
 
 API-first, headless POD commerce cloud. **Only products that can be fulfilled automatically through a connected API provider can be sold** — enforced in the database, backend, admin, checkout and order processing.
 
@@ -33,6 +33,8 @@ Customer → Storefront → Cart → Stripe → Webhook (verified, idempotent)
    - `supabase/migrations/20260930000002_rules_rls.sql` ✅ applied
    - `supabase/seed.sql` ✅ applied
    - `supabase/migrations/20260930000003_hardening.sql` ✅ applied
+   - `supabase/migrations/20261001000004_growth.sql` ✅ applied (brand, themes, personalization, club, B2B, gift cards, creators)
+   - `supabase/migrations/20261001000005_causes.sql` ✅ applied (comercio solidario)
 3. `npm install && npm run dev`
 4. Sign in at `/admin/login` with an email listed in `ADMIN_EMAILS` → becomes SUPER_ADMIN.
 
@@ -50,13 +52,19 @@ Customer → Storefront → Cart → Stripe → Webhook (verified, idempotent)
 | `CRON_SECRET` | protects `/api/cron/*` |
 | `ADMIN_EMAILS` | first-login SUPER_ADMIN bootstrap |
 
+## Storefront features
+- **Shop modes**: ready brand products · personalizable brand products (name+number, Mi Pueblo, year, phrase) · **Diseña tú mismo** designer (text + uploaded images, drag/resize/rotate, front/back).
+- Print files for personalized lines are rendered server-side per order (`src/lib/personalization/render.tsx`, Satori → PNG 2400×3200) and uploaded to the public `print-files` bucket; they replace the brand file for that placement only. Designs with uploaded images (or flagged words / club names) are held for staff approval (Admin → Pedido → “Aprobar y producir”).
+- Themes (Deportes, Mi Pueblo, Fiestas, Playa, Tapas, Camino), 17 comunidades + provinces landing pages, fiestas calendar, club (member number, points, redemption), gift cards (Stripe → single-use code), B2B quotes, creator applications, Causas (donation per item, partner registry, monthly transparency reports), ES/EN/DE, day/night mode.
+- Football designs are original fan designs: never use official club, league or federation marks.
+
 ## Launch workflow (first product)
 Admin → **Proveedores** → Sync catalog → **Aprobar** provider product → Crear producto → add print file URLs + approve mapping → **Ejecutar test de fulfillment** (non-charging estimate/quote) → add images, description, price → **Aprobar marca** → **Publicar** (blocked by the DB unless eligible).
 
 ## Tests
 ```
-npm test          # 40 unit tests: eligibility, router & fallback, statuses, retries, error classes, cost/tax/shipping, provider mappers & webhook auth, security invariants
-npm run test:db   # migrations + 8 database rule tests on a throwaway Postgres (PGHOST/PGPORT/PGUSER)
+npm test          # 49 unit tests (incl. personalization validation + print render): eligibility, router & fallback, statuses, retries, error classes, cost/tax/shipping, provider mappers & webhook auth, security invariants
+npm run test:db   # migrations + 11 database rule tests on a throwaway Postgres (PGHOST/PGPORT/PGUSER)
 npm run typecheck
 ```
 

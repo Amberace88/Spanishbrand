@@ -21,13 +21,13 @@ export default async function OrderSuccess({ searchParams }: { searchParams: Pro
   const confirmed = order?.payment_status === "PAID";
 
   return (
-    <section className="relative flex min-h-[70svh] items-center overflow-hidden bg-cream">
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-oro-2/40 blur-3xl" />
+    <section className="relative flex min-h-[70svh] items-center overflow-hidden bg-surface-2">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/40 blur-3xl" />
       <Container className="relative py-20 text-center">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-oliva text-3xl text-white">✓</div>
-        <p className="eyebrow mt-6 text-rojo">{order ? `${t("success.order")} #${order.order_number}` : ""}</p>
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-600 text-3xl text-white">✓</div>
+        <p className="eyebrow mt-6 text-accent">{order ? `${t("success.order")} #${order.order_number}` : ""}</p>
         <h1 className="headline mx-auto mt-3 max-w-3xl text-5xl sm:text-6xl">{t("success.title")}</h1>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-stone-2">{confirmed || !order ? t("success.body") : t("success.pending")}</p>
+        <p className="mx-auto mt-5 max-w-xl text-lg text-muted">{confirmed || !order ? t("success.body") : t("success.pending")}</p>
         {!confirmed && order && <meta httpEquiv="refresh" content="4" />}
         <div className="mt-10 flex justify-center gap-3">
           <Link href="/account/orders" className="btn btn-primary">

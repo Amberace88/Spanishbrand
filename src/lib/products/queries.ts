@@ -38,6 +38,8 @@ export interface PublicProduct {
   images: { url: string; alt: string | null }[];
   variants: PublicVariant[];
   collection: { slug: string; name: string } | null;
+  personalization: import("@/lib/personalization/types").PersoConfig | null;
+  tags: string[];
   seoTitle: string | null;
   seoDescription: string | null;
   ogImage: string | null;
@@ -59,7 +61,7 @@ export interface PublicCollection {
 }
 
 const PRODUCT_SELECT = `id, name, slug, short_description, description, story, retail_price, compare_at_price, currency, product_type,
-  limited, limited_type, limited_until, limited_quantity, limited_sold, seo_title, seo_description, og_image, updated_at,
+  limited, limited_type, limited_until, limited_quantity, limited_sold, personalization, tags, seo_title, seo_description, og_image, updated_at,
   categories:category_id(code),
   collections:collection_id(slug, name),
   product_images(url, alt, sort, kind),
@@ -104,6 +106,8 @@ function mapProduct(r: Row): PublicProduct {
         available: v.stock_status !== "OUT_OF_STOCK" && v.stock_status !== "DISCONTINUED",
       })),
     collection: (r.collections as { slug: string; name: string } | null) ?? null,
+    personalization: (r.personalization as PublicProduct["personalization"]) ?? null,
+    tags: (r.tags as string[]) ?? [],
     seoTitle: (r.seo_title as string) ?? null,
     seoDescription: (r.seo_description as string) ?? null,
     ogImage: (r.og_image as string) ?? null,
@@ -179,11 +183,20 @@ function mapCollection(c: Record<string, unknown>): PublicCollection {
 }
 
 /** Editorial fallback so the brand still presents itself if the DB is unreachable. */
-const FALLBACK_COLLECTIONS: PublicCollection[] = [
-  { id: "espana", slug: "espana", name: "ESPAÑA", tagline: "Un país. Mil formas de llevarlo.", story: null, heroImage: null, accentColor: "#B3122E", featured: true, seoTitle: null, seoDescription: null, ogImage: null },
-  { id: "heritage", slug: "heritage", name: "HERITAGE", tagline: "Lo que heredamos, lo que llevamos.", story: null, heroImage: null, accentColor: "#A8894F", featured: true, seoTitle: null, seoDescription: null, ogImage: null },
-  { id: "mediterraneo", slug: "mediterraneo", name: "MEDITERRÁNEO", tagline: "Sal, luz y tiempo lento.", story: null, heroImage: null, accentColor: "#1B2A4A", featured: true, seoTitle: null, seoDescription: null, ogImage: null },
-  { id: "motor", slug: "motor", name: "MOTOR", tagline: "Curvas, gasolina y carretera nacional.", story: null, heroImage: null, accentColor: "#0B0B0C", featured: true, seoTitle: null, seoDescription: null, ogImage: null },
+export const FALLBACK_COLLECTIONS: PublicCollection[] = [
+  { id: "esenciales", slug: "esenciales", name: "ESENCIALES", tagline: "La firma ROJO Y GUALDA en negro, crema y oro.", story: null, heroImage: null, accentColor: null, featured: true, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "espana", slug: "espana", name: "ESPAÑA", tagline: "Un país. Mil formas de llevarlo.", story: null, heroImage: null, accentColor: null, featured: true, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "heritage", slug: "heritage", name: "HERITAGE", tagline: "Lo que heredamos, lo que llevamos.", story: null, heroImage: null, accentColor: null, featured: true, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "mediterraneo", slug: "mediterraneo", name: "MEDITERRÁNEO", tagline: "Sal, luz y tiempo lento.", story: null, heroImage: null, accentColor: null, featured: true, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "motor", slug: "motor", name: "MOTOR", tagline: "Curvas, gasolina y carretera nacional.", story: null, heroImage: null, accentColor: null, featured: true, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "futbol", slug: "futbol", name: "AFICIÓN", tagline: "El fútbol se vive en la grada, en el bar y en la calle.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "padel", slug: "padel", name: "PÁDEL", tagline: "El deporte que se juega en cada barrio.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "ciclismo", slug: "ciclismo", name: "CICLISMO", tagline: "Puertos de montaña y salidas de domingo.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "mi-pueblo", slug: "mi-pueblo", name: "MI PUEBLO", tagline: "Tu pueblo, en tu camiseta.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "fiestas", slug: "fiestas", name: "FIESTAS", tagline: "Fallas, Hogueras, ferias y verbenas.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "playa", slug: "playa", name: "PLAYA", tagline: "Verano, chiringuito y Mediterráneo.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "tapas", slug: "tapas", name: "TAPAS & VERMUT", tagline: "La hora del vermut es sagrada.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
+  { id: "camino", slug: "camino", name: "CAMINO", tagline: "Buen Camino hasta Santiago.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
 ];
 
 export const getCollections = cache(async () => {
@@ -196,7 +209,14 @@ export const getCollections = cache(async () => {
 
 export const getCollectionBySlug = cache(async (slug: string) => {
   const all = await getCollections();
-  return all.find((c) => c.slug === slug) ?? null;
+  // Theme hubs (sport, fiestas, pueblo…) always have a page, even before the DB row is active.
+  return all.find((c) => c.slug === slug) ?? FALLBACK_COLLECTIONS.find((c) => c.slug === slug) ?? null;
+});
+
+/** Collections by slug, in the given order, falling back to editorial defaults. */
+export const getCollectionsBySlugs = cache(async (slugs: string[]) => {
+  const all = await getCollections();
+  return slugs.map((s) => all.find((c) => c.slug === s) ?? FALLBACK_COLLECTIONS.find((c) => c.slug === s)).filter(Boolean) as PublicCollection[];
 });
 
 export const getCollectionCounts = cache(async () => {
@@ -273,4 +293,16 @@ export const getShippingPromo = cache(async (country = "ES"): Promise<{ freeOver
     .limit(1)
     .maybeSingle();
   return data?.free_over != null ? { freeOver: Number(data.free_over) } : null;
+});
+
+/** Products customers can design themselves ("Diseña tú mismo"). */
+export const getDesignerProducts = cache(async () => {
+  const all = await getPublishedProducts({ limit: 200 });
+  return all.filter((p) => p.personalization?.mode === "designer");
+});
+
+/** Brand products with fill-in personalization templates (name + number, Mi Pueblo, year…). */
+export const getTemplateProducts = cache(async () => {
+  const all = await getPublishedProducts({ limit: 200 });
+  return all.filter((p) => p.personalization?.mode === "fields");
 });

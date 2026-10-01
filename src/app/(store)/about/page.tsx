@@ -19,7 +19,7 @@ export default async function AboutPage() {
   return (
     <>
       <PageHero dark eyebrow={`Est. ${brand.foundedYear ?? ""}`} title={brand.name} sub={brand.description} />
-      <section className="bg-warm py-16 sm:py-24">
+      <section className="bg-bg py-16 sm:py-24">
         <Container>
           <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
             <Reveal className="relative aspect-[4/5] overflow-hidden rounded-[2rem]">
@@ -30,7 +30,7 @@ export default async function AboutPage() {
                 <MaskLines lines={["Contar España", "con diseño contemporáneo."]} />
               </h2>
               <Reveal delay={0.1}>
-                <p className="mt-8 text-lg leading-relaxed text-stone-2">
+                <p className="mt-8 text-lg leading-relaxed text-muted">
                   {brand.name} es una marca española de identidad y estilo de vida. No somos una tienda de merchandising: somos un estudio de colecciones que traduce ciudades, paisajes, cultura del motor y herencia en objetos cotidianos. La fecha de fundación de la marca es {brand.foundedYear ?? "—"}; las referencias históricas que aparecen en nuestras colecciones son solo eso, referencias.
                 </p>
               </Reveal>
@@ -38,14 +38,14 @@ export default async function AboutPage() {
           </div>
         </Container>
       </section>
-      <section className="bg-cream py-20">
+      <section className="bg-surface-2 py-20">
         <Container>
           <div className="grid gap-4 sm:grid-cols-2">
             {VALUES.map(([title, body], i) => (
-              <Reveal key={title} delay={i * 0.06} className="rounded-3xl bg-white p-8 sm:p-10">
-                <p className="headline text-5xl text-rojo">{String(i + 1).padStart(2, "0")}</p>
+              <Reveal key={title} delay={i * 0.06} className="rounded-3xl bg-surface p-8 sm:p-10">
+                <p className="headline text-5xl text-accent">{String(i + 1).padStart(2, "0")}</p>
                 <h3 className="mt-6 text-2xl font-semibold">{title}</h3>
-                <p className="mt-3 leading-relaxed text-stone-2">{body}</p>
+                <p className="mt-3 leading-relaxed text-muted">{body}</p>
               </Reveal>
             ))}
           </div>

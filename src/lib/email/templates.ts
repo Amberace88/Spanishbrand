@@ -15,7 +15,11 @@ export type EmailTemplate =
   | "NEW_DROP"
   | "LIMITED_COLLECTION"
   | "WELCOME"
-  | "POST_PURCHASE";
+  | "POST_PURCHASE"
+  | "GIFT_CARD"
+  | "GIFT_CARD_RECEIPT"
+  | "B2B_REQUEST"
+  | "CLUB_WELCOME";
 
 /** Marketing templates require explicit consent (GDPR). */
 export const MARKETING_TEMPLATES: EmailTemplate[] = ["ABANDONED_CART", "NEW_DROP", "LIMITED_COLLECTION", "POST_PURCHASE"];
@@ -36,20 +40,27 @@ export interface EmailContext {
   dropUrl?: string;
   refundAmount?: string;
   unsubscribeUrl?: string;
+  giftCode?: string;
+  giftAmount?: string;
+  giftMessage?: string | null;
+  senderName?: string | null;
+  memberNumber?: string;
+  lines?: [string, string][];
 }
 
 const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 function layout(ctx: EmailContext, title: string, body: string, cta?: { label: string; url: string }) {
-  return `<!doctype html><html lang="es"><body style="margin:0;background:#F4EFE6;font-family:Helvetica,Arial,sans-serif;color:#0B0B0C">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4EFE6;padding:32px 12px"><tr><td align="center">
-<table role="presentation" width="100%" style="max-width:560px;background:#FBF8F3;border:1px solid #E6DED0">
-<tr><td style="background:#0B0B0C;padding:28px 32px;color:#F4EFE6;font-weight:800;letter-spacing:.28em;font-size:14px">${esc(ctx.brandName)}</td></tr>
-<tr><td style="height:4px;background:linear-gradient(90deg,#B3122E,#A8894F)"></td></tr>
-<tr><td style="padding:36px 32px 8px"><h1 style="margin:0 0 16px;font-size:26px;line-height:1.15;font-weight:800;text-transform:uppercase;letter-spacing:-.01em">${esc(title)}</h1>${body}</td></tr>
-${cta ? `<tr><td style="padding:8px 32px 32px"><a href="${esc(cta.url)}" style="display:inline-block;background:#B3122E;color:#fff;text-decoration:none;padding:14px 26px;font-weight:700;letter-spacing:.12em;font-size:12px;text-transform:uppercase">${esc(cta.label)}</a></td></tr>` : ""}
-<tr><td style="padding:24px 32px;border-top:1px solid #E6DED0;font-size:12px;color:#6B645A">${esc(ctx.brandName)} · <a href="${esc(ctx.siteUrl)}" style="color:#6B645A">${esc(ctx.siteUrl.replace(/^https?:\/\//, ""))}</a>${ctx.unsubscribeUrl ? ` · <a href="${esc(ctx.unsubscribeUrl)}" style="color:#6B645A">Darse de baja</a>` : ""}</td></tr>
+  const logo = `${ctx.siteUrl.replace(/\/$/, "")}/brand/logo-full.png`;
+  return `<!doctype html><html lang="es"><body style="margin:0;background:#0b0b0b;font-family:Helvetica,Arial,sans-serif;color:#0d0d0d">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0b0b;padding:32px 12px"><tr><td align="center">
+<table role="presentation" width="100%" style="max-width:560px;background:#fbfaf7;border-radius:18px;overflow:hidden">
+<tr><td align="center" style="background:#0b0b0b;padding:28px 32px"><img src="${esc(logo)}" alt="${esc(ctx.brandName)}" width="220" style="display:block;width:220px;max-width:70%;height:auto;border:0"></td></tr>
+<tr><td style="height:6px;background:linear-gradient(90deg,#c8102e 0 33%,#ffc400 33% 66%,#c8102e 66%)"></td></tr>
+<tr><td style="padding:36px 32px 8px"><h1 style="margin:0 0 16px;font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-.01em">${esc(title)}</h1>${body}</td></tr>
+${cta ? `<tr><td style="padding:8px 32px 32px"><a href="${esc(cta.url)}" style="display:inline-block;background:#c8102e;color:#fff;text-decoration:none;padding:14px 26px;border-radius:999px;font-weight:700;font-size:14px">${esc(cta.label)}</a></td></tr>` : ""}
+<tr><td style="padding:24px 32px;border-top:1px solid #eadfcc;font-size:12px;color:#6b675f">${esc(ctx.brandName)} · <a href="${esc(ctx.siteUrl)}" style="color:#6b675f">${esc(ctx.siteUrl.replace(/^https?:\/\//, ""))}</a>${ctx.unsubscribeUrl ? ` · <a href="${esc(ctx.unsubscribeUrl)}" style="color:#6b675f">Darse de baja</a>` : ""}</td></tr>
 </table></td></tr></table></body></html>`;
 }
 
@@ -106,6 +117,29 @@ export function renderEmail(t: EmailTemplate, ctx: EmailContext): { subject: str
       return { subject: `Edición limitada: ${ctx.dropName ?? ""}`, html: layout(ctx, ctx.dropName ?? "Edición limitada", p(hi) + p("Una colección por tiempo limitado."), ctx.dropUrl ? { label: "Ver colección", url: ctx.dropUrl } : undefined) };
     case "WELCOME":
       return { subject: `Bienvenido a ${ctx.brandName}`, html: layout(ctx, "Bienvenido", p("Gracias por unirte. Te escribiremos solo cuando haya algo que merezca la pena: nuevos drops, colecciones e historias."), { label: "Explorar", url: ctx.siteUrl }) };
+    case "GIFT_CARD":
+      return {
+        subject: `${ctx.senderName ? `${ctx.senderName} te regala` : "Tienes un regalo"}: tarjeta ${ctx.giftAmount ?? ""}`,
+        html: layout(
+          ctx,
+          "Tienes una tarjeta regalo",
+          p(hi) +
+            p(`${ctx.senderName ? `<strong>${esc(ctx.senderName)}</strong> te ha enviado` : "Has recibido"} una tarjeta regalo de <strong>${esc(ctx.giftAmount)}</strong> para ${esc(ctx.brandName)}.`) +
+            (ctx.giftMessage ? `<blockquote style="margin:0 0 16px;padding:14px 18px;background:#f1ede4;border-left:4px solid #c99a1e;font-style:italic">${esc(ctx.giftMessage)}</blockquote>` : "") +
+            `<p style="margin:0 0 8px;font-size:13px;color:#6b675f">Tu código</p><p style="margin:0 0 18px;font-size:26px;font-weight:800;letter-spacing:.12em;font-family:monospace">${esc(ctx.giftCode)}</p>` +
+            p("Introdúcelo en el checkout. Se aplica en una sola compra."),
+          { label: "Elegir mi regalo", url: ctx.siteUrl },
+        ),
+      };
+    case "GIFT_CARD_RECEIPT":
+      return { subject: "Tu tarjeta regalo ha sido enviada", html: layout(ctx, "Tarjeta regalo enviada", p(hi) + p(`Hemos enviado tu tarjeta regalo de <strong>${esc(ctx.giftAmount)}</strong>. Código (por si quieres entregarlo tú): <strong style="font-family:monospace">${esc(ctx.giftCode)}</strong>`)) };
+    case "B2B_REQUEST":
+      return {
+        subject: "Nueva solicitud de empresa / evento",
+        html: layout(ctx, "Nueva solicitud B2B", (ctx.lines ?? []).map(([k, v]) => p(`<strong>${esc(k)}:</strong> ${esc(v)}`)).join(""), { label: "Abrir en admin", url: `${ctx.siteUrl}/admin/b2b` }),
+      };
+    case "CLUB_WELCOME":
+      return { subject: `Bienvenido al club · Socio nº ${ctx.memberNumber ?? ""}`, html: layout(ctx, `Socio nº ${ctx.memberNumber ?? ""}`, p(hi) + p("Ya eres socio del club. Tienes 50 puntos de bienvenida y sumarás 1 punto por cada euro de tus compras."), { label: "Ver mi carnet", url: `${ctx.siteUrl}/account` }) };
     case "POST_PURCHASE":
       return { subject: "¿Qué tal tu pedido?", html: layout(ctx, "Cuéntanos", p(hi) + p("Nos encantaría saber qué te ha parecido. Tu opinión decide los próximos diseños."), { label: "Comunidad", url: `${ctx.siteUrl}/community` }) };
   }

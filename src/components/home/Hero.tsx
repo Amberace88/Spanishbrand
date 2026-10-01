@@ -1,98 +1,190 @@
 "use client";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
+import { JerseyBack } from "@/components/art/Jersey";
+import { BrandLogo } from "@/components/brand/Wordmark";
+import { useRef, type ReactNode } from "react";
+import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useT } from "@/components/providers/I18nProvider";
 import { Mockup } from "@/components/art/Mockup";
-import { IconArrow, IconCheck, IconLock, IconTruck } from "@/components/ui/Icons";
+import { IconArrow } from "@/components/ui/Icons";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-export function Hero() {
+/** Rotating circular "club" emblem. */
+export function ClubBadge({ text, className = "", tone = "light" }: { text: string; className?: string; tone?: "light" | "dark" }) {
+  const chars = `${text} · `.repeat(2);
+  return (
+    <div className={`aspect-square ${className.includes("absolute") ? "" : "relative"} ${className}`} aria-hidden>
+      <svg viewBox="0 0 200 200" className="spin-slow absolute inset-0 h-full w-full">
+        <defs>
+          <path id="club-circle" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0" />
+        </defs>
+        <text fill={tone === "light" ? "#e0b84a" : "#0d0d0d"} fontSize="15" fontWeight="700" letterSpacing="3" style={{ fontFamily: "var(--font-logo)", textTransform: "uppercase" }}>
+          <textPath href="#club-circle">{chars}</textPath>
+        </text>
+      </svg>
+      <div className="absolute inset-[30%] grid place-items-center rounded-full bg-[#0b0b0b] ring-2 ring-[#e0b84a]">
+        <span className="block h-[70%]"><BrandLogo variant="lion" alt="" /></span>
+      </div>
+    </div>
+  );
+}
+
+export function Hero({ brandName }: { brandName: string }) {
   const t = useT();
   const reduce = useReducedMotion();
-  const fade = (d: number) => (reduce ? {} : { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { delay: d, duration: 0.9, ease } });
+  const tile = (d: number) => (reduce ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { delay: d, duration: 0.9, ease } });
 
   return (
-    <section className="relative overflow-hidden bg-warm">
-      {/* soft sun glow */}
-      <div className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-oro-2/25 blur-3xl" aria-hidden />
-      <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-4 pb-14 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:pb-20 lg:pt-14">
-        <div>
-          <motion.p {...fade(0.05)} className="inline-flex items-center gap-2 rounded-full border border-rojo/15 bg-rojo-50 px-3.5 py-1.5 text-[13px] font-semibold text-rojo">
-            <span className="flag-stripe h-3 w-4 rounded-[2px]" aria-hidden /> {t("hero2.badge")}
-          </motion.p>
-          <motion.h1 {...fade(0.12)} className="headline mt-6 text-[2.75rem] sm:text-6xl xl:text-[5.2rem]">
-            {t("hero2.title.a")}{" "}
-            <span className="relative whitespace-nowrap">
-              <span className="serif font-normal italic tracking-[-0.01em] text-rojo">{t("hero2.title.b")}</span>
-              <svg viewBox="0 0 300 16" preserveAspectRatio="none" className="absolute -bottom-2 left-0 h-3 w-full text-oro-2" aria-hidden>
-                <motion.path d="M3 11 C 80 2, 200 2, 297 9" stroke="currentColor" strokeWidth="5" fill="none" strokeLinecap="round" initial={reduce ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 0.8, duration: 1, ease }} />
-              </svg>
-            </span>
-          </motion.h1>
-          <motion.p {...fade(0.2)} className="mt-6 max-w-xl text-lg leading-relaxed text-stone-2 sm:text-xl">
-            {t("hero2.body")}
-          </motion.p>
-          <motion.div {...fade(0.28)} className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/shop" className="btn btn-primary px-8 py-4 text-base">
-              {t("hero2.cta.primary")} <IconArrow className="h-5 w-5" />
-            </Link>
-            <Link href="/collections" className="btn btn-ghost px-8 py-4 text-base">
-              {t("hero2.cta.secondary")}
+    <section className="bg-bg px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
+      <div className="mx-auto grid max-w-[1600px] gap-3 lg:h-[min(82vh,800px)] lg:grid-cols-12 lg:grid-rows-2">
+        {/* Main tile — lookbook */}
+        <motion.div {...tile(0)} className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
+          <motion.div initial={reduce ? false : { scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
+            <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill priority sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
+          </motion.div>
+          <div className="relative z-10 mt-auto flex flex-col p-6 sm:p-10 lg:mt-0 lg:h-full lg:max-w-[58%]">
+            <div className="flex items-center gap-3">
+              <span className="flag-stripe h-3.5 w-5 rounded-[3px]" aria-hidden />
+              <p className="kicker text-[#e0b84a]">{t("hero3.kicker")}</p>
+            </div>
+            <h1 className="mt-5 font-[family-name:var(--font-logo)] text-[14vw] font-bold leading-[0.98] tracking-[0.01em] sm:text-[10.5vw] lg:text-[5.4vw] xl:text-[5.9rem]">
+              {[t("hero3.title.a"), t("hero3.title.b")].map((w, k) => (
+                <span key={k} className="-mt-[0.12em] block overflow-hidden pb-[0.06em] pt-[0.12em]">
+                  <motion.span className={`block ${k === 1 ? "text-gold-metal" : "text-red-metal"}`} initial={reduce ? false : { y: "105%" }} animate={{ y: "0%" }} transition={{ delay: 0.25 + k * 0.1, duration: 1.1, ease }}>
+                    {w}
+                  </motion.span>
+                </span>
+              ))}
+            </h1>
+            <motion.p {...tile(0.45)} className="mt-5 max-w-md text-[17px] leading-relaxed text-[#f5f1e8]/75">
+              {t("hero3.body")}
+            </motion.p>
+            <motion.div {...tile(0.55)} className="mt-8 flex flex-wrap gap-3 lg:mt-auto">
+              <Link href="/shop" className="btn bg-[#c8102e] px-7 py-4 text-[15px] text-white hover:-translate-y-px hover:shadow-[0_12px_30px_-10px_#c8102e]">
+                {t("hero2.cta.primary")} <IconArrow className="h-4 w-4" />
+              </Link>
+              <Link href="/collections" className="btn btn-ghost-light px-7 py-4 text-[15px]">
+                {t("hero2.cta.secondary")}
+              </Link>
+            </motion.div>
+          </div>
+          <ClubBadge text={`${brandName} · club · est. 2026`} className="absolute right-5 top-5 z-10 w-24 sm:right-8 sm:top-8 sm:w-32" />
+        </motion.div>
+
+        {/* Side tiles: personalize + design-your-own */}
+        <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:row-span-2 lg:grid-cols-1 lg:grid-rows-2">
+          <motion.div {...tile(0.12)} className="h-full">
+            <Link href="/personaliza" className="group relative flex h-full min-h-[250px] flex-col overflow-hidden rounded-[28px] bg-surface-2 p-5 sm:min-h-[300px] sm:p-7">
+              <div className="flex items-start justify-between">
+                <span className="rounded-full bg-fg px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-bg">{t("nav.personalize")}</span>
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-line transition-all duration-300 group-hover:rotate-[-45deg] group-hover:bg-fg group-hover:text-bg">
+                  <IconArrow className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mx-auto w-[74%] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-rotate-3 group-hover:scale-105 lg:w-[52%]">
+                <JerseyBack name="TU NOMBRE" number="10" shirt="#0d0d0d" ink="#e0b84a" trim="#c8102e" />
+              </div>
+              <p className="headline mt-auto text-xl uppercase sm:text-3xl">{t("hero3.perso")}</p>
             </Link>
           </motion.div>
-          <motion.ul {...fade(0.36)} className="mt-9 grid max-w-xl grid-cols-1 gap-3 text-sm text-stone-2 sm:grid-cols-3">
-            {[
-              [IconCheck, t("hero2.chip.made")],
-              [IconTruck, t("hero2.chip.tracked")],
-              [IconLock, t("trust.secure.t")],
-            ].map(([Icon, label], i) => {
-              const I = Icon as typeof IconCheck;
-              return (
-                <li key={i} className="flex items-center gap-2.5">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-oliva-50 text-oliva">
-                    <I className="h-4 w-4" />
-                  </span>
-                  <span className="font-medium text-ink/80">{label as string}</span>
-                </li>
-              );
-            })}
-          </motion.ul>
+          <motion.div {...tile(0.22)} className="h-full">
+            <Link href="/disena" className="group relative flex h-full min-h-[250px] flex-col overflow-hidden rounded-[28px] bg-[#c8102e] p-5 text-white sm:min-h-[300px] sm:p-7">
+              <div className="flex items-start justify-between">
+                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#c8102e]">{t("hero3.designBadge")}</span>
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-white/30 transition-all duration-300 group-hover:rotate-[-45deg] group-hover:bg-white group-hover:text-[#c8102e]">
+                  <IconArrow className="h-4 w-4" />
+                </span>
+              </div>
+              <DesignerGlyph />
+              <p className="headline mt-auto text-xl uppercase sm:text-3xl">{t("hero3.design")}</p>
+            </Link>
+          </motion.div>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* Visual composition */}
-        <motion.div initial={reduce ? false : { opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.1, ease, delay: 0.1 }} className="relative mx-auto aspect-square w-full max-w-[620px]">
-          <div className="azulejo absolute inset-[4%] rounded-[2.5rem] shadow-[inset_0_0_0_1px_rgba(36,86,166,0.12)]" />
-          <div className="absolute inset-[4%] rounded-[2.5rem] bg-gradient-to-t from-white/70 via-white/10 to-transparent" />
-          {/* sun */}
-          <div className="absolute left-1/2 top-[30%] h-[46%] w-[46%] -translate-x-1/2 -translate-y-1/2">
-            <div className="absolute inset-0 animate-spin-slow rounded-full opacity-70" style={{ background: "repeating-conic-gradient(from 0deg, #ffc629 0deg 5deg, transparent 5deg 15deg)", maskImage: "radial-gradient(circle, transparent 46%, black 47%, black 62%, transparent 63%)", WebkitMaskImage: "radial-gradient(circle, transparent 46%, black 47%, black 62%, transparent 63%)" }} />
-            <div className="absolute inset-[19%] rounded-full" style={{ background: "radial-gradient(circle at 40% 35%, #ffd76a 0%, #f2a33a 45%, #d9452b 100%)" }} />
+/** Animated illustration of the design tool: shirt, dashed print area, text layer and cursor. */
+function DesignerGlyph() {
+  return (
+    <div className="relative mx-auto w-[74%] lg:w-[52%]" aria-hidden>
+      <svg viewBox="0 0 400 400" className="w-full">
+        <path d="M140 56 L98 70 L34 120 L68 186 L110 166 L110 352 Q110 364 122 364 L278 364 Q290 364 290 352 L290 166 L332 186 L366 120 L302 70 L260 56 Q250 90 200 90 Q150 90 140 56 Z" fill="#ffffff" />
+        <rect x="140" y="130" width="120" height="150" rx="6" fill="none" stroke="#c8102e" strokeWidth="3" strokeDasharray="8 7" className="[animation:dash_1.2s_linear_infinite]" />
+        <text x="200" y="200" textAnchor="middle" fontFamily="Cinzel Variable, serif" fontWeight="700" fontSize="34" fill="#0d0d0d">Aa</text>
+        <rect x="160" y="222" width="80" height="34" rx="4" fill="#ffc400" />
+        {[[140, 130], [260, 130], [140, 280], [260, 280]].map(([x, y]) => (
+          <rect key={`${x}${y}`} x={x - 6} y={y - 6} width="12" height="12" fill="#fff" stroke="#c8102e" strokeWidth="3" />
+        ))}
+      </svg>
+      <svg viewBox="0 0 24 24" className="absolute bottom-[18%] right-[8%] h-[16%] w-[16%] animate-[floaty_3s_ease-in-out_infinite] drop-shadow" fill="#0d0d0d" stroke="#fff" strokeWidth="1.2">
+        <path d="M4 3 L19 12 L12 13.5 L9 20 Z" />
+      </svg>
+    </div>
+  );
+}
+
+/** Oversized scrolling words, alternating solid / outline. */
+export function BigMarquee({ words, reverse = false }: { words: string[]; reverse?: boolean }) {
+  const list = [...words, ...words];
+  return (
+    <div className="relative overflow-hidden border-y border-line py-5 sm:py-7">
+      <div className={`${reverse ? "marquee-track-rev" : "marquee-track"} flex w-max whitespace-nowrap`}>
+        {[0, 1].map((k) => (
+          <div key={k} className="flex items-center" aria-hidden={k === 1}>
+            {list.map((w, i) => (
+              <span key={i} className="flex items-center">
+                <span className={`mega px-6 text-[13vw] sm:text-[9vw] lg:text-[7rem] ${i % 2 ? "text-stroke-fg" : ""}`}>{w}</span>
+                <svg viewBox="0 0 24 24" className="h-[5vw] w-[5vw] text-accent lg:h-14 lg:w-14" aria-hidden>
+                  <path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z" fill="currentColor" />
+                </svg>
+              </span>
+            ))}
           </div>
-          {/* main tee */}
-          <div className="absolute left-1/2 top-[52%] w-[66%] -translate-x-1/2 -translate-y-1/2">
-            <Mockup kind="tee" color="#fffcf7" slug="espana" className="floaty" />
-          </div>
-          {/* floating cards */}
-          <div className="floaty-slow absolute left-0 top-[10%] w-[30%] rounded-2xl bg-white p-2.5 shadow-[0_20px_40px_-18px_rgba(28,23,18,0.35)] sm:p-3">
-            <div className="rounded-xl bg-oro-50">
-              <Mockup kind="cap" color="#1d3f7a" />
-            </div>
-            <p className="mt-2 px-1 text-[11px] font-bold sm:text-xs">{t("nav.cat.HEADWEAR")}</p>
-          </div>
-          <div className="floaty absolute bottom-[6%] right-0 w-[30%] rounded-2xl bg-white p-2.5 shadow-[0_20px_40px_-18px_rgba(28,23,18,0.35)] sm:p-3" style={{ animationDelay: "-2s" }}>
-            <div className="rounded-xl bg-terra-50">
-              <Mockup kind="mug" color="#fffcf7" slug="mediterraneo" />
-            </div>
-            <p className="mt-2 px-1 text-[11px] font-bold sm:text-xs">{t("nav.cat.DRINKWARE")}</p>
-          </div>
-          <div className="absolute bottom-[14%] left-[3%] flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-xs font-semibold shadow-[0_14px_30px_-14px_rgba(28,23,18,0.4)] sm:text-[13px]">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-rojo text-white">
-              <IconCheck className="h-3.5 w-3.5" />
-            </span>
-            {t("hero2.chip.made")}
-          </div>
-        </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Word({ children, progress, range }: { children: ReactNode; progress: MotionValue<number>; range: [number, number] }) {
+  const opacity = useTransform(progress, range, [0.15, 1]);
+  return (
+    <motion.span style={{ opacity }} className="mr-[0.25em] inline-block">
+      {children}
+    </motion.span>
+  );
+}
+
+/** Statement that lights up word by word while scrolling. */
+export function Manifesto({ kicker, text, highlight }: { kicker: string; text: string; highlight: string[] }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "end 45%"] });
+  const words = text.split(" ");
+  return (
+    <section className="bg-bg py-24 sm:py-36">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-8">
+        <p className="kicker text-accent">{kicker}</p>
+        <p ref={ref} className="headline mt-6 max-w-6xl text-[2.3rem] leading-[1.02] sm:text-6xl lg:text-[5.2rem]">
+          {words.map((w, i) => {
+            const hl = highlight.some((h) => w.toLowerCase().startsWith(h));
+            const inner = <span className={hl ? "text-accent" : undefined}>{w}</span>;
+            return reduce ? (
+              <span key={i} className="mr-[0.25em] inline-block">
+                {inner}
+              </span>
+            ) : (
+              <Word key={i} progress={scrollYProgress} range={[i / words.length, Math.min(1, (i + 1.5) / words.length)]}>
+                {inner}
+              </Word>
+            );
+          })}
+        </p>
       </div>
     </section>
   );

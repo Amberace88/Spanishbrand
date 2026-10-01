@@ -1,16 +1,25 @@
+import Image from "next/image";
+
+/**
+ * Official ROJO Y GUALDA artwork (supplied by the brand), transparent PNG/WebP in /public/brand.
+ * variant: "full" = lion + lettering, "text" = lettering only, "lion" = icon only.
+ */
+const SRC = {
+  full: { src: "/brand/logo-full.webp", w: 1484, h: 701 },
+  text: { src: "/brand/logo-text.webp", w: 1368, h: 707 },
+  lion: { src: "/brand/logo-lion.webp", w: 997, h: 1174 },
+} as const;
+
+export function BrandLogo({ variant = "full", className = "", priority = false, alt = "ROJO Y GUALDA" }: { variant?: keyof typeof SRC; className?: string; priority?: boolean; alt?: string }) {
+  const s = SRC[variant];
+  return <Image src={s.src} alt={alt} width={s.w} height={s.h} priority={priority} className={`h-full w-auto select-none ${className}`} draggable={false} />;
+}
+
+/** Header/footer wordmark (kept for API compatibility: `name` is the alt text). */
 export function Wordmark({ name, className = "" }: { name: string; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <svg viewBox="0 0 32 32" className="h-[1.6em] w-[1.6em] shrink-0" aria-hidden="true">
-        <g transform="translate(16 16)">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <path key={i} d="M-1.6 -15 L0 -10.5 L1.6 -15 Z" fill="#ffc629" transform={`rotate(${i * 30})`} />
-          ))}
-          <circle r="9.5" fill="#c8102e" />
-          <circle r="4.2" fill="#ffc629" />
-        </g>
-      </svg>
-      <span className="text-[1.05em] font-extrabold tracking-[0.2em] [font-variation-settings:'wdth'_110]">{name}</span>
+    <span className={`inline-flex h-[2.9em] items-center ${className}`}>
+      <BrandLogo variant="full" alt={name} priority />
     </span>
   );
 }

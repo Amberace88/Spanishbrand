@@ -85,3 +85,33 @@ begin
   if reserve_limited_quantity(p, 1) then raise exception 'TEST FAILED: oversold limited'; end if;
   raise notice 'PASS 7: limited quantity enforced';
 end $$;
+
+-- 9-10. Club membership: join is idempotent, points awarded once per paid order
+do $$
+declare b uuid := '5b1e0000-0000-4000-8000-000000000001'; c uuid; o uuid; n1 bigint; n2 bigint; pts int;
+begin
+  insert into customers (brand_id, email) values (b, 'socio@test.local') returning id into c;
+  n1 := join_club(c); n2 := join_club(c);
+  if n1 is null or n1 <> n2 then raise exception 'TEST FAILED: join_club not idempotent'; end if;
+  if (select points from customers where id = c) <> 50 then raise exception 'TEST FAILED: signup points'; end if;
+  raise notice 'PASS 9: join_club idempotent with signup points';
+
+  insert into orders (brand_id, customer_id, customer_email, subtotal, discount, total, payment_status)
+  values (b, c, 'socio@test.local', 60.40, 5, 55.40, 'PAID') returning id into o;
+  pts := award_order_points(o);
+  if pts <> 55 then raise exception 'TEST FAILED: expected 55 points, got %', pts; end if;
+  if award_order_points(o) <> 0 then raise exception 'TEST FAILED: points awarded twice'; end if;
+  if (select points from customers where id = c) <> 105 then raise exception 'TEST FAILED: points balance'; end if;
+  raise notice 'PASS 10: order points awarded exactly once';
+end $$;
+
+-- 11. Points redemption is atomic and never goes negative
+do $$
+declare c uuid;
+begin
+  select id into c from customers where email = 'socio@test.local';
+  if not redeem_points(c, 100) then raise exception 'TEST FAILED: redeem 100 of 105'; end if;
+  if redeem_points(c, 100) then raise exception 'TEST FAILED: redeemed beyond balance'; end if;
+  if (select points from customers where id = c) <> 5 then raise exception 'TEST FAILED: balance after redeem'; end if;
+  raise notice 'PASS 11: points redemption atomic';
+end $$;

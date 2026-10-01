@@ -17,7 +17,7 @@ export default async function DropsPage() {
   return (
     <>
       <PageHero dark eyebrow="Drops" title={t("drops.title")} sub={t("drops.sub")} />
-      <section className="bg-warm py-20">
+      <section className="bg-bg py-20">
         <Container>
           {drops.length === 0 ? (
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
@@ -28,17 +28,17 @@ export default async function DropsPage() {
             <div className="space-y-6">
               {drops.map((d) => (
                 <Reveal key={d.id}>
-                  <article id={d.slug} className="grid overflow-hidden border border-ink/10 bg-bone lg:grid-cols-2">
+                  <article id={d.slug} className="grid overflow-hidden border border-line bg-surface-2 lg:grid-cols-2">
                     <div className="relative aspect-[16/10] lg:aspect-auto">
                       <CollectionArt slug={d.collection?.slug ?? "heritage"} className="absolute inset-0" />
                     </div>
                     <div className="p-8 sm:p-12">
-                      <p className={`eyebrow ${d.status === "LIVE" ? "text-rojo" : "text-stone-2"}`}>
+                      <p className={`eyebrow ${d.status === "LIVE" ? "text-accent" : "text-muted"}`}>
                         {d.number ? `Drop ${String(d.number).padStart(3, "0")} · ` : ""}
                         {label(d.status)}
                       </p>
                       <h2 className="headline mt-3 text-3xl sm:text-4xl">{d.name}</h2>
-                      {d.description && <p className="mt-5 max-w-lg text-stone-2">{d.description}</p>}
+                      {d.description && <p className="mt-5 max-w-lg text-muted">{d.description}</p>}
                       <div className="mt-8">
                         {d.status === "SCHEDULED" && d.startDate ? (
                           <Countdown to={d.startDate} />

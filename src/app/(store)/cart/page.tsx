@@ -15,24 +15,24 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
   const needsFix = cart.lines.some((l) => l.issue);
 
   return (
-    <section className="min-h-[80svh] bg-warm pb-24 pt-10 sm:pt-14">
+    <section className="min-h-[80svh] bg-bg pb-24 pt-10 sm:pt-14">
       <Container>
         <h1 className="headline text-4xl sm:text-5xl">{t("cart.title")}</h1>
-        {cancelled && <p className="mt-4 text-sm text-stone-2">El pago se ha cancelado. Tu carrito sigue aquí.</p>}
+        {cancelled && <p className="mt-4 text-sm text-muted">El pago se ha cancelado. Tu carrito sigue aquí.</p>}
 
         {cart.lines.length === 0 ? (
           <div className="mt-12">
-            <p className="text-xl text-stone-2">{t("cart.empty")}</p>
+            <p className="text-xl text-muted">{t("cart.empty")}</p>
             <Link href="/shop" className="btn btn-ink mt-8">
               {t("cart.continue")}
             </Link>
           </div>
         ) : (
           <div className="mt-12 grid gap-12 lg:grid-cols-[1.6fr_1fr]">
-            <ul className="divide-y divide-ink/10 border-y border-ink/10">
+            <ul className="divide-y divide-line border-y border-line">
               {cart.lines.map((l) => (
                 <li key={l.id} className="flex gap-4 py-6 sm:gap-6">
-                  <Link href={`/products/${l.productSlug}`} className="relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-bone sm:w-32">
+                  <Link href={`/products/${l.productSlug}`} className="relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-surface-2 sm:w-32">
                     {l.image && <Image src={l.image} alt={l.productName} fill sizes="128px" className="object-cover" />}
                   </Link>
                   <div className="flex flex-1 flex-col justify-between gap-3">
@@ -41,25 +41,26 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
                         <Link href={`/products/${l.productSlug}`} className="font-medium hover:underline">
                           {l.productName}
                         </Link>
-                        <p className="mt-1 text-sm text-stone-2">{l.variantName}</p>
-                        {l.issue && <p className="mt-2 text-xs text-rojo">{t(`cart.issue.${l.issue}` as "cart.issue.UNAVAILABLE")}</p>}
+                        <p className="mt-1 text-sm text-muted">{l.variantName}</p>
+                        {l.personalizationSummary && <p className="mt-1 inline-flex rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-semibold text-gold">✦ {l.personalizationSummary}</p>}
+                        {l.issue && <p className="mt-2 text-xs text-accent">{t(`cart.issue.${l.issue}` as "cart.issue.UNAVAILABLE")}</p>}
                       </div>
                       <p className="shrink-0 tabular-nums">{formatMoney(l.lineTotal, cart.currency)}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <form action={updateLineAction} className="flex items-center border border-ink/15">
+                      <form action={updateLineAction} className="flex items-center border border-line">
                         <input type="hidden" name="lineId" value={l.id} />
-                        <button name="quantity" value={l.quantity - 1} className="px-3 py-2 hover:bg-bone" aria-label="-">
+                        <button name="quantity" value={l.quantity - 1} className="px-3 py-2 hover:bg-surface-2" aria-label="-">
                           −
                         </button>
                         <span className="w-8 text-center text-sm tabular-nums">{l.quantity}</span>
-                        <button name="quantity" value={l.quantity + 1} className="px-3 py-2 hover:bg-bone" aria-label="+" disabled={l.quantity >= 20}>
+                        <button name="quantity" value={l.quantity + 1} className="px-3 py-2 hover:bg-surface-2" aria-label="+" disabled={l.quantity >= 20}>
                           +
                         </button>
                       </form>
                       <form action={updateLineAction}>
                         <input type="hidden" name="lineId" value={l.id} />
-                        <button name="quantity" value={0} className="eyebrow link-u text-[0.6rem] text-stone-2">
+                        <button name="quantity" value={0} className="eyebrow link-u text-[0.6rem] text-muted">
                           {t("cart.remove")}
                         </button>
                       </form>
@@ -69,12 +70,12 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
               ))}
             </ul>
 
-            <aside className="h-fit border border-ink/10 bg-bone p-6 sm:p-8 lg:sticky lg:top-28">
+            <aside className="h-fit border border-line bg-surface-2 p-6 sm:p-8 lg:sticky lg:top-28">
               <div className="flex justify-between text-lg">
                 <span>{t("cart.subtotal")}</span>
                 <span className="tabular-nums">{formatMoney(cart.subtotal, cart.currency)}</span>
               </div>
-              <p className="mt-2 text-xs text-stone-2">{t("cart.shippingNote")}</p>
+              <p className="mt-2 text-xs text-muted">{t("cart.shippingNote")}</p>
               {needsFix ? (
                 <form action={refreshCartAction}>
                   <button className="btn btn-ink mt-8 w-full">{t("cart.fix")}</button>
@@ -84,7 +85,7 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
                   {t("cart.checkout")} →
                 </Link>
               )}
-              <Link href="/shop" className="eyebrow link-u mt-5 block text-center text-[0.62rem] text-stone-2">
+              <Link href="/shop" className="eyebrow link-u mt-5 block text-center text-[0.62rem] text-muted">
                 {t("cart.continue")}
               </Link>
             </aside>

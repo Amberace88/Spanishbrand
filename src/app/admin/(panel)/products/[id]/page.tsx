@@ -20,6 +20,7 @@ import {
   updateMappingAction,
   updateProductAction,
   updateVariantAction,
+  savePersonalizationAction,
 } from "../../../actions/products";
 
 type Mapping = {
@@ -148,6 +149,38 @@ export default async function ProductAdmin({ params, searchParams }: { params: P
               <Field label="SEO description"><input name="seo_description" defaultValue={p.seo_description ?? ""} maxLength={170} className={inputCls} /></Field>
               <div className="sm:col-span-2"><SubmitButton>Guardar</SubmitButton></div>
             </form>
+          </Card>
+
+          <Card title="Personalización (cliente)">
+            {(() => {
+              const cfg = p.personalization as { mode?: string; template?: string; extraPrice?: number; placements?: string[] } | null;
+              const current = cfg?.mode === "designer" ? "designer" : cfg?.template ?? "none";
+              return (
+                <form action={savePersonalizationAction} className="grid gap-3 sm:grid-cols-3">
+                  <input type="hidden" name="id" value={p.id} />
+                  <Field label="Tipo">
+                    <select name="kind" defaultValue={current} className={inputCls}>
+                      <option value="none">Sin personalización</option>
+                      <option value="jersey">Nombre + dorsal (espalda)</option>
+                      <option value="pueblo">Mi pueblo (frontal)</option>
+                      <option value="year">Desde año (frontal)</option>
+                      <option value="text">Frase libre (frontal)</option>
+                      <option value="designer">Diseño propio del cliente (diseñador)</option>
+                    </select>
+                  </Field>
+                  <Field label="Recargo €"><input name="extraPrice" type="number" step="0.01" min="0" defaultValue={cfg?.extraPrice ?? 5} className={inputCls} /></Field>
+                  <Field label="Zonas (diseñador)">
+                    <select name="placements" defaultValue={(cfg?.placements ?? ["front"]).join(",")} className={inputCls}>
+                      <option value="front">Frontal</option>
+                      <option value="back">Espalda</option>
+                      <option value="front,back">Frontal o espalda</option>
+                    </select>
+                  </Field>
+                  <p className="text-xs text-stone sm:col-span-3">El archivo de impresión se genera automáticamente para cada pedido y reemplaza el archivo de la marca en esa zona (las demás zonas mantienen el diseño de la marca). Los diseños con imágenes subidas por el cliente quedan en revisión antes de producción. Para productos solo-diseñador, el test de fulfillment usa un archivo de muestra.</p>
+                  <div className="sm:col-span-3"><SubmitButton variant="primary">Guardar personalización</SubmitButton></div>
+                </form>
+              );
+            })()}
           </Card>
 
           <Card title="Imágenes / mockups">

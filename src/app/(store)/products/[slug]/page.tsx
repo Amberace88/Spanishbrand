@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { formatMoney } from "@/lib/format";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getPublishedProducts } from "@/lib/products/queries";
 import { getBrand } from "@/lib/brand";
@@ -9,7 +10,7 @@ import { ProductBuyBox } from "@/components/product/ProductBuyBox";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { TrackView } from "@/components/analytics/TrackView";
-import { IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
+import { IconArrow, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Section";
 import { dbOrNull } from "@/lib/supabase/admin";
 
@@ -78,16 +79,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <TrackView event="product_view" productId={p.id} />
-      <section className="bg-warm pb-20 pt-6 sm:pt-10">
+      <section className="bg-bg pb-20 pt-6 sm:pt-10">
         <Container>
-          <nav className="mb-6 flex gap-2 text-sm text-stone-2">
-            <Link href="/shop" className="hover:text-ink">
+          <nav className="mb-6 flex gap-2 text-sm text-muted">
+            <Link href="/shop" className="hover:text-fg">
               {t("nav.shop")}
             </Link>
             {p.collection && (
               <>
                 <span>/</span>
-                <Link href={`/collections/${p.collection.slug}`} className="hover:text-ink">
+                <Link href={`/collections/${p.collection.slug}`} className="hover:text-fg">
                   {p.collection.name}
                 </Link>
               </>
@@ -104,19 +105,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
             <div className="lg:sticky lg:top-28 lg:self-start">
-              {p.collection && <p className="eyebrow text-rojo">{p.collection.name}</p>}
+              {p.collection && <p className="eyebrow text-accent">{p.collection.name}</p>}
               <h1 className="headline mt-2 text-3xl sm:text-[2.6rem]">{p.name}</h1>
-              {p.shortDescription && <p className="mt-3 text-lg leading-relaxed text-stone-2">{p.shortDescription}</p>}
+              {p.shortDescription && <p className="mt-3 text-lg leading-relaxed text-muted">{p.shortDescription}</p>}
               {p.limited && (
-                <p className="mt-5 inline-block rounded-full bg-rojo px-3 py-1.5 text-xs font-bold text-white">
+                <p className="mt-5 inline-block rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-white">
                   {p.limitedRemaining != null ? t("product.limitedRemaining", { n: p.limitedRemaining }) : t("product.limitedTime")}
                   {p.limitedUntil && p.limitedRemaining == null ? ` · hasta ${new Date(p.limitedUntil).toLocaleDateString("es-ES")}` : ""}
                 </p>
               )}
+              {p.personalization && (
+                <Link href={p.personalization.mode === "designer" ? "/disena" : `/personaliza?t=${p.personalization.template}`} className="group mt-6 flex items-center justify-between gap-4 rounded-2xl bg-fg p-5 text-bg">
+                  <span>
+                    <span className="kicker text-gold">{t("perso.kicker")}</span>
+                    <span className="headline mt-1 block text-xl">{p.personalization.mode === "designer" ? t("hero3.design") : t("perso.title")}</span>
+                    {p.personalization.extraPrice > 0 && <span className="text-xs text-bg/60">+{formatMoney(p.personalization.extraPrice, p.currency)}</span>}
+                  </span>
+                  <IconArrow className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+              )}
               <div className="mt-8">
                 <ProductBuyBox variants={p.variants} currency={p.currency} />
               </div>
-              <ul className="mt-6 grid gap-3 rounded-2xl bg-cream p-5 text-sm">
+              <ul className="mt-6 grid gap-3 rounded-2xl bg-surface-2 p-5 text-sm">
                 {[
                   [IconTruck, t("trust.shipping.t"), t("trust.shipping.b")],
                   [IconReturn, t("trust.returns.t"), t("trust.returns.b")],
@@ -125,15 +136,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   const I = Icon as typeof IconTruck;
                   return (
                     <li key={title as string} className="flex items-start gap-3">
-                      <I className="mt-0.5 h-5 w-5 shrink-0 text-rojo" />
+                      <I className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
                       <span>
-                        <span className="font-semibold">{title as string}</span> <span className="text-stone-2">· {body as string}</span>
+                        <span className="font-semibold">{title as string}</span> <span className="text-muted">· {body as string}</span>
                       </span>
                     </li>
                   );
                 })}
               </ul>
-              <div className="mt-10 divide-y divide-ink/10 border-y border-ink/10">
+              <div className="mt-10 divide-y divide-line border-y border-line">
                 {[
                   [t("product.details"), p.description],
                   [t("product.story"), p.story],
@@ -146,7 +157,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         {title}
                         <span className="text-lg transition-transform group-open:rotate-45">+</span>
                       </summary>
-                      <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-stone-2">{body}</p>
+                      <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted">{body}</p>
                     </details>
                   ))}
               </div>
@@ -155,7 +166,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </Container>
       </section>
       {related.length > 0 && (
-        <section className="border-t border-ink/[0.07] bg-white py-16 sm:py-20">
+        <section className="border-t border-line bg-surface py-16 sm:py-20">
           <Container>
             <h2 className="headline mb-8 text-3xl sm:text-4xl">{t("product.related")}</h2>
             <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4">

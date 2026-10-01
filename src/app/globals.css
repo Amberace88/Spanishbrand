@@ -2,6 +2,28 @@
 @import "@fontsource-variable/archivo/wdth.css";
 @import "@fontsource/instrument-serif/400.css";
 @import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource-variable/bricolage-grotesque/standard.css";
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/cinzel/index.css";
+@import "@fontsource/pacifico/400.css";
+@import "@fontsource/anton/400.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic, theme-aware tokens (storefront). Values live in :root / .dark below. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --font-display: "Bricolage Grotesque Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-logo: "Cinzel Variable", "Cinzel", Georgia, serif;
+}
 
 /* =====================================================================
    DESIGN SYSTEM — premium · editorial · European · Spanish
@@ -55,8 +77,43 @@
   }
 }
 
-:root {
+:root,
+.force-light {
   color-scheme: light;
+  --bg: #fbfaf7;
+  --fg: #0d0d0d;
+  --muted: #6b675f;
+  --surface: #ffffff;
+  --surface-2: #f1ede4;
+  --line: rgb(13 13 13 / 0.1);
+  --accent: #c8102e;
+  --gold: #c99a1e;
+}
+.dark:not(.force-light),
+.dark .theme-dark-scope {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --fg: #f5f1e8;
+  --muted: #a19c91;
+  --surface: #141414;
+  --surface-2: #1b1a18;
+  --line: rgb(245 241 232 / 0.12);
+  --accent: #e8263f;
+  --gold: #e0b84a;
+}
+.dark .force-light {
+  color-scheme: light;
+  --bg: #fbfaf7;
+  --fg: #0d0d0d;
+  --muted: #6b675f;
+  --surface: #ffffff;
+  --surface-2: #f1ede4;
+  --line: rgb(13 13 13 / 0.1);
+  --accent: #c8102e;
+  --gold: #c99a1e;
+}
+.logo-serif { font-family: var(--font-logo); }
+:root {
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -66,9 +123,10 @@ html {
 }
 
 body {
-  background: var(--color-warm);
-  color: var(--color-ink);
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
+  transition: background-color 0.4s ease, color 0.4s ease;
   font-variation-settings: "wdth" 100;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -106,14 +164,58 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-/* Modern product-shop headline: bold, tight, sentence case */
+/* Storefront type: Bricolage Grotesque display + Inter body */
+.store { font-family: var(--font-body); }
 .headline {
-  font-family: var(--font-sans);
-  font-variation-settings: "wdth" 96;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 96, "wdth" 88;
   font-weight: 800;
-  letter-spacing: -0.025em;
-  word-spacing: 0.04em;
-  line-height: 1.02;
+  letter-spacing: -0.018em;
+  line-height: 0.98;
+}
+.mega {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 96, "wdth" 75;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+.kicker {
+  font-family: var(--font-body);
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.outline-text { color: transparent; -webkit-text-stroke: 2px #fff; }
+.outline-gold { color: transparent; -webkit-text-stroke: 2px #e0b84a; }
+/* Metallic lettering like the ROJO Y GUALDA logo */
+.text-gold-metal {
+  background: linear-gradient(100deg, #b8862b 0%, #f7e08a 18%, #d9a93a 36%, #8f6a1f 52%, #f1d27a 70%, #c9962e 86%, #f7e08a 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: metal-shine 7s ease-in-out infinite;
+}
+.text-red-metal {
+  background: linear-gradient(100deg, #9c0a1f 0%, #ff3b4e 20%, #d1132c 40%, #7e0718 58%, #f0283c 78%, #b00d24 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: metal-shine 9s ease-in-out infinite;
+}
+@keyframes metal-shine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.bg-gold-metal { background: linear-gradient(135deg, #f7e08a, #d9a93a 40%, #9a7222 70%, #e8c766); }
+.ring-gold-metal { box-shadow: 0 0 0 1px rgb(224 184 74 / 0.55), 0 10px 30px -12px rgb(201 154 30 / 0.5); }
+@keyframes dash { to { stroke-dashoffset: -30; } }
+.text-stroke-fg { color: transparent; -webkit-text-stroke: 1.5px var(--fg); }
+@keyframes spin-rev { to { transform: rotate(-360deg); } }
+.spin-slow { animation: spin 18s linear infinite; }
+.marquee-track { animation: marquee 28s linear infinite; }
+.marquee-track-rev { animation: marquee-rev 34s linear infinite; }
+.grain-soft::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: var(--grain); opacity: 0.12; mix-blend-mode: overlay;
 }
 /* Spanish flag stripe (rojo · gualda · rojo) */
 .flag-stripe {
@@ -126,6 +228,12 @@ body {
 .azulejo {
   background-color: #f3f6fc;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 88 88'%3E%3Cg fill='none' stroke='%232456a6' stroke-width='2'%3E%3Cpath d='M44 8 L56 32 L80 44 L56 56 L44 80 L32 56 L8 44 L32 32 Z' fill='%232456a6' fill-opacity='.1'/%3E%3Ccircle cx='44' cy='44' r='9'/%3E%3Cpath d='M0 0 Q22 22 0 44 M88 0 Q66 22 88 44 M0 88 Q22 66 0 44 M88 88 Q66 66 88 44' /%3E%3C/g%3E%3Ccircle cx='44' cy='44' r='3.5' fill='%23ffc629'/%3E%3Crect width='88' height='88' fill='none' stroke='%232456a6' stroke-opacity='.18'/%3E%3C/svg%3E");
+}
+/* Line-only azulejo, tinted with the current text colour (works in day & night) */
+.azulejo-line {
+  background-color: transparent;
+  -webkit-mask-image: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 88 88'%3E%3Cg fill='none' stroke='%23e3051b' stroke-opacity='.35' stroke-width='1.5'%3E%3Cpath d='M44 8 L56 32 L80 44 L56 56 L44 80 L32 56 L8 44 L32 32 Z'/%3E%3Ccircle cx='44' cy='44' r='9'/%3E%3Cpath d='M0 0 Q22 22 0 44 M88 0 Q66 22 88 44 M0 88 Q22 66 0 44 M88 88 Q66 66 88 44'/%3E%3C/g%3E%3C/svg%3E");
 }
 @keyframes floaty {
   0%, 100% { transform: translateY(0); }
@@ -151,22 +259,23 @@ body {
   gap: 0.55rem;
   padding: 0.85rem 1.5rem;
   border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 650;
-  letter-spacing: 0.005em;
-  transition: background-color 0.3s var(--ease-out-expo), color 0.3s var(--ease-out-expo), transform 0.3s var(--ease-out-expo), border-color 0.3s, box-shadow 0.3s;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: background-color 0.25s, color 0.25s, transform 0.25s var(--ease-out-expo), border-color 0.25s, box-shadow 0.25s;
   will-change: transform;
 }
-.btn:hover { transform: translateY(-1px); }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-rojo); color: #fff; box-shadow: 0 8px 22px -10px rgb(200 16 46 / 0.6); }
-.btn-primary:hover { background: var(--color-rojo-2); }
-.btn-ink { background: var(--color-ink); color: #fff; }
-.btn-ink:hover { background: var(--color-ink-3); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: linear-gradient(180deg, #e8263f, #b00d24); color: #fff; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25); }
+.btn-primary:hover { box-shadow: 0 10px 30px -10px var(--accent); transform: translateY(-1px); }
+.btn-ink { background: var(--fg); color: var(--bg); }
+.btn-ink:hover { transform: translateY(-1px); opacity: 0.9; }
 .btn-ghost-light { border: 1px solid rgb(255 255 255 / 0.5); color: #fff; }
 .btn-ghost-light:hover { border-color: #fff; background: rgb(255 255 255 / 0.1); }
-.btn-ghost { border: 1.5px solid rgb(28 23 18 / 0.18); color: var(--color-ink); background: #fff; }
-.btn-ghost:hover { border-color: var(--color-ink); }
+.btn-ghost { border: 1px solid var(--line); color: var(--fg); background: transparent; }
+.btn-ghost:hover { border-color: var(--fg); }
+.btn-light { background: #fff; color: #0d0d0d; }
+.btn-light:hover { transform: translateY(-1px); }
 .btn:disabled { opacity: 0.45; pointer-events: none; }
 
 /* Underline link */
@@ -182,15 +291,17 @@ body {
 /* Inputs */
 .field {
   width: 100%;
-  background: #fff;
-  border: 1.5px solid rgb(28 23 18 / 0.14);
-  padding: 0.8rem 1rem;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  padding: 0.8rem 1.1rem;
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
-  border-radius: 0.75rem;
+  border-radius: 999px;
 }
-.field:focus { border-color: var(--color-ink); box-shadow: 0 0 0 4px rgb(28 23 18 / 0.06); }
+.field::placeholder { color: var(--muted); }
+.field:focus { border-color: var(--fg); box-shadow: 0 0 0 4px color-mix(in srgb, var(--fg) 8%, transparent); }
 .field-dark { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.3); color: #fff; }
 .field-dark::placeholder { color: rgb(244 239 230 / 0.4); }
 .field-dark:focus { border-color: var(--color-bone); }

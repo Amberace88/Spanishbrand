@@ -10,7 +10,8 @@ export type LogCategory =
   | "ADMIN"
   | "SECURITY"
   | "CRON"
-  | "CATALOG";
+  | "CATALOG"
+  | "API";
 
 type Level = "debug" | "info" | "warn" | "error";
 

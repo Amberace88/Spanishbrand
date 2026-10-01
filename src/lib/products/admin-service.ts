@@ -142,7 +142,11 @@ export async function runFulfillmentTest(staff: StaffSession, productId: string,
   const vm = (m.variant_provider_mappings ?? []).find((v: { status: string }) => v.status === "ACTIVE") as { provider_variant_id: string; files: unknown } | undefined;
   if (!vm) throw new Error("No active mapped variant");
   const cfgFiles = ((m.print_config as { files?: { type: string; url: string }[] } | null)?.files ?? []) as { type: string; url: string }[];
-  const files = (Array.isArray(vm.files) && vm.files.length ? vm.files : cfgFiles) as { type: string; url: string }[];
+  let files = (Array.isArray(vm.files) && vm.files.length ? vm.files : cfgFiles) as { type: string; url: string }[];
+  // Customer-designed (blank) products: test with a sample print file — the real one is rendered per order.
+  if (!files.length && (m.print_config as { personalized?: boolean } | null)?.personalized) {
+    files = [{ type: "front", url: `${(process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "")}/brand/print-sample.png` }];
+  }
   if (!files.length) throw new Error("Add print files (print_config.files) before testing");
 
   const started = new Date().toISOString();

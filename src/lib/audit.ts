@@ -6,6 +6,12 @@ import { log } from "@/lib/logger";
 export type AuditAction =
   | "admin.login"
   | "admin.bootstrap"
+  | "personalization.approve"
+  | "personalization.reject"
+  | "b2b.update"
+  | "creator.review"
+  | "cause.update"
+  | "giftcard.create"
   | "product.create"
   | "product.update"
   | "product.delete"

@@ -22,17 +22,17 @@ export default async function CommunityPage() {
   return (
     <>
       <PageHero dark eyebrow={t("home.community.eyebrow")} title={t("community.title")} sub={t("community.sub")} />
-      <section className="bg-warm py-20">
+      <section className="bg-bg py-20">
         <Container>
           {open.length === 0 ? (
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <p className="text-xl leading-relaxed text-stone-2">{t("community.empty")}</p>
+              <p className="text-xl leading-relaxed text-muted">{t("community.empty")}</p>
               <Newsletter source="community" />
             </div>
           ) : (
             <div className="space-y-16">
               {open.map((p) => (
-                <Reveal key={p.id} className="border-t border-ink/10 pt-10">
+                <Reveal key={p.id} className="border-t border-line pt-10">
                   <PollCard post={{ id: p.id, title: p.title, body: p.body, options: (p.options ?? []) as { key: string; label: string }[] }} />
                 </Reveal>
               ))}
@@ -40,12 +40,12 @@ export default async function CommunityPage() {
           )}
           {highlights.length > 0 && (
             <div className="mt-24">
-              <p className="eyebrow text-rojo">{t("community.results")}</p>
+              <p className="eyebrow text-accent">{t("community.results")}</p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {highlights.map((h) => (
-                  <div key={h.id} className="border border-ink/10 bg-bone p-6">
+                  <div key={h.id} className="border border-line bg-surface-2 p-6">
                     <h3 className="headline text-2xl">{h.title}</h3>
-                    {h.body && <p className="mt-2 text-sm text-stone-2">{h.body}</p>}
+                    {h.body && <p className="mt-2 text-sm text-muted">{h.body}</p>}
                   </div>
                 ))}
               </div>

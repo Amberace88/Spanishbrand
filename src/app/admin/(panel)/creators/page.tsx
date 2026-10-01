@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { formatMoney, formatDate } from "@/lib/format";
 import { Badge, Card, Field, PageTitle, SubmitButton, inputCls } from "@/components/admin/ui";
 import { saveCreatorAction, saveDiscountAction, setCommissionStatusAction } from "../../actions/settings";
+import { reviewCreatorAction } from "../../actions/growth";
 
 export default async function CreatorsAdmin({ searchParams }: { searchParams: Promise<{ msg?: string }> }) {
   await requireStaff(["ADMIN"]);
@@ -55,7 +56,19 @@ export default async function CreatorsAdmin({ searchParams }: { searchParams: Pr
                 <td className="tabular-nums">{c.total_orders}</td>
                 <td className="tabular-nums">{formatMoney(Number(c.total_revenue))}</td>
                 <td className="tabular-nums">{(Number(c.commission_rate) * 100).toFixed(1)}%</td>
-                <td><Badge status={c.status} /></td>
+                <td>
+                  <Badge status={c.status} />
+                  {c.status === "PENDING" && (
+                    <div className="mt-2 text-xs">
+                      <p className="text-stone-2">{c.kind} · {c.platform} {c.handle} · {c.audience_size ?? "—"} seg.{c.portfolio_url && <> · <a href={c.portfolio_url} target="_blank" rel="noopener noreferrer" className="underline">portfolio</a></>}</p>
+                      {c.application_message && <p className="mt-1 max-w-xs text-stone-2">{c.application_message}</p>}
+                      <div className="mt-2 flex gap-1">
+                        <form action={reviewCreatorAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="status" value="ACTIVE" /><SubmitButton variant="primary">Aprobar</SubmitButton></form>
+                        <form action={reviewCreatorAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="status" value="REJECTED" /><SubmitButton variant="danger">Rechazar</SubmitButton></form>
+                      </div>
+                    </div>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

@@ -44,13 +44,13 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
   return (
     <div className="space-y-7">
       <p className="text-2xl tabular-nums">
-        {formatMoney(price, currency)} <span className="ml-2 text-xs text-stone">{t("product.vatIncluded")}</span>
+        {formatMoney(price, currency)} <span className="ml-2 text-xs text-muted">{t("product.vatIncluded")}</span>
       </p>
 
       {colors.length > 0 && (
         <div>
-          <p className="eyebrow mb-3 text-stone-2">
-            {t("product.color")} — <span className="text-ink">{color}</span>
+          <p className="eyebrow mb-3 text-muted">
+            {t("product.color")} — <span className="text-fg">{color}</span>
           </p>
           <div className="flex flex-wrap gap-2.5">
             {colors.map(([c, hex]) => (
@@ -62,9 +62,9 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
                 }}
                 aria-label={c}
                 aria-pressed={color === c}
-                className={`h-10 w-10 rounded-full border-2 p-0.5 transition ${color === c ? "border-ink" : "border-transparent hover:border-ink/30"}`}
+                className={`h-10 w-10 rounded-full border-2 p-0.5 transition ${color === c ? "border-fg" : "border-transparent hover:border-ink/30"}`}
               >
-                <span className="block h-full w-full rounded-full border border-ink/10" style={{ background: hex ?? "#ccc" }} />
+                <span className="block h-full w-full rounded-full border border-line" style={{ background: hex ?? "#ccc" }} />
               </button>
             ))}
           </div>
@@ -73,7 +73,7 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
 
       {sizes.length > 0 && (
         <div>
-          <p className="eyebrow mb-3 text-stone-2">{colors.length || sizes.length > 1 ? t("product.size") : t("product.option")}</p>
+          <p className="eyebrow mb-3 text-muted">{colors.length || sizes.length > 1 ? t("product.size") : t("product.option")}</p>
           <div className="flex flex-wrap gap-2">
             {sizes.map((s) => {
               const v = inColor.find((x) => x.size === s);
@@ -84,7 +84,7 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
                   disabled={!avail}
                   onClick={() => setSize(s)}
                   aria-pressed={size === s}
-                  className={`min-w-14 border px-4 py-3 text-sm transition ${size === s ? "border-ink bg-ink text-white" : "border-ink/20 hover:border-ink"} ${!avail ? "cursor-not-allowed line-through opacity-35" : ""}`}
+                  className={`min-w-14 border px-4 py-3 text-sm transition ${size === s ? "border-fg bg-fg text-bg" : "border-line hover:border-fg"} ${!avail ? "cursor-not-allowed line-through opacity-35" : ""}`}
                 >
                   {s}
                 </button>
@@ -111,10 +111,10 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
         <button onClick={add} disabled={!selected || !selected.available || pending} className="btn btn-primary w-full py-5 text-[0.78rem] shadow-xl sm:shadow-none">
           {pending ? t("product.adding") : state === "added" ? `✓ ${t("product.added")}` : !selected ? t("product.selectVariant") : !selected.available ? t("product.unavailable") : `${t("product.addToCart")} — ${formatMoney(price, currency)}`}
         </button>
-        {state === "error" && <p className="mt-2 text-sm text-rojo">{t("common.error")}</p>}
+        {state === "error" && <p className="mt-2 text-sm text-accent">{t("common.error")}</p>}
       </div>
-      <p className="flex items-center gap-2 text-xs text-stone-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-rojo" /> {t("product.madeToOrder")}
+      <p className="flex items-center gap-2 text-xs text-muted">
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {t("product.madeToOrder")}
       </p>
     </div>
   );

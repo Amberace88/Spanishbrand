@@ -13,7 +13,7 @@ export default async function AdminLogin() {
   const [staff, user, brand] = await Promise.all([getStaffSession(), getSessionUser(), getBrand()]);
   if (staff) redirect("/admin");
   return (
-    <main className="grain relative flex min-h-dvh items-center justify-center bg-ink px-4 text-bone">
+    <main className="force-light grain relative flex min-h-dvh items-center justify-center bg-ink px-4 text-bone">
       <div className="w-full max-w-sm">
         <Wordmark name={brand.name} className="text-lg" />
         <h1 className="display mt-10 text-6xl">Brand OS</h1>

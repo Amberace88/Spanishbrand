@@ -18,7 +18,7 @@ export async function sendEmail(input: {
   marketingConsent?: boolean;
 }) {
   const sb = dbOrNull();
-  const brandName = input.context.brandName ?? "HISPANIA";
+  const brandName = input.context.brandName ?? "ROJO Y GUALDA";
   const ctx: EmailContext = { ...input.context, brandName, siteUrl: env.siteUrl() };
 
   const logRow = async (status: string, extra: { provider_message_id?: string; error?: string } = {}) => {

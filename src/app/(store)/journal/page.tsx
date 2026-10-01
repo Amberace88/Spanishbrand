@@ -18,11 +18,11 @@ export default async function JournalPage() {
   return (
     <>
       <PageHero eyebrow="Editorial" title="Journal" sub="Historias de ciudades, carreteras, mar y oficio." />
-      <section className="bg-warm pb-24 pt-12">
+      <section className="bg-bg pb-24 pt-12">
         <Container>
           {!posts?.length ? (
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <p className="text-xl leading-relaxed text-stone-2">Las primeras historias están en camino. Suscríbete para leerlas antes que nadie.</p>
+              <p className="text-xl leading-relaxed text-muted">Las primeras historias están en camino. Suscríbete para leerlas antes que nadie.</p>
               <Newsletter source="journal" />
             </div>
           ) : (
@@ -34,9 +34,9 @@ export default async function JournalPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {p.cover_image ? <img src={p.cover_image} alt="" className="h-full w-full object-cover" /> : <CollectionArt slug={(p.collections as unknown as { slug: string } | null)?.slug ?? "heritage"} className="absolute inset-0" />}
                     </div>
-                    <p className="eyebrow mt-5 text-stone">{formatDate(p.published_at)}</p>
+                    <p className="eyebrow mt-5 text-muted">{formatDate(p.published_at)}</p>
                     <h2 className="mt-2 text-2xl font-semibold leading-tight">{p.title}</h2>
-                    {p.body && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-stone-2">{p.body}</p>}
+                    {p.body && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted">{p.body}</p>}
                   </article>
                 </Reveal>
               ))}

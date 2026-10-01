@@ -26,7 +26,7 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
   return (
     <div>
       <h3 className="headline text-3xl sm:text-4xl">{post.title}</h3>
-      {post.body && <p className={`mt-3 max-w-xl text-sm ${dark ? "text-bone/70" : "text-stone-2"}`}>{post.body}</p>}
+      {post.body && <p className={`mt-3 max-w-xl text-sm ${dark ? "text-fg/70" : "text-muted"}`}>{post.body}</p>}
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         {post.options.map((o) => {
           const pct = results && total ? Math.round(((results[o.key] ?? 0) / total) * 100) : null;
@@ -35,9 +35,9 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
               key={o.key}
               disabled={!!results}
               onClick={() => setSelected(o.key)}
-              className={`relative overflow-hidden border p-5 text-left transition-colors ${selected === o.key ? (dark ? "border-bone" : "border-ink") : dark ? "border-bone/20 hover:border-bone/50" : "border-ink/15 hover:border-ink/40"}`}
+              className={`relative overflow-hidden border p-5 text-left transition-colors ${selected === o.key ? (dark ? "border-bone" : "border-fg") : dark ? "border-bone/20 hover:border-bone/50" : "border-line hover:border-ink/40"}`}
             >
-              {pct !== null && <span className="absolute inset-y-0 left-0 bg-rojo/20 transition-all duration-700" style={{ width: `${pct}%` }} />}
+              {pct !== null && <span className="absolute inset-y-0 left-0 bg-accent/20 transition-all duration-700" style={{ width: `${pct}%` }} />}
               <span className="relative flex items-center justify-between gap-3">
                 <span className="text-xl font-bold">{o.label}</span>
                 {pct !== null && <span className="text-sm tabular-nums">{pct}%</span>}
@@ -51,9 +51,9 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
           {t("community.vote")}
         </button>
       ) : (
-        <p className="mt-6 text-lg font-semibold text-oliva">{t("community.voted")}</p>
+        <p className="mt-6 text-lg font-semibold text-emerald-600">{t("community.voted")}</p>
       )}
-      {error && <p className="mt-3 text-sm text-rojo">{error}</p>}
+      {error && <p className="mt-3 text-sm text-accent">{error}</p>}
     </div>
   );
 }

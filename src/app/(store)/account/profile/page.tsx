@@ -14,29 +14,29 @@ export default async function ProfilePage() {
     <div className="grid max-w-4xl gap-14 lg:grid-cols-2">
       <form action={updateProfileAction} className="space-y-5">
         <label className="block">
-          <span className="eyebrow mb-2 block text-stone-2">Nombre</span>
+          <span className="eyebrow mb-2 block text-muted">Nombre</span>
           <input name="name" defaultValue={customer?.name ?? ""} className="field" />
         </label>
         <label className="block">
-          <span className="eyebrow mb-2 block text-stone-2">Teléfono</span>
+          <span className="eyebrow mb-2 block text-muted">Teléfono</span>
           <input name="phone" defaultValue={customer?.phone ?? ""} className="field" />
         </label>
-        <label className="flex items-start gap-3 text-sm text-stone-2">
-          <input type="checkbox" name="marketing" defaultChecked={customer?.marketing_consent ?? false} className="mt-1 accent-rojo" />
+        <label className="flex items-start gap-3 text-sm text-muted">
+          <input type="checkbox" name="marketing" defaultChecked={customer?.marketing_consent ?? false} className="mt-1 accent-[var(--accent)]" />
           {t("checkout.marketing")}
         </label>
         <button className="btn btn-ink">Guardar</button>
       </form>
       <div className="space-y-6">
-        <p className="eyebrow text-stone-2">Privacidad (RGPD)</p>
+        <p className="eyebrow text-muted">Privacidad (RGPD)</p>
         <a href="/api/account/export" className="btn btn-ghost w-full">
           {t("account.export")}
         </a>
         {pendingDelete ? (
-          <p className="text-sm text-stone-2">Solicitud de eliminación recibida. La procesaremos en un máximo de 30 días.</p>
+          <p className="text-sm text-muted">Solicitud de eliminación recibida. La procesaremos en un máximo de 30 días.</p>
         ) : (
           <form action={requestDeletionAction}>
-            <button className="btn btn-ghost w-full text-rojo">{t("account.delete")}</button>
+            <button className="btn btn-ghost w-full text-accent">{t("account.delete")}</button>
           </form>
         )}
       </div>

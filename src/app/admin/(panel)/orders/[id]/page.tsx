@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/auth/rbac";
 import { db } from "@/lib/supabase/admin";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { Badge, Card, PageTitle, SubmitButton, inputCls } from "@/components/admin/ui";
-import { cancelOrderAction, changeProviderAction, refreshFromProviderAction, refundOrderAction, reprocessOrderAction, resolveErrorAction, retryFulfillmentAction } from "../../../actions/orders";
+import { cancelOrderAction, changeProviderAction, refreshFromProviderAction, refundOrderAction, reprocessOrderAction, approvePersonalizationAction, resolveErrorAction, retryFulfillmentAction } from "../../../actions/orders";
 
 export default async function OrderAdmin({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ msg?: string }> }) {
   await requireStaff(["ADMIN", "CUSTOMER_SUPPORT"]);
@@ -37,6 +37,13 @@ export default async function OrderAdmin({ params, searchParams }: { params: Pro
       <PageTitle title={`Pedido #${o.order_number}`} sub={`${o.customer_email} · ${formatDateTime(o.created_at)}`} actions={<Link href="/admin/orders" className="text-sm underline">← Pedidos</Link>} />
       {msg && <p className="mb-6 border-l-2 border-oro bg-white px-4 py-3 text-sm">{msg}</p>}
       {o.review_reason && <p className="mb-6 border-l-2 border-rojo bg-white px-4 py-3 text-sm"><strong>REQUIRES REVIEW:</strong> {o.review_reason}</p>}
+      {o.review_reason?.startsWith("PERSONALIZATION_REVIEW") && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 border border-oro bg-white px-4 py-3 text-sm">
+          <span>Revisa los diseños y archivos de impresión (columna “Artículos”). Comprueba que no hay logotipos de terceros ni contenido ofensivo.</span>
+          <form action={approvePersonalizationAction}>{hidden("orderId", id)}{hidden("decision", "approve")}<SubmitButton variant="primary">Aprobar y producir</SubmitButton></form>
+          <form action={approvePersonalizationAction}>{hidden("orderId", id)}{hidden("decision", "reject")}<SubmitButton variant="danger">Rechazar</SubmitButton></form>
+        </div>
+      )}
       <div className="mb-6 flex flex-wrap gap-2">
         <Badge status={o.status} /> <Badge status={o.payment_status}>pago: {o.payment_status}</Badge> <Badge status={o.fulfillment_status}>fulfillment: {o.fulfillment_status}</Badge>
       </div>
@@ -129,12 +136,30 @@ export default async function OrderAdmin({ params, searchParams }: { params: Pro
         <div className="space-y-6">
           <Card title="Artículos">
             <ul className="space-y-2 text-sm">
-              {(items ?? []).map((i) => (
-                <li key={i.id} className="flex justify-between gap-3">
-                  <span>{i.product_name} <span className="text-stone">· {i.variant_name} × {i.quantity}</span></span>
-                  <span className="tabular-nums">{formatMoney(Number(i.total), o.currency)}</span>
-                </li>
-              ))}
+              {(items ?? []).map((i) => {
+                const perso = i.personalization && Object.keys(i.personalization).length ? (i.personalization as { mode: string; values?: Record<string, string>; layers?: { type: string; text?: string; url?: string }[]; placement?: string }) : null;
+                const files = (Array.isArray(i.print_files) ? i.print_files : []) as { type: string; url: string }[];
+                return (
+                  <li key={i.id} className="border-b border-sand pb-2">
+                    <div className="flex justify-between gap-3">
+                      <span>{i.product_name} <span className="text-stone">· {i.variant_name} × {i.quantity}</span></span>
+                      <span className="tabular-nums">{formatMoney(Number(i.total), o.currency)}</span>
+                    </div>
+                    {perso && (
+                      <div className="mt-2 rounded bg-[#faf6ef] p-2 text-xs">
+                        <p className="font-semibold">✦ Personalización ({perso.mode === "designer" ? `diseño propio · ${perso.placement}` : "plantilla"})</p>
+                        {perso.values && <p>{Object.entries(perso.values).map(([k, v]) => `${k}: ${v}`).join(" · ")}</p>}
+                        {perso.layers?.map((l, n) => (
+                          <p key={n}>{l.type === "text" ? `Texto: “${l.text}”` : <a href={l.url} target="_blank" rel="noopener noreferrer" className="underline">Imagen subida por el cliente</a>}</p>
+                        ))}
+                        {files.map((f) => (
+                          <a key={f.url} href={f.url} target="_blank" rel="noopener noreferrer" className="mr-3 inline-block underline">Archivo de impresión ({f.type})</a>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             <dl className="mt-4 grid grid-cols-2 gap-1 border-t border-sand pt-3 text-sm">
               <dt>Subtotal</dt><dd className="text-right tabular-nums">{formatMoney(Number(o.subtotal), o.currency)}</dd>

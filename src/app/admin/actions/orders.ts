@@ -196,3 +196,26 @@ export async function refreshFromProviderAction(formData: FormData) {
   }
   back(orderId, "Estado actualizado desde el proveedor");
 }
+
+/** Staff approve (or reject) customer personalization / uploaded artwork held for review. */
+export async function approvePersonalizationAction(formData: FormData) {
+  const staff = await requireStaff(["ADMIN", "CUSTOMER_SUPPORT"]);
+  const orderId = String(formData.get("orderId"));
+  const decision = String(formData.get("decision"));
+  const sb = db();
+  const { data: order } = await sb.from("orders").select("payment_status, status, review_reason, metadata").eq("id", orderId).single();
+  if (order?.payment_status !== "PAID" || !order.review_reason?.startsWith("PERSONALIZATION_")) back(orderId, "No hay diseños pendientes de revisión");
+  if (decision === "reject") {
+    await addOrderEvent(orderId, "PERSONALIZATION_REJECTED", { actor: staff.email, message: String(formData.get("note") ?? "") || "Diseño rechazado — contactar al cliente / reembolsar" });
+    await audit({ action: "personalization.reject", actorId: staff.userId, actorEmail: staff.email, entityType: "order", entityId: orderId });
+    back(orderId, "Diseño rechazado. Contacta con el cliente y reembolsa o pide un nuevo diseño.");
+  }
+  await sb
+    .from("orders")
+    .update({ status: "PAID", fulfillment_status: "UNFULFILLED", review_reason: null, metadata: { ...((order!.metadata as object) ?? {}), personalization_approved: true, personalization_approved_by: staff.email } })
+    .eq("id", orderId);
+  await addOrderEvent(orderId, "PERSONALIZATION_APPROVED", { actor: staff.email, to: "PAID" });
+  await audit({ action: "personalization.approve", actorId: staff.userId, actorEmail: staff.email, entityType: "order", entityId: orderId });
+  await processPaidOrder(orderId);
+  back(orderId, "Diseño aprobado y enviado a producción.");
+}

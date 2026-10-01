@@ -16,7 +16,7 @@ export function Newsletter({ dark = false, source = "site" }: { dark?: boolean; 
     setState(res?.ok ? "ok" : "error");
   }
 
-  if (state === "ok") return <p className={`text-lg font-semibold ${dark ? "text-oro-2" : "text-rojo"}`}>{t("newsletter.success")}</p>;
+  if (state === "ok") return <p className={`text-lg font-semibold ${dark ? "text-gold" : "text-accent"}`}>{t("newsletter.success")}</p>;
 
   return (
     <form onSubmit={submit} className="space-y-4">
@@ -34,13 +34,13 @@ export function Newsletter({ dark = false, source = "site" }: { dark?: boolean; 
           {t("newsletter.submit")}
         </button>
       </div>
-      <label className={`flex cursor-pointer items-start gap-3 text-xs leading-relaxed ${dark ? "text-white/70" : "text-stone-2"}`}>
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-rojo" required />
+      <label className={`flex cursor-pointer items-start gap-3 text-xs leading-relaxed ${dark ? "text-white/70" : "text-muted"}`}>
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-[var(--accent)]" required />
         <span>
           {t("newsletter.consent")} <a href="/privacy" className="underline">Privacidad</a>
         </span>
       </label>
-      {state === "error" && <p className="text-xs text-rojo">{t("newsletter.error")}</p>}
+      {state === "error" && <p className="text-xs text-accent">{t("newsletter.error")}</p>}
     </form>
   );
 }

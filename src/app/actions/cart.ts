@@ -8,10 +8,11 @@ import { createCheckout } from "@/lib/payments/checkout";
 import { track } from "@/lib/analytics/track";
 import { isConfigured } from "@/lib/env";
 
-export async function addToCartAction(variantId: string, quantity = 1) {
+export async function addToCartAction(variantId: string, quantity = 1, personalization?: unknown) {
   if (!isConfigured.db()) return { ok: false as const, error: "UNAVAILABLE" };
   if (!z.string().uuid().safeParse(variantId).success) return { ok: false as const, error: "UNAVAILABLE" };
-  const res = await addToCart(variantId, quantity);
+  if (personalization !== undefined && JSON.stringify(personalization).length > 20_000) return { ok: false as const, error: "UNAVAILABLE" };
+  const res = await addToCart(variantId, quantity, personalization);
   if (res.ok) {
     const c = await cookies();
     if (c.get("consent")?.value === "all") await track({ event: "add_to_cart", productId: res.productId, sessionId: c.get("sid")?.value ?? null, metadata: { variantId, quantity } });
@@ -42,6 +43,7 @@ const checkoutSchema = z.object({
   country: z.string().length(2),
   marketing: z.string().optional(),
   discount: z.string().max(40).optional(),
+  cause: z.enum(["VETERANOS", "MAYORES", "INFANCIA", "ANIMALES"]).optional(),
 });
 
 export async function checkoutAction(_prev: { error?: string } | null, formData: FormData): Promise<{ error?: string }> {
@@ -50,9 +52,10 @@ export async function checkoutAction(_prev: { error?: string } | null, formData:
     country: formData.get("country"),
     marketing: formData.get("marketing") ?? undefined,
     discount: (formData.get("discount") as string) || undefined,
+    cause: (formData.get("cause") as string) || undefined,
   });
   if (!parsed.success) return { error: "generic" };
-  const res = await createCheckout({ email: parsed.data.email, country: parsed.data.country, marketingConsent: parsed.data.marketing === "on", discountCode: parsed.data.discount });
+  const res = await createCheckout({ email: parsed.data.email, country: parsed.data.country, marketingConsent: parsed.data.marketing === "on", discountCode: parsed.data.discount, cause: parsed.data.cause });
   if (!res.ok) return { error: res.error };
   redirect(res.url);
 }

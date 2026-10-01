@@ -16,11 +16,11 @@ export default async function StoreLayout({ children }: { children: ReactNode })
     t("promo.securePay"),
   ];
   return (
-    <>
+    <div className="store">
       <Header brandName={brand.name} cartCount={cart.itemCount} messages={messages} />
       <main id="main">{children}</main>
       <Footer brand={brand} />
       <CookieBanner />
-    </>
+    </div>
   );
 }

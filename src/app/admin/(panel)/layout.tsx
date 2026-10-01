@@ -24,6 +24,8 @@ const NAV: { href: string; label: string; roles: StaffRole[] }[] = [
   { href: "/admin/ai", label: "AI Creator", roles: ["ADMIN", "CONTENT_MANAGER", "ANALYST"] },
   { href: "/admin/analytics", label: "Analítica", roles: ["ADMIN", "ANALYST"] },
   { href: "/admin/creators", label: "Creadores", roles: ["ADMIN"] },
+  { href: "/admin/b2b", label: "Empresas / B2B", roles: ["ADMIN", "CUSTOMER_SUPPORT"] },
+  { href: "/admin/causas", label: "Causas solidarias", roles: ["ADMIN"] },
   { href: "/admin/community", label: "Comunidad", roles: ["ADMIN", "CONTENT_MANAGER"] },
   { href: "/admin/settings", label: "Ajustes", roles: ["ADMIN"] },
 ];
@@ -31,7 +33,7 @@ const NAV: { href: string; label: string; roles: StaffRole[] }[] = [
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   if (!isConfigured.db() || !isConfigured.auth()) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-warm p-6">
+      <main className="force-light flex min-h-dvh items-center justify-center bg-warm p-6">
         <div className="max-w-lg border border-sand bg-white p-8">
           <h1 className="display text-4xl">Configuración pendiente</h1>
           <p className="mt-3 text-sm text-stone-2">Añade NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY y SUPABASE_SERVICE_ROLE_KEY en las variables de entorno para activar el panel.</p>
@@ -45,7 +47,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const nav = NAV.filter((n) => hasRole(staff, n.roles));
 
   return (
-    <div className="min-h-dvh bg-[#f7f3ec] text-ink lg:grid lg:grid-cols-[232px_1fr]">
+    <div className="force-light min-h-dvh bg-[#f7f3ec] text-ink lg:grid lg:grid-cols-[232px_1fr]">
       <aside className="bg-ink text-bone lg:sticky lg:top-0 lg:h-dvh lg:overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-5">
           <Link href="/admin">

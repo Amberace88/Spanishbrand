@@ -4,6 +4,7 @@
  * never presented as a specific purchasable item.
  */
 import { CollectionArt } from "@/components/art/CollectionArt";
+import { BrandLogo } from "@/components/brand/Wordmark";
 
 export type MockupKind = "tee" | "hoodie" | "cap" | "mug" | "poster" | "tote";
 
@@ -34,7 +35,7 @@ function Emblem({ x, y, r }: { x: number; y: number; r: number }) {
   );
 }
 
-function Shape({ kind, color }: { kind: MockupKind; color: string }) {
+export function Shape({ kind, color, logo = false }: { kind: MockupKind; color: string; logo?: boolean }) {
   const dark = shade(color, -22);
   const darker = shade(color, -40);
   switch (kind) {
@@ -64,7 +65,7 @@ function Shape({ kind, color }: { kind: MockupKind; color: string }) {
           <path d="M200 122 Q170 190 176 252 M200 122 Q230 190 224 252 M120 170 Q140 210 136 252 M280 170 Q260 210 264 252" stroke={dark} strokeWidth="2" fill="none" />
           <path d="M58 252 Q200 226 362 262 Q376 292 334 296 Q200 276 70 284 Q40 278 58 252 Z" fill={dark} />
           <circle cx="200" cy="122" r="7" fill={darker} />
-          <Emblem x={200} y={200} r={20} />
+          {!logo && <Emblem x={200} y={200} r={20} />}
         </>
       );
     case "mug":
@@ -97,8 +98,30 @@ function Shape({ kind, color }: { kind: MockupKind; color: string }) {
   }
 }
 
-export function Mockup({ kind, color = "#fffcf7", slug = "espana", className = "" }: { kind: MockupKind; color?: string; slug?: string; className?: string }) {
+const LOGO_AREA: Record<MockupKind, { left: string; top: string; width: string }> = {
+  tee: { left: "36%", top: "34%", width: "28%" },
+  hoodie: { left: "36%", top: "35%", width: "28%" },
+  cap: { left: "36%", top: "38%", width: "28%" },
+  mug: { left: "31%", top: "44%", width: "30%" },
+  poster: { left: "31%", top: "36%", width: "38%" },
+  tote: { left: "34%", top: "50%", width: "32%" },
+};
+
+export function Mockup({ kind, color = "#fffcf7", slug = "espana", className = "", print = "art" }: { kind: MockupKind; color?: string; slug?: string; className?: string; print?: "art" | "logo" }) {
   const pa = PRINT_AREA[kind];
+  if (print === "logo") {
+    const la = LOGO_AREA[kind];
+    return (
+      <div className={`relative aspect-square ${className}`} aria-hidden>
+        <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full drop-shadow-[0_18px_24px_rgba(28,23,18,0.14)]">
+          <Shape kind={kind} color={color} logo />
+        </svg>
+        <div className="absolute flex justify-center" style={{ left: la.left, top: la.top, width: la.width }}>
+          <BrandLogo variant={kind === "poster" || kind === "mug" ? "full" : "text"} className="!h-auto !w-full" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`relative aspect-square ${className}`} aria-hidden>
       <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full drop-shadow-[0_18px_24px_rgba(28,23,18,0.14)]">
