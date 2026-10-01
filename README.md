@@ -32,7 +32,7 @@ Customer → Storefront → Cart → Stripe → Webhook (verified, idempotent)
    - `supabase/migrations/20260930000001_core_schema.sql` ✅ applied
    - `supabase/migrations/20260930000002_rules_rls.sql` ✅ applied
    - `supabase/seed.sql` ✅ applied
-   - `supabase/migrations/20260930000003_hardening.sql` ⏳ **run this next**
+   - `supabase/migrations/20260930000003_hardening.sql` ✅ applied
 3. `npm install && npm run dev`
 4. Sign in at `/admin/login` with an email listed in `ADMIN_EMAILS` → becomes SUPER_ADMIN.
 
