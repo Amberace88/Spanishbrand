@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // Print rendering (Satori) reads these at runtime in serverless functions.
   outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**"] },
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ["image/webp"], // avif first-encodes were slow on new product photos
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "rojoygualda.com" },
