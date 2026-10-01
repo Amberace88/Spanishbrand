@@ -97,6 +97,24 @@ export default async function ReturnDetailPage({ params, searchParams }: { param
         {r.type === "ISSUE" && pdDays != null && <span className={pdDays <= 5 ? "font-bold text-rojo" : "text-stone-2"}>Plazo reclamación proveedor: {pdDays > 0 ? `${pdDays} días` : "vencido"}</span>}
       </div>
 
+      {(() => {
+        const d = String(r.description ?? "");
+        const late = r.delivered_at ? (new Date(r.created_at).getTime() - new Date(r.delivered_at).getTime()) / 86_400_000 : 0;
+        const flags = [
+          /Lavado: (Con agua caliente|Con secadora)/.test(d) && "Lavado contrario a las instrucciones de cuidado (agua caliente / secadora): posible daño por uso, no defecto.",
+          /Apareció: Tras varias semanas/.test(d) && "El problema apareció tras semanas de uso: valorar desgaste normal.",
+          r.type === "ISSUE" && late > 30 && `Solicitud ${Math.round(late)} días después de la entrega: fuera del plazo de reclamación al proveedor (el coste sería nuestro). Pedir fotos claras y valorar desgaste.`,
+          r.type === "ISSUE" && late > 730 && "Más de 2 años desde la entrega: el cliente debe probar que el defecto existía en la entrega (art. 121 TRLGDCU).",
+        ].filter(Boolean) as string[];
+        return flags.length ? (
+          <div className="mb-6 space-y-1 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-semibold">Revisar antes de aceptar</p>
+            {flags.map((f) => (
+              <p key={f}>• {f}</p>
+            ))}
+          </div>
+        ) : null;
+      })()}
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
           <Card title="Artículos">

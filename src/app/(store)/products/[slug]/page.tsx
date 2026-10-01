@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SizeFinder } from "@/components/product/SizeFinder";
 import { formatMoney } from "@/lib/format";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
@@ -148,6 +149,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <span className="block text-xs text-muted">{t("product.etaNote")}</span>
         </p>
       </div>
+      {p.sizeGuide && <SizeFinder guide={p.sizeGuide} />}
       {design && (
         <Link href={`/disena?style=${design.slug}`} className="group mt-3 flex items-center gap-4 rounded-2xl border border-line p-3 pr-5 transition-colors hover:border-fg">
           <span className="w-16 shrink-0 overflow-hidden rounded-xl">

@@ -81,6 +81,7 @@ function itemsTable(ctx: EmailContext) {
   return `<table width="100%" style="border-collapse:collapse;font-size:14px;margin:16px 0">${rows}${ctx.total ? `<tr><td style="padding:12px 0;font-weight:700">Total</td><td align="right" style="padding:12px 0;font-weight:700">${esc(ctx.total)}</td></tr>` : ""}</table>`;
 }
 
+const CARE = `<div style="margin:18px 0 6px;padding:14px 16px;background:#f1ede4;border-radius:12px;font-size:13px;line-height:1.55;color:#3b3833"><strong>Para que dure años:</strong> lava del revés en frío (máx. 30 °C), sin lejía ni secadora, y plancha del revés sin tocar la impresión. Así la estampación mantiene el color y no se agrieta.</div>`;
 const p = (s: string) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6">${s}</p>`;
 
 export function renderEmail(t: EmailTemplate, ctx: EmailContext): { subject: string; html: string } {
@@ -95,7 +96,7 @@ export function renderEmail(t: EmailTemplate, ctx: EmailContext): { subject: str
     case "PAYMENT_CONFIRMED":
       return {
         subject: `Pedido ${order} confirmado`,
-        html: layout(ctx, `Pedido ${order} confirmado`, p(hi) + p("Hemos recibido tu pago. Cada pieza se produce bajo pedido para ti; te avisaremos cuando salga hacia tu dirección.") + itemsTable(ctx), orderCta),
+        html: layout(ctx, `Pedido ${order} confirmado`, p(hi) + p("Hemos recibido tu pago. Cada pieza se produce bajo pedido para ti; te avisaremos cuando salga hacia tu dirección.") + itemsTable(ctx) + CARE, orderCta),
       };
     case "ORDER_PROCESSING":
       return { subject: `Tu pedido ${order} está en producción`, html: layout(ctx, "En producción", p(hi) + p(`Tu pedido ${order} ya se está produciendo.`), orderCta) };
@@ -110,7 +111,7 @@ export function renderEmail(t: EmailTemplate, ctx: EmailContext): { subject: str
         ),
       };
     case "ORDER_DELIVERED":
-      return { subject: `Pedido ${order} entregado`, html: layout(ctx, "Entregado", p(hi) + p("Tu pedido figura como entregado. Esperamos que lo disfrutes."), orderCta) };
+      return { subject: `Pedido ${order} entregado`, html: layout(ctx, "Entregado", p(hi) + p("Tu pedido figura como entregado. Esperamos que lo disfrutes.") + p(`¿Algo no está bien? Revísalo hoy y, si ves un defecto o daño, avísanos <strong>en los próximos 30 días</strong> con fotos desde <a href="${esc(ctx.siteUrl)}/returns/new" style="color:#c8102e">este formulario</a>: lo reponemos sin coste.`) + CARE, orderCta) };
     case "ORDER_FAILED":
       return {
         subject: `Actualización sobre tu pedido ${order}`,

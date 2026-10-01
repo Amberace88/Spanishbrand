@@ -98,6 +98,11 @@ const ES = {
   openRequests: "Ya tienes solicitudes abiertas para este pedido:",
   shippedNote: (d: string) => `Entregado el ${d}`,
   inTransit: "En camino o sin fecha de entrega confirmada",
+  whenQ: "¿Cuándo apareció el problema?",
+  whenA: ["Al recibirlo", "Tras el primer lavado", "Tras varias semanas de uso"],
+  washQ: "¿Cómo lo has lavado?",
+  washA: ["Aún sin lavar", "En frío y del revés", "Con agua caliente", "Con secadora"],
+  diagNote: "Nos ayuda a distinguir un defecto de fabricación del desgaste normal por uso o lavado.",
   helpTitle: "Antes de empezar",
   help: ["Ten a mano el número de pedido y el email de compra.", "Si hay un defecto, haz fotos con buena luz: el artículo entero, el detalle y la etiqueta.", "Los productos personalizados solo se aceptan por defecto o error."],
 };
@@ -195,6 +200,11 @@ const EN: Copy = {
   openRequests: "You already have open requests for this order:",
   shippedNote: (d: string) => `Delivered on ${d}`,
   inTransit: "In transit or no confirmed delivery date",
+  whenQ: "When did the problem appear?",
+  whenA: ["On arrival", "After the first wash", "After several weeks of use"],
+  washQ: "How have you washed it?",
+  washA: ["Not washed yet", "Cold and inside out", "Hot water", "Tumble dryer"],
+  diagNote: "It helps us tell a manufacturing defect from normal wear or washing.",
   helpTitle: "Before you start",
   help: ["Have your order number and purchase email ready.", "For defects, take photos in good light: the whole item, the detail and the label.", "Personalised products are only accepted for defects or errors."],
 };
@@ -274,6 +284,8 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
   const [exchangeNote, setExchangeNote] = useState("");
   const [contact, setContact] = useState({ name: "", phone: "" });
   const [description, setDescription] = useState("");
+  const [when, setWhen] = useState(-1);
+  const [wash, setWash] = useState(-1);
   const [address, setAddress] = useState<Record<string, string>>({});
   const [decl, setDecl] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
@@ -321,6 +333,7 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
   const neededKinds = useMemo(() => [...new Set(chosen.flatMap((i) => (sel[i.id]?.reason ? REASONS[sel[i.id].reason as ReasonCode].photos : [])))], [chosen, sel]);
   const photosDone = photos.filter((p) => p.state === "done");
   const needsAddress = resolution === "REPRINT" || resolution === "EXCHANGE";
+  const needsDiag = type === "ISSUE" && chosen.some((i) => sel[i.id]?.reason === "PRINT_DEFECT");
   const declKeys = type === "ISSUE" ? ["truthful", "keep_item", "privacy"] : ["withdraw", "return_cost", "return_deadline", "condition", "privacy"];
 
   /* validation per step */
@@ -329,7 +342,7 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
     3:
       type === "WITHDRAWAL" ||
       (photosDone.length >= 2 && (chosen.every((i) => sel[i.id].reason === "MISSING_ITEM") || photosDone.some((p) => p.kind === "product")) && !photos.some((p) => p.state === "uploading")),
-    4: !!resolution && contact.name.trim().length >= 2 && description.trim().length >= 10 && (!needsAddress || (address.line1 && address.city && address.postalCode)) && (resolution !== "EXCHANGE" || exchangeNote.trim().length > 0),
+    4: !!resolution && contact.name.trim().length >= 2 && description.trim().length >= 10 && (!needsAddress || (address.line1 && address.city && address.postalCode)) && (resolution !== "EXCHANGE" || exchangeNote.trim().length > 0) && (!needsDiag || (when >= 0 && wash >= 0)),
     5: declKeys.every((k) => decl[k]),
   } as Record<number, boolean>;
 
@@ -368,7 +381,7 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
       items: chosen.map((i) => ({ id: i.id, quantity: sel[i.id].quantity, reason: sel[i.id].reason, details: sel[i.id].details || undefined })),
       resolution,
       exchangeNote: resolution === "EXCHANGE" ? exchangeNote : undefined,
-      description,
+      description: needsDiag ? `[Apareció: ${ES.whenA[when]}] [Lavado: ${ES.washA[wash]}]\n${description}` : description,
       contact: { name: contact.name, phone: contact.phone || undefined },
       address: needsAddress ? Object.fromEntries(Object.entries(address).filter(([, v]) => v)) : undefined,
       photos: photosDone.map((p) => ({ path: p.path!, kind: p.kind })),
@@ -617,6 +630,23 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
                 <textarea className={`field min-h-[120px] ${bad(description.trim().length < 10)}`} maxLength={4000} placeholder={T.descriptionPh} value={description} onChange={(e) => setDescription(e.target.value)} />
               </label>
             </div>
+            {needsDiag && (
+              <div className="mt-6 grid gap-5 border-t border-line pt-5 sm:grid-cols-2">
+                {([[T.whenQ, T.whenA, when, setWhen], [T.washQ, T.washA, wash, setWash]] as [string, string[], number, (n: number) => void][]).map(([q, opts, val, set]) => (
+                  <fieldset key={q}>
+                    <legend className="eyebrow mb-2 text-muted">{q}</legend>
+                    <div className="flex flex-wrap gap-2">
+                      {opts.map((o, k) => (
+                        <button key={o} type="button" onClick={() => set(k)} className={`rounded-full border px-3.5 py-2 text-sm transition-colors ${val === k ? "border-fg bg-fg text-bg" : touched && val < 0 ? "border-accent" : "border-line hover:border-fg/50"}`}>
+                          {o}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                ))}
+                <p className="text-xs text-muted sm:col-span-2">{T.diagNote}</p>
+              </div>
+            )}
             {needsAddress && (
               <div className="mt-6 border-t border-line pt-5">
                 <h4 className="eyebrow mb-3 text-muted">{T.shipTo}</h4>
