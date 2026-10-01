@@ -29,9 +29,9 @@ export default async function FeaturesPage() {
   const launch: [string, boolean, string, string?][] = [
     ["Dominio rojoygualda.com + HTTPS", env.siteUrl().includes("rojoygualda.com"), "DNS en GoDaddy → Netlify"],
     ["Base de datos y acceso", isConfigured.db() && isConfigured.auth(), "Supabase"],
-    ["Printful", isConfigured.printful(), "Ropa, tazas, bolsas, pegatinas", "/admin/providers"],
+    ["Printful", isConfigured.printful(), "Ropa, tazas, bolsas, pegatinas, toallas, cojines, delantales, bandanas y fundas", "/admin/providers"],
     ["Gelato", isConfigured.gelato(), "Pósters", "/admin/providers"],
-    ["Printify", isConfigured.printify(), "Toallas, delantales, cojines, fundas, puzles…", "/admin/providers"],
+    ["Printify", isConfigured.printify(), "Mantas (Países Bajos) · solo talleres de la UE", "/admin/providers"],
     ["Prodigi", isConfigured.prodigi(), "Láminas enmarcadas y lienzos", "/admin/providers"],
     ["Catálogo publicado", (published ?? 0) > 0, `${published ?? 0} productos a la venta`, "/admin/catalogo"],
     ["Pagos (Stripe)", isConfigured.stripe(), "Tarjeta, Apple Pay, Google Pay y Bizum (activar en Stripe)", "/admin/settings"],

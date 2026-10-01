@@ -55,8 +55,8 @@ const EXTRAS: Partial<Record<BlueprintKey, string[]>> = {
   pillow: ["casa-azulejo", "rosa-de-los-vientos", "sol-de-espana", "firma-leon", "hecho-en-espana"],
   bandana: ["aficion-balon", "espana-bandas", "firma-texto", "verbena"],
   phonecase: ["firma-leon", "espana-bandas", "sol-de-espana", "atardecer-mediterraneo", "aficion-balon", "padel-club", "casa-azulejo"],
-  puzzle: ["ciudad-madrid", "ciudad-barcelona", "ciudad-sevilla", "ciudad-valencia", "hecho-en-espana", "casa-azulejo"],
-  doormat: ["hecho-en-espana", "casa-azulejo", "firma-texto"],
+  // Puzzles and doormats: no EU print provider at Printful/Printify/Gelato/Prodigi → not offered (customs + slow delivery).
+  blanket: ["casa-azulejo", "sol-de-espana", "firma-leon", "espana-bandas", "aficion-balon", "rosa-de-los-vientos", "ciudad-madrid", "ciudad-barcelona", "ciudad-sevilla"],
 };
 
 export function productsFor(d: Design): BlueprintKey[] {
@@ -143,6 +143,8 @@ interface Resolved {
   placements: string[];
   sizeGuide?: unknown;
   paper?: string;
+  /** Printful: the placement (file type) the print file goes to. */
+  placement?: string;
 }
 
 async function resolved(key: string): Promise<Resolved | null> {
@@ -232,8 +234,14 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
     currency: p.currency ?? found.variants[0]?.currency ?? null,
     raw: p.raw as object,
   });
-  await upsertVariants(rowId, "printful", found.variants);
-  return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: pf.width, height: pf.height }, placements, sizeGuide };
+  // EU production only: variants without an EU facility are stored as unavailable so they are never sold.
+  const euOk = (v: (typeof found.variants)[number]) => Object.entries(v.availability ?? {}).some(([r, st]) => r.startsWith("EU") && /in_stock|stocked_on_demand|active/i.test(String(st)));
+  const euVariants = found.variants.filter(euOk);
+  if (!euVariants.length) throw new Error(`${p.title}: sin producción en la UE en Printful`);
+  await upsertVariants(rowId, "printful", found.variants.map((v) => (euOk(v) ? v : { ...v, status: "OUT_OF_STOCK" })));
+  const variantIds = bp.variantFilter || bp.maxVariants ? euVariants.filter((v) => !bp.variantFilter || bp.variantFilter.test(v.name)).slice(0, bp.maxVariants ?? 24).map((v) => v.externalId) : undefined;
+  if (variantIds && !variantIds.length) throw new Error(`${p.title}: ninguna variante UE coincide con ${bp.variantFilter}`);
+  return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: pf.width, height: pf.height }, placements, placement: place, sizeGuide, variantIds };
 }
 
 async function resolveGelatoPoster(bp: Blueprint): Promise<Resolved> {
@@ -390,7 +398,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
@@ -503,7 +511,7 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
   if (spec.kind === "design") {
     const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
     const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}.png`, png, "image/png");
-    files.push({ type: bp.placement, url });
+    files.push({ type: res.placement ?? bp.placement, url });
   }
 
   const copy = copyFor(spec, res);
@@ -654,7 +662,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
 
   // Artwork used for the mockup: brand print, personalised sample or the placeholder.
   let artUrl = st.files[0]?.url ?? null;
-  let placement = bp.placement;
+  let placement = res.placement ?? bp.placement;
   if (!artUrl) {
     const { width, height } = res.printfile;
     let png: Buffer;

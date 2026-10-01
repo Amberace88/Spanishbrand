@@ -14,7 +14,7 @@ import { cityDesigns } from "./cities";
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
 export type Tone = "dark" | "light";
-export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat";
+export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket";
 
 export interface Design {
   slug: string;

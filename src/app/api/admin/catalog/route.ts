@@ -18,7 +18,9 @@ export async function GET() {
   const staff = await staffOr403();
   if (!staff) return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   const [plan, jobs] = await Promise.all([Promise.resolve(buildPlan()), listJobs()]);
-  return NextResponse.json({ plan, jobs });
+  // jobs for products no longer in the plan (e.g. retired product types) are not shown
+  const keys = new Set(plan.map((p) => p.key));
+  return NextResponse.json({ plan, jobs: jobs.filter((j: { key: string }) => keys.has(j.key)) });
 }
 
 /** Run one resumable step of one job: { key, retry? }. */
