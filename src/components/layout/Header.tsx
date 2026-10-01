@@ -94,7 +94,9 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
 
   return (
     <>
-      <div className="sticky top-0 z-50 bg-fg pt-[env(safe-area-inset-top)]">
+      <div className="sticky top-0 z-50">
+        {/* installed app (iOS black-translucent status bar): dark strip keeps the white clock readable in both themes */}
+        <div className="h-[env(safe-area-inset-top)] bg-[#0b0b0b]" aria-hidden />
         <Ticker messages={messages} />
         <header className={`border-b backdrop-blur-xl transition-colors duration-300 ${scrolled ? "border-line bg-bg/80" : "border-transparent bg-bg"}`}>
           <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:h-[68px] sm:px-8">
