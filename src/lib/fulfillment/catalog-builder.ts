@@ -482,7 +482,11 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
   const { bp, design } = spec;
   const rk = resKey(bp.key, spec.tones[0]);
   const res = await resolved(rk);
-  if (!res) return { key: job.key, phase: "new", done: false, waitMs: 2000, message: `waiting for ${rk}` };
+  if (!res) {
+    const { data: rj } = await sb.from("catalog_jobs").select("phase, error").eq("key", rk).maybeSingle();
+    if (rj?.phase === "failed") throw new Error(`Producto base no disponible (${rk}): ${rj.error ?? "error"}`);
+    return { key: job.key, phase: "new", done: false, waitMs: 3000, message: `esperando ${rk}` };
+  }
 
   const { data: pvs } = await sb.from("provider_variants").select("id, external_id, size, color, color_code, cost, status").eq("provider_product_id", res.rowId);
   // Blank products combine dark + light colours of the same provider product.
@@ -766,7 +770,11 @@ async function stepPoll(job: JobRow): Promise<StepResult> {
   for (const [i, m] of (task.mockups ?? []).entries()) {
     const color = colorOf.get(m.variant_ids[0]) ?? "_";
     pending.push({ url: m.mockup_url, color, kind: "MOCKUP", title: "" });
-    const extra = ((m as { extra?: { title?: string; url: string; option?: string }[] }).extra ?? []).slice(0, i === 0 ? 3 : 1);
+    // extra angles: skip views of placements we do not print on (e.g. a blank back)
+    const printed = String((m as { placement?: string }).placement ?? "front");
+    const extra = ((m as { extra?: { title?: string; url: string; option?: string }[] }).extra ?? [])
+      .filter((x) => !(/back/i.test(`${x.title} ${x.option}`) && !/back/i.test(printed)))
+      .slice(0, i === 0 ? 3 : 1);
     for (const x of extra) pending.push({ url: x.url, color, kind: /lifestyle|model|men|women|person/i.test(`${x.title} ${x.option}`) ? "LIFESTYLE" : "MOCKUP", title: x.title ?? "" });
   }
   if (!pending.length) throw new Error("Mockup task returned no images");
