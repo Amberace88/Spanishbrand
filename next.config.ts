@@ -3,11 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Print rendering (Satori) reads these at runtime in serverless functions.
-  outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**", "./public/catalog/calendars/*.jpg"] },
+  outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**"] },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "rojoygualda.com" },
+      { protocol: "https", hostname: "www.rojoygualda.com" },
       { protocol: "https", hostname: "files.cdn.printful.com" },
       { protocol: "https", hostname: "*.printful.com" },
       { protocol: "https", hostname: "*.gelato.com" },
