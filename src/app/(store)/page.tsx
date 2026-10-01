@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { getBrand } from "@/lib/brand";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { getBestsellers, getCollectionCounts, getCollections, getCollectionsBySlugs, getDrops, getOpenPoll, getPublishedProducts, getShowcase } from "@/lib/products/queries";
 import { BigMarquee, Hero, Manifesto } from "@/components/home/Hero";
 import { BrandEssentials, BrandPromise, CategoryGrid, ClubTeaser, CollectionsBento, ComingSoonGrid, FiestasCalendar, PersonalizeTeaser, ThemesBento, TrustBar } from "@/components/home/ShopSections";
 import { ProductCard } from "@/components/product/ProductCard";
+import { LookbookLeon } from "@/components/home/LookbookLeon";
 import { Countdown } from "@/components/home/Countdown";
 import { Newsletter } from "@/components/home/Newsletter";
 import { PollCard } from "@/components/community/PollCard";
@@ -15,7 +16,7 @@ import { IconArrow } from "@/components/ui/Icons";
 export const revalidate = 300;
 
 export default async function Home() {
-  const [show, brand, t, collections, counts, bestsellers, newest, drops, poll, themes] = await Promise.all([
+  const [show, brand, t, collections, counts, bestsellers, newest, drops, poll, themes, locale, catalog] = await Promise.all([
     getShowcase(),
     getBrand(),
     getT(),
@@ -26,7 +27,14 @@ export default async function Home() {
     getDrops(),
     getOpenPoll(),
     getCollectionsBySlugs(["futbol", "padel", "ciclismo", "motor", "fiestas", "mi-pueblo", "playa", "tapas", "camino"]),
+    getLocale(),
+    getPublishedProducts({ limit: 500 }),
   ]);
+  // lookbook line: one piece per design first (tee, hoodie, art…), garments before accessories
+  const lookbook = catalog
+    .filter((p) => p.tags.includes("lookbook"))
+    .sort((a, b) => Number(/tee|hoodie|sweat/.test(b.tags.join(" "))) - Number(/tee|hoodie|sweat/.test(a.tags.join(" "))))
+    .filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i || arr.length < 8);
   const core = collections.filter((c) => ["espana", "heritage", "mediterraneo"].includes(c.slug));
   const products = bestsellers.length ? bestsellers : newest;
   const productsTitle = bestsellers.length ? t("home.bestsellers.title") : t("home.newest.title");
@@ -40,6 +48,7 @@ export default async function Home() {
       <TrustBar />
       <BrandEssentials />
       <CategoryGrid />
+      <LookbookLeon products={lookbook} en={locale === "en"} labels={{ madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") }} />
 
       {products.length ? (
         <section className="bg-bg py-16 sm:py-24">

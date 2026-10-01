@@ -11,6 +11,7 @@ import type { FontKey, ImageLayer, Layer, TextLayer } from "@/lib/personalizatio
 import { artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 import { cityDesigns } from "./cities";
 import { professionDesigns } from "./professions";
+import { footballDesigns } from "./football";
 
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
@@ -609,7 +610,7 @@ const BASE_DESIGNS: Design[] = [
   },
 ];
 
-export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns()];
+export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns()];
 
 export const designBySlug = (slug: string) => DESIGNS.find((d) => d.slug === slug) ?? null;
 export const designsFor = (collection: string) => DESIGNS.filter((d) => d.collection === collection);

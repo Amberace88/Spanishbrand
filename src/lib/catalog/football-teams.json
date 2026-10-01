@@ -1,0 +1,20 @@
+[
+  { "key": "madrid-blanco", "city": "madrid", "label": "MADRID", "colors": "BLANCO Y ORO", "a": "#ffffff", "b": "#d4a62a", "c": "#3d1f6e", "line": "La capital vestida de blanco, con ribete de oro." },
+  { "key": "madrid-rojiblanco", "city": "madrid", "label": "MADRID", "colors": "ROJO Y BLANCO", "a": "#d0102e", "b": "#ffffff", "c": "#1c2c5b", "line": "Rayas rojas y blancas del sur de la capital: coraje y barrio." },
+  { "key": "barcelona", "city": "barcelona", "label": "BARCELONA", "colors": "BLAU I GRANA", "a": "#1f4fa3", "b": "#a6164a", "c": "#f2c230", "line": "Azul y grana, el Mediterráneo y la ciudad que nunca baja el ritmo." },
+  { "key": "sevilla-rojo", "city": "sevilla", "label": "SEVILLA", "colors": "BLANCO Y ROJO", "a": "#ffffff", "b": "#d81e05", "c": "#111111", "line": "Blanco y rojo de Nervión hacia toda Sevilla." },
+  { "key": "sevilla-verde", "city": "sevilla", "label": "SEVILLA", "colors": "VERDE Y BLANCO", "a": "#00954c", "b": "#ffffff", "c": "#d4a62a", "line": "Verde y blanco, Heliópolis y el arte de sufrir con alegría." },
+  { "key": "valencia", "city": "valencia", "label": "VALÈNCIA", "colors": "BLANC I NEGRE", "a": "#ffffff", "b": "#111111", "c": "#ee7f00", "line": "Blanco, negro y un golpe de naranja: la terreta en la grada." },
+  { "key": "bilbao", "city": "bilbao", "label": "BILBAO", "colors": "ZURI-GORRI", "a": "#e30613", "b": "#ffffff", "c": "#111111", "line": "Rojo y blanco a rayas, cantera, ría y orgullo." },
+  { "key": "donostia", "city": "san-sebastian", "label": "DONOSTIA", "colors": "TXURI-URDIN", "a": "#0067b1", "b": "#ffffff", "c": "#d4a62a", "line": "Azul y blanco frente a la Concha." },
+  { "key": "vigo", "city": "vigo", "label": "VIGO", "colors": "CELESTE", "a": "#8ac3ee", "b": "#ffffff", "c": "#c8102e", "line": "Celeste como la ría de Vigo, de Bouzas al mundo." },
+  { "key": "coruna", "city": "a-coruna", "label": "A CORUÑA", "colors": "BRANQUIAZUL", "a": "#1d5ba8", "b": "#ffffff", "c": "#d4a62a", "line": "Rayas azules y blancas frente al Atlántico." },
+  { "key": "malaga", "city": "malaga", "label": "MÁLAGA", "colors": "AZUL Y BLANCO", "a": "#0a74c4", "b": "#ffffff", "c": "#f2c230", "line": "Azul y blanco con sol de la Costa." },
+  { "key": "pamplona", "city": "pamplona", "label": "IRUÑA", "colors": "GORRI-URDIN", "a": "#d2001f", "b": "#14213d", "c": "#ffffff", "line": "Rojo y azul marino: carácter navarro." },
+  { "key": "villarreal", "city": "castellon", "label": "VILA-REAL", "colors": "GROC", "a": "#ffe14d", "b": "#14213d", "c": "#ffffff", "line": "Amarillo de la cerámica y del pueblo que juega en Europa." },
+  { "key": "zaragoza", "city": "zaragoza", "label": "ZARAGOZA", "colors": "BLANQUIAZUL", "a": "#ffffff", "b": "#1d4fa0", "c": "#d4a62a", "line": "Blanco y azul junto al Ebro." },
+  { "key": "cadiz", "city": "cadiz", "label": "CÁDIZ", "colors": "AMARILLO Y AZUL", "a": "#ffd400", "b": "#0b3f8f", "c": "#ffffff", "line": "Amarillo y azul, carnaval en la grada." },
+  { "key": "gijon", "city": "gijon", "label": "XIXÓN", "colors": "ROXIBLANCO", "a": "#d0102e", "b": "#ffffff", "c": "#14213d", "line": "Rojo y blanco del Cantábrico." },
+  { "key": "mallorca", "city": "palma", "label": "MALLORCA", "colors": "VERMELL I NEGRE", "a": "#c8102e", "b": "#111111", "c": "#f2c230", "line": "Rojo y negro en el corazón del Mediterráneo." },
+  { "key": "granada", "city": "granada", "label": "GRANADA", "colors": "ROJO Y BLANCO", "a": "#c8102e", "b": "#ffffff", "c": "#d4a62a", "line": "Rojo y blanco a la sombra de la Alhambra." }
+]

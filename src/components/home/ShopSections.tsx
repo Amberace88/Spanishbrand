@@ -439,7 +439,7 @@ export async function BrandEssentials() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 text-white sm:p-5">
                   <span className="headline text-lg uppercase sm:text-2xl">{x.label}</span>
-                  <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider backdrop-blur">{t("soon.badge")}</span>
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-white/15 backdrop-blur transition-transform duration-300 group-hover:-rotate-45"><IconArrow className="h-4 w-4" /></span>
                 </div>
               </Link>
             </Reveal>

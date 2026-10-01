@@ -211,6 +211,9 @@ body {
 .text-stroke-fg { color: transparent; -webkit-text-stroke: 1.5px var(--fg); }
 @keyframes spin-rev { to { transform: rotate(-360deg); } }
 .spin-slow { animation: spin 18s linear infinite; }
+@keyframes lion-float { 0%, 100% { transform: translateY(0) rotate(-0.6deg); } 50% { transform: translateY(-10px) rotate(0.6deg); } }
+.lion-float { animation: lion-float 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lion-float { animation: none; } }
 .marquee-track { animation: marquee 28s linear infinite; }
 .marquee-track-rev { animation: marquee-rev 34s linear infinite; }
 .grain-soft::after {
