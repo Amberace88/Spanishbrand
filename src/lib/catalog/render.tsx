@@ -110,10 +110,11 @@ export async function renderDesign(design: Pick<Design, "layers" | "posterBg" | 
     // full-bleed background, content centred (towels, pillows, cases, canvas…) — no footer
     const bg = design.posterBg ?? (design.tone === "dark" ? "#0d0d0d" : "#f3ead7");
     const portrait = H >= W;
+    const square = Math.abs(W / H - 1) < 0.12; // pillows, bandanas: the design can use most of the face
     body = (
       <>
         <div style={{ position: "absolute", left: 0, top: 0, width: W, height: H, background: bg, display: "flex" }} />
-        {placed(portrait ? { left: W * 0.12, top: H * 0.16, width: W * 0.76, height: H * 0.62 } : { left: W * 0.2, top: H * 0.12, width: W * 0.6, height: H * 0.76 }, true, "f")}
+        {placed(square ? { left: W * 0.1, top: H * 0.1, width: W * 0.8, height: H * 0.8 } : portrait ? { left: W * 0.12, top: H * 0.16, width: W * 0.76, height: H * 0.62 } : { left: W * 0.2, top: H * 0.12, width: W * 0.6, height: H * 0.76 }, true, "f")}
       </>
     );
   } else {
