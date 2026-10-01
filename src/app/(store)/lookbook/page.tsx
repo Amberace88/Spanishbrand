@@ -42,7 +42,7 @@ export default async function LookbookPage() {
               <span className="flag-stripe h-3.5 w-5 rounded-[3px]" aria-hidden />
               <p className="kicker text-[#e0b84a]">Lookbook 2026</p>
             </div>
-            <h1 className="mt-5 font-[family-name:var(--font-logo)] text-[14vw] font-bold leading-[0.95] sm:text-7xl xl:text-8xl">
+            <h1 className="mt-5 font-[family-name:var(--font-logo)] text-[11vw] font-bold leading-[0.95] sm:text-6xl lg:text-[4.2vw] 2xl:text-7xl">
               <span className="text-red-metal block">{en ? "THE" : "EL"}</span>
               <span className="text-gold-metal block">{en ? "CROWNED LION" : "LEÓN CORONADO"}</span>
             </h1>

@@ -501,7 +501,7 @@ function pickVariants(spec: Spec, variants: { id: string; external_id: string; s
   let colors: (string | null)[] = [null];
   if (bp.colors) {
     const pref = spec.tones.flatMap((t) => bp.colors![t]);
-    const max = bp.allColors ? (bp.maxColors ?? 48) : spec.kind === "blank" ? 4 : (bp.maxColors ?? 2);
+    const max = bp.allColors ? 48 : spec.kind === "blank" ? 4 : (bp.maxColors ?? 2);
     colors = pref.filter((c) => live.some((v) => (v.color ?? "").toLowerCase() === c.toLowerCase()));
     if (bp.allColors) colors = [...colors, ...toneColors(live, spec.tones).filter((c) => !colors.some((p) => (p ?? "").toLowerCase() === c.toLowerCase()))];
     colors = colors.slice(0, max);

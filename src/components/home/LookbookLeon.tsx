@@ -21,7 +21,7 @@ export function LookbookLeon({ products, en, labels }: { products: PublicProduct
                 <span className="flag-stripe h-3.5 w-5 rounded-[3px]" aria-hidden />
                 <p className="kicker text-[#e0b84a]">{en ? "Lookbook · new" : "Lookbook · novedad"}</p>
               </div>
-              <h2 className="mt-5 font-[family-name:var(--font-logo)] text-[13vw] font-bold leading-[0.95] sm:text-6xl lg:text-7xl">
+              <h2 className="mt-5 font-[family-name:var(--font-logo)] text-[10.5vw] font-bold leading-[0.95] sm:text-6xl lg:text-[4vw] 2xl:text-7xl">
                 <span className="text-red-metal block">{en ? "THE" : "EL"}</span>
                 <span className="text-gold-metal block">{en ? "CROWNED LION" : "LEÓN CORONADO"}</span>
               </h2>
