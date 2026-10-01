@@ -253,7 +253,10 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   await upsertVariants(rowId, "printful", fp.variants.map((v) => (euOk(v) ? v : { ...v, status: "OUT_OF_STOCK" })));
   const variantIds = bp.variantFilter || bp.maxVariants ? euVariants.filter((v) => !bp.variantFilter || bp.variantFilter.test(v.name)).slice(0, bp.maxVariants ?? 24).map((v) => v.externalId) : undefined;
   if (variantIds && !variantIds.length) throw new Error(`${p.title}: ninguna variante UE coincide con ${bp.variantFilter}`);
-  return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: pf.width, height: pf.height }, placements, placement: place, sizeGuide, variantIds };
+  // Huge print areas (beach towel 9300×4800) can't be rendered inside a serverless step; Printful accepts any
+  // file with the same aspect ratio and scales it, so cap the longest side.
+  const cap = Math.min(1, 4800 / Math.max(pf.width, pf.height));
+  return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: Math.round(pf.width * cap), height: Math.round(pf.height * cap) }, placements, placement: place, sizeGuide, variantIds };
 }
 
 async function resolveGelatoPoster(bp: Blueprint): Promise<Resolved> {
