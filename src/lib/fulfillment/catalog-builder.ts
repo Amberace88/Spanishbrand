@@ -248,13 +248,20 @@ async function resolveGelatoPoster(bp: Blueprint): Promise<Resolved> {
   const formats = ["300x400-mm-12x16-inch", "450x600-mm-18x24-inch", "600x800-mm-24x32-inch"];
   let products: Awaited<ReturnType<typeof searchProductsFiltered>> = [];
   const queries: (Record<string, string[]> | null)[] = [{ Orientation: ["ver"], PaperFormat: formats }, { Orientation: ["ver"] }, null];
+  const enough = () => formats.every((f) => products.some((p) => bp.match.test(p.productUid) && p.productUid.includes(f)));
   for (const filters of queries) {
-    try {
-      products = await searchProductsFiltered("posters", filters, 100, 0);
-      if (products.some((p) => bp.match.test(p.productUid))) break;
-    } catch {
-      /* try a looser query */
+    // the "posters" catalog also holds cards etc. — page through until every wanted size shows up
+    for (let offset = 0; offset < 2000 && !enough(); offset += 100) {
+      let page: typeof products = [];
+      try {
+        page = await searchProductsFiltered("posters", filters, 100, offset);
+      } catch {
+        break;
+      }
+      products.push(...page.filter((p) => bp.match.test(p.productUid)));
+      if (page.length < 100) break;
     }
+    if (products.length) break;
   }
   const cand = products.filter((p) => bp.match.test(p.productUid) && /_ver$/.test(p.productUid) && /4-0/.test(p.productUid) && p.isPrintable !== false);
   if (!cand.length) throw new Error("No Gelato flat poster products found");
