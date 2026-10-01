@@ -1,9 +1,9 @@
 /**
  * Fútbol — city colourways. Three original looks per city and colourway:
  *  - "bufanda": a terrace scarf with the city name woven in the centre panel,
- *  - "abstracto": the colours shattered into shards with the city name,
+ *  - "moderno": sportswear speed stripes in the club colours over a big condensed city name,
  *  - "estadio": the stadium from above as topographic rings.
- * Plus a few general football designs (tiki-taka, the coach's board, the 12th player).
+ * Plus general football designs (the coach's board, the 12th player).
  *
  * Legal guard-rails: colour combinations and city names only. No club names, crests, mascots,
  * founding years, sponsor marks or kit replicas — fans recognise the colours, nobody's trademark is used.
@@ -73,15 +73,15 @@ export function footballDesigns(): Design[] {
       tags: [...tags, "bufanda"],
     });
     out.push({
-      slug: `futbol-${t.key}-abstracto`,
+      slug: `futbol-${t.key}-moderno`,
       collection: "futbol",
-      name: `${t.label.charAt(0)}${t.label.slice(1).toLowerCase()} Abstracto · ${t.colors.toLowerCase()}`,
-      line: `${t.line} Sus colores, hechos añicos y vueltos a montar.`,
+      name: `${t.label.charAt(0)}${t.label.slice(1).toLowerCase()} · ${t.colors.toLowerCase()}`,
+      line: `${t.line} Líneas limpias, colores de siempre.`,
       tone: "dark",
-      layers: [art(`shards-${t.key}`, 0.32, 0.86), txt(t.label, "sport", bright(t), 0.72, 0.12), txt(t.colors, "sans", accent(t), 0.81, 0.024)],
+      layers: [art(`kitbars-${t.key}`, 0.2, 0.42), txt(t.label, "sport", "#ffffff", 0.43, 0.15), txt(t.colors, "sport", bright(t) === "#ffffff" ? accent(t) : bright(t), 0.545, 0.05), txt(`AFICIÓN · ${t.label}`, "sans", CR, 0.6, 0.018)],
       products: ABSTRACTO,
       posterBg: "#0d0d0d",
-      tags: [...tags, "abstracto"],
+      tags: [...tags, "moderno"],
     });
     out.push({
       slug: `futbol-${t.key}-estadio`,
@@ -97,17 +97,6 @@ export function footballDesigns(): Design[] {
   }
   out.push(
     {
-      slug: "futbol-tiki-taka",
-      collection: "futbol",
-      name: "Tiki-Taka",
-      line: "Tocar, tocar y tocar: el fútbol de toque dibujado como una red de pases.",
-      tone: "dark",
-      layers: [art("tikitaka-red", 0.3, 0.62), txt("TIKI-TAKA", "sport", CR, 0.63, 0.1), txt("TOCAR · TOCAR · TOCAR", "sans", "#c8102e", 0.72, 0.022)],
-      products: ["tee", "hoodie", "mug", "poster", "tote"],
-      posterBg: "#0d0d0d",
-      tags: ["futbol", "abstracto"],
-    },
-    {
       slug: "futbol-pizarra",
       collection: "futbol",
       name: "La Pizarra",
@@ -116,7 +105,7 @@ export function footballDesigns(): Design[] {
       layers: [art("tactics-gold", 0.3, 0.6), txt("LA PIZARRA", "sport", CR, 0.63, 0.09), txt("4-3-3 · PRESIÓN ALTA", "sans", "#d4a62a", 0.715, 0.022)],
       products: ["tee", "hoodie", "mug", "poster"],
       posterBg: "#0d0d0d",
-      tags: ["futbol", "abstracto"],
+      tags: ["futbol", "moderno"],
     },
     {
       slug: "futbol-jugador-12",
@@ -127,7 +116,7 @@ export function footballDesigns(): Design[] {
       layers: [art("stadium-gold", 0.3, 0.86), txt("12", "sport", CR, 0.3, 0.14), txt("EL JUGADOR NÚMERO DOCE", "sport", "#d4a62a", 0.6, 0.06), txt("LA AFICIÓN TAMBIÉN JUEGA", "sans", CR, 0.67, 0.02)],
       products: ["tee", "hoodie", "mug", "poster", "flag"],
       posterBg: "#0d0d0d",
-      tags: ["futbol", "abstracto"],
+      tags: ["futbol", "moderno"],
     },
   );
   return out;

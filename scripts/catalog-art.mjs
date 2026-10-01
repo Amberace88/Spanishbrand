@@ -293,23 +293,9 @@ const M = {
     }
     return out + `<rect x="352" y="402" width="296" height="196" rx="8" fill="none" stroke="${a}" stroke-width="10"/>`;
   },
-  // Abstract kit: shattered diagonal shards in the club colours.
-  shards: ({ a, b, c }) => {
-    let r = 5;
-    const rnd = () => ((r = (r * 9301 + 49297) % 233280) / 233280);
-    let out = "";
-    for (let i = 0; i < 26; i++) {
-      const cx = 120 + rnd() * 760, cy = 120 + rnd() * 760, s = 70 + rnd() * 170, ang = -35 + rnd() * 20;
-      const p = [[0, -s], [s * 0.42, s * 0.55], [-s * 0.5, s * 0.35]].map(([x, y]) => {
-        const t = (ang * Math.PI) / 180;
-        return `${(cx + x * Math.cos(t) - y * Math.sin(t)).toFixed(0)},${(cy + x * Math.sin(t) + y * Math.cos(t)).toFixed(0)}`;
-      });
-      const col = [a, b, c][i % 3];
-      out += i % 4 === 3 ? `<polygon points="${p.join(" ")}" fill="none" stroke="${col}" stroke-width="9"/>` : `<polygon points="${p.join(" ")}" fill="${col}" opacity="${(0.75 + rnd() * 0.25).toFixed(2)}"/>`;
-    }
-    for (let i = 0; i < 7; i++) out += `<path d="M${60 + i * 140} 940 L${300 + i * 140} 60" stroke="${[a, b][i % 2]}" stroke-width="${4 + (i % 3) * 3}" opacity=".55"/>`;
-    return out;
-  },
+  // Modern kit stripes: three sharp slanted bars in the club colours (sportswear speed stripes).
+  kitbars: ({ a, b, c }) =>
+    [a, b, c].map((col, i) => `<path d="M${120 + i * 250} 760 L${330 + i * 250} 240 L${470 + i * 250} 240 L${260 + i * 250} 760 Z" fill="${col}"/>`).join(""),
   // Stadium seen from above as topographic rings, pitch at the heart.
   stadium: ({ a, b }) => {
     let out = "";
@@ -329,14 +315,6 @@ const M = {
     for (const [cx, cy] of o) out += `<circle cx="${cx}" cy="${cy}" r="26" fill="none" stroke="${b}" stroke-width="10"/>`;
     for (const [cx, cy] of x) out += `<path d="M${cx - 22} ${cy - 22} L${cx + 22} ${cy + 22} M${cx + 22} ${cy - 22} L${cx - 22} ${cy + 22}" stroke="${a}" stroke-width="10" stroke-linecap="round"/>`;
     out += `<path d="M300 610 C 340 520 380 470 400 450" fill="none" stroke="${b}" stroke-width="7" stroke-dasharray="18 14"/><path d="M620 372 C 600 300 560 250 500 210" fill="none" stroke="${b}" stroke-width="7" stroke-dasharray="18 14"/><path d="M488 196 l14 14 -20 4 z" fill="${b}"/>`;
-    return out;
-  },
-  // Tiki-taka: a passing network — players as dots, passes as lines.
-  tikitaka: ({ a, b }) => {
-    const pts = [[500, 860], [250, 700], [750, 700], [380, 560], [620, 560], [180, 420], [500, 440], [820, 420], [330, 260], [670, 260], [500, 130]];
-    const links = [[0, 1], [0, 2], [1, 3], [2, 4], [3, 4], [3, 6], [4, 6], [1, 5], [2, 7], [5, 8], [6, 8], [6, 9], [7, 9], [8, 10], [9, 10], [3, 5], [4, 7], [8, 9]];
-    let out = links.map(([i, j], k) => `<path d="M${pts[i][0]} ${pts[i][1]} L${pts[j][0]} ${pts[j][1]}" stroke="${k % 3 ? a : b}" stroke-width="${k % 3 ? 6 : 10}" opacity="${k % 3 ? 0.7 : 1}"/>`).join("");
-    out += pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i === 10 ? 34 : 24}" fill="${i === 10 ? b : a}"/>`).join("");
     return out;
   },
 
@@ -602,10 +580,10 @@ const ART = [
 const TEAMS = JSON.parse(await (await import("node:fs/promises")).readFile(new URL("../src/lib/catalog/football-teams.json", import.meta.url), "utf8"));
 for (const t of TEAMS) {
   ART.push([`scarf-${t.key}`, "scarf", { a: t.a, b: t.b, c: t.c }]);
-  ART.push([`shards-${t.key}`, "shards", { a: t.a, b: t.b, c: t.c }]);
+  ART.push([`kitbars-${t.key}`, "kitbars", { a: t.a, b: t.b, c: t.c }]);
   ART.push([`stadium-${t.key}`, "stadium", { a: t.a, b: t.b }]);
 }
-ART.push(["tactics-gold", "tactics", { a: "#f3ead7", b: "#d4a62a" }], ["tikitaka-red", "tikitaka", { a: "#f3ead7", b: "#c8102e" }], ["stadium-gold", "stadium", { a: "#d4a62a", b: "#c8102e" }]);
+ART.push(["tactics-gold", "tactics", { a: "#f3ead7", b: "#d4a62a" }], ["stadium-gold", "stadium", { a: "#d4a62a", b: "#c8102e" }]);
 
 await mkdir(OUT, { recursive: true });
 const manifest = {};
