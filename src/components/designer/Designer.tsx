@@ -37,6 +37,14 @@ const STORAGE_KEY = "ryg-design-v1";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
+/** Author illustrations customers can place on any garment. */
+export interface DesignerArt {
+  name: string; // site-art / catalog art name
+  label: string;
+  aspect: number;
+  src: string;
+}
+
 export interface DesignerStyle {
   slug: string;
   name: string;
@@ -45,7 +53,7 @@ export interface DesignerStyle {
   layers: Layer[];
 }
 
-export function Designer({ products, styles = [], initialStyle = null, initialText = null, initialColor = null }: { products: DesignerProduct[]; styles?: DesignerStyle[]; initialStyle?: string | null; initialText?: string | null; initialColor?: string | null }) {
+export function Designer({ products, styles = [], arts = [], initialStyle = null, initialArt = null, initialText = null, initialColor = null }: { products: DesignerProduct[]; styles?: DesignerStyle[]; arts?: DesignerArt[]; initialStyle?: string | null; initialArt?: string | null; initialText?: string | null; initialColor?: string | null }) {
   const t = useT();
   const available = useMemo(() => new Set(products.map((p) => p.kind)), [products]);
   const [kind, setKind] = useState<DesignKind>(products[0]?.kind ?? "tee");
@@ -74,6 +82,11 @@ export function Designer({ products, styles = [], initialStyle = null, initialTe
     const preset = initialStyle ? styles.find((x) => x.slug === initialStyle) : null;
     if (preset) {
       applyStyle(preset);
+      return;
+    }
+    const art0 = initialArt ? arts.find((a) => a.name === initialArt) : null;
+    if (art0) {
+      addArt(art0, true);
       return;
     }
     // coming from the homepage mini-designer: start with the customer's text on the chest
@@ -135,6 +148,19 @@ export function Designer({ products, styles = [], initialStyle = null, initialTe
     const hit = colors.find((c) => want.includes(c.toLowerCase())) ?? (st.tone === "dark" ? colors.find((c) => isDark(c)) : colors.find((c) => !isDark(c)));
     if (hit) setColor(hit);
     setNotice(t("designer.styleLoaded", { name: st.name }));
+  }
+
+  // place an author illustration big on the garment (it is drawn for light fabrics)
+  function addArt(a: DesignerArt, replace = false) {
+    const w = +Math.min(0.9, 0.62 / (a.aspect * 0.75)).toFixed(3);
+    const l: Layer = { id: uid(), type: "image", path: `art/${a.name}.png`, url: a.src, aspect: a.aspect, x: 0.5, y: 0.4, w, rotation: 0 };
+    setLayers((ls) => (replace ? [l] : [...ls, l].slice(0, 8)));
+    setSelected(l.id);
+    if (isDark(color)) {
+      const light = colors.find((c) => ["#ffffff", "#fafafa", "#f1e7d3"].includes(c.toLowerCase())) ?? colors.find((c) => !isDark(c));
+      if (light) setColor(light);
+    }
+    setNotice(t("designer.artAdded", { name: a.label }));
   }
 
   const addText = () => {
@@ -316,6 +342,24 @@ export function Designer({ products, styles = [], initialStyle = null, initialTe
                     </span>
                   </span>
                   <span className="mt-1 block truncate text-[11px] font-semibold">{st.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {arts.length > 0 && (
+          <section>
+            <p className="kicker text-muted">{t("designer.arts")}</p>
+            <p className="mt-1 text-xs text-muted">{t("designer.artsSub")}</p>
+            <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-5">
+              {arts.map((a) => (
+                <button key={a.name} onClick={() => addArt(a)} title={a.label} className="group text-left">
+                  <span className="relative block aspect-square overflow-hidden rounded-xl border border-line bg-[#f3ead7] transition-colors group-hover:border-fg">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={a.src} alt={a.label} loading="lazy" className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-110" />
+                  </span>
+                  <span className="mt-1 block truncate text-[10px] font-semibold">{a.label}</span>
                 </button>
               ))}
             </div>

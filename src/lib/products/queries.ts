@@ -170,6 +170,8 @@ let inflight: Promise<PublicProduct[]> | null = null;
 
 /** One entry per colour (and per distinct price) is all a listing card needs. */
 function compactVariants(p: PublicProduct): PublicProduct {
+  // personalisable bases feed the designer / Personaliza, which need every size variant
+  if (p.personalization) return { ...p, description: null, story: null };
   const seen = new Set<string>();
   const variants = p.variants.filter((v) => {
     const k = `${v.colorHex ?? v.color ?? ""}|${v.price}`;

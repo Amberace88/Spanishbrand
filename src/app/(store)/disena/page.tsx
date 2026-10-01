@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getT } from "@/lib/i18n/server";
 import { getDesignerProducts } from "@/lib/products/queries";
-import { Designer, type DesignKind, type DesignerProduct, type DesignerStyle } from "@/components/designer/Designer";
+import { Designer, type DesignKind, type DesignerArt, type DesignerProduct, type DesignerStyle } from "@/components/designer/Designer";
+import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
+import { artAspect } from "@/lib/catalog/designs-art";
 import { DESIGNS } from "@/lib/catalog/designs";
 import { Container, PageHero } from "@/components/ui/Section";
 
@@ -21,9 +23,13 @@ function kindOf(productType: string): DesignKind | null {
   return null;
 }
 
-export default async function DesignPage({ searchParams }: { searchParams: Promise<{ style?: string; texto?: string; tinta?: string }> }) {
+export default async function DesignPage({ searchParams }: { searchParams: Promise<{ style?: string; arte?: string; texto?: string; tinta?: string }> }) {
   const [t, products, sp] = await Promise.all([getT(), getDesignerProducts(), searchParams]);
   const styles: DesignerStyle[] = DESIGNS.map((d) => ({ slug: d.slug, name: d.name, collection: d.collection, tone: d.tone, layers: d.layers }));
+  const arts: DesignerArt[] = [
+    { name: "lion-crowned", label: "León Coronado", aspect: artAspect("lion-crowned"), src: "/catalog/art/lion-crowned.png" },
+    ...ART_SERIES.map((p) => ({ name: p.art, label: p.name, aspect: artAspect(p.art), src: siteArtSrc(p.art) })),
+  ];
   const initialStyle = sp.style && styles.some((s) => s.slug === sp.style) ? sp.style : null;
   const list: DesignerProduct[] = products
     .map((p) => {
@@ -48,7 +54,7 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
       <PageHero eyebrow={t("designer.kicker")} title={t("hero3.design")} sub={t("designer.sub")} />
       <section className="bg-bg py-10 sm:py-14">
         <Container>
-          <Designer products={list} styles={styles} initialStyle={initialStyle} initialText={sp.texto?.trim().slice(0, 40) || null} initialColor={sp.tinta ?? null} />
+          <Designer products={list} styles={styles} arts={arts} initialStyle={initialStyle} initialArt={sp.arte ?? null} initialText={sp.texto?.trim().slice(0, 40) || null} initialColor={sp.tinta ?? null} />
         </Container>
       </section>
     </>
