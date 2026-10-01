@@ -258,3 +258,19 @@ export const getOpenPoll = cache(async () => {
     .maybeSingle();
   return data;
 });
+
+/** Free-shipping threshold for the home market (from configured shipping rules — never hard-coded). */
+export const getShippingPromo = cache(async (country = "ES"): Promise<{ freeOver: number } | null> => {
+  const sb = dbOrNull();
+  if (!sb) return null;
+  const { data } = await sb
+    .from("shipping_rules")
+    .select("free_over, country_codes, sort")
+    .eq("brand_id", env.brandId())
+    .eq("active", true)
+    .contains("country_codes", [country])
+    .order("sort")
+    .limit(1)
+    .maybeSingle();
+  return data?.free_over != null ? { freeOver: Number(data.free_over) } : null;
+});

@@ -16,11 +16,11 @@ export function Newsletter({ dark = false, source = "site" }: { dark?: boolean; 
     setState(res?.ok ? "ok" : "error");
   }
 
-  if (state === "ok") return <p className={`serif text-2xl ${dark ? "text-oro-2" : "text-rojo"}`}>{t("newsletter.success")}</p>;
+  if (state === "ok") return <p className={`text-lg font-semibold ${dark ? "text-oro-2" : "text-rojo"}`}>{t("newsletter.success")}</p>;
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div className="flex">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="email"
           required
@@ -30,11 +30,11 @@ export function Newsletter({ dark = false, source = "site" }: { dark?: boolean; 
           aria-label="Email"
           className={`field ${dark ? "field-dark" : ""} flex-1`}
         />
-        <button type="submit" disabled={state === "loading"} className="btn btn-primary shrink-0">
+        <button type="submit" disabled={state === "loading"} className="btn btn-primary shrink-0 sm:px-7">
           {t("newsletter.submit")}
         </button>
       </div>
-      <label className={`flex cursor-pointer items-start gap-3 text-xs leading-relaxed ${dark ? "text-bone/60" : "text-stone-2"}`}>
+      <label className={`flex cursor-pointer items-start gap-3 text-xs leading-relaxed ${dark ? "text-white/70" : "text-stone-2"}`}>
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-rojo" required />
         <span>
           {t("newsletter.consent")} <a href="/privacy" className="underline">Privacidad</a>

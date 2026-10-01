@@ -42,7 +42,7 @@ export function CookieBanner() {
 
   if (!ready || consent || pathname.startsWith("/admin")) return null;
   return (
-    <div className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-xl border sm:bottom-6 sm:left-6 sm:right-auto sm:mx-0 sm:max-w-md border-ink/10 bg-warm p-5 shadow-2xl">
+    <div className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-xl border sm:bottom-6 sm:left-6 sm:right-auto sm:mx-0 sm:max-w-md rounded-2xl border-ink/10 bg-white p-5 shadow-2xl">
       <p className="text-sm leading-relaxed text-ink/80">
         {t("cookie.text")}{" "}
         <a href="/cookies" className="underline">

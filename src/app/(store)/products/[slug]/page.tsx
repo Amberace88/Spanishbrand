@@ -9,6 +9,7 @@ import { ProductBuyBox } from "@/components/product/ProductBuyBox";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { TrackView } from "@/components/analytics/TrackView";
+import { IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Section";
 import { dbOrNull } from "@/lib/supabase/admin";
 
@@ -77,16 +78,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <TrackView event="product_view" productId={p.id} />
-      <section className="bg-warm pb-20 pt-20 sm:pt-28">
+      <section className="bg-warm pb-20 pt-6 sm:pt-10">
         <Container>
-          <nav className="eyebrow mb-6 flex gap-2 text-[0.6rem] text-stone">
-            <Link href="/shop" className="link-u">
+          <nav className="mb-6 flex gap-2 text-sm text-stone-2">
+            <Link href="/shop" className="hover:text-ink">
               {t("nav.shop")}
             </Link>
             {p.collection && (
               <>
                 <span>/</span>
-                <Link href={`/collections/${p.collection.slug}`} className="link-u">
+                <Link href={`/collections/${p.collection.slug}`} className="hover:text-ink">
                   {p.collection.name}
                 </Link>
               </>
@@ -97,17 +98,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {p.images.length ? (
                 <Gallery images={p.images} name={p.name} />
               ) : (
-                <div className="relative aspect-[4/5]">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-3xl">
                   <CollectionArt slug={p.collection?.slug ?? "default"} className="absolute inset-0" />
                 </div>
               )}
             </div>
             <div className="lg:sticky lg:top-28 lg:self-start">
               {p.collection && <p className="eyebrow text-rojo">{p.collection.name}</p>}
-              <h1 className="display mt-3 text-5xl sm:text-6xl">{p.name}</h1>
-              {p.shortDescription && <p className="serif mt-4 text-2xl italic leading-snug text-ink/75">{p.shortDescription}</p>}
+              <h1 className="headline mt-2 text-3xl sm:text-[2.6rem]">{p.name}</h1>
+              {p.shortDescription && <p className="mt-3 text-lg leading-relaxed text-stone-2">{p.shortDescription}</p>}
               {p.limited && (
-                <p className="eyebrow mt-5 inline-block bg-rojo px-3 py-1.5 text-[0.62rem] text-white">
+                <p className="mt-5 inline-block rounded-full bg-rojo px-3 py-1.5 text-xs font-bold text-white">
                   {p.limitedRemaining != null ? t("product.limitedRemaining", { n: p.limitedRemaining }) : t("product.limitedTime")}
                   {p.limitedUntil && p.limitedRemaining == null ? ` · hasta ${new Date(p.limitedUntil).toLocaleDateString("es-ES")}` : ""}
                 </p>
@@ -115,6 +116,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="mt-8">
                 <ProductBuyBox variants={p.variants} currency={p.currency} />
               </div>
+              <ul className="mt-6 grid gap-3 rounded-2xl bg-cream p-5 text-sm">
+                {[
+                  [IconTruck, t("trust.shipping.t"), t("trust.shipping.b")],
+                  [IconReturn, t("trust.returns.t"), t("trust.returns.b")],
+                  [IconLock, t("trust.secure.t"), t("trust.secure.b")],
+                ].map(([Icon, title, body]) => {
+                  const I = Icon as typeof IconTruck;
+                  return (
+                    <li key={title as string} className="flex items-start gap-3">
+                      <I className="mt-0.5 h-5 w-5 shrink-0 text-rojo" />
+                      <span>
+                        <span className="font-semibold">{title as string}</span> <span className="text-stone-2">· {body as string}</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
               <div className="mt-10 divide-y divide-ink/10 border-y border-ink/10">
                 {[
                   [t("product.details"), p.description],
@@ -124,7 +142,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   .filter(([, body]) => body)
                   .map(([title, body], i) => (
                     <details key={title} open={i === 0} className="group py-5">
-                      <summary className="eyebrow flex cursor-pointer list-none items-center justify-between">
+                      <summary className="flex cursor-pointer font-semibold list-none items-center justify-between">
                         {title}
                         <span className="text-lg transition-transform group-open:rotate-45">+</span>
                       </summary>
@@ -137,9 +155,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </Container>
       </section>
       {related.length > 0 && (
-        <section className="border-t border-ink/10 bg-bone py-20">
+        <section className="border-t border-ink/[0.07] bg-white py-16 sm:py-20">
           <Container>
-            <h2 className="display mb-10 text-5xl sm:text-6xl">{t("product.related")}</h2>
+            <h2 className="headline mb-8 text-3xl sm:text-4xl">{t("product.related")}</h2>
             <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4">
               {related.map((r) => (
                 <ProductCard key={r.id} p={r} labels={cardLabels} />

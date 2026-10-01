@@ -12,6 +12,10 @@ import { quoteFromRules, type ShippingQuote, type ShippingRule } from "./rules";
 export async function quoteShipping(input: { country: string; lines: { variantId: string; quantity: number }[]; subtotal: number; currency: string }): Promise<ShippingQuote | null> {
   const sb = db();
   const itemCount = input.lines.reduce((s, l) => s + l.quantity, 0);
+  const rules = await loadRules();
+  const rule = rules.filter((r) => r.active && r.countryCodes.includes(input.country)).sort((a, b) => a.sort - b.sort)[0];
+  // Brand free-shipping policy applies regardless of where the rate comes from.
+  const freeByPolicy = rule?.freeOver != null && input.subtotal >= rule.freeOver;
 
   try {
     const { data: vms } = await sb
@@ -35,7 +39,7 @@ export async function quoteShipping(input: { country: string; lines: { variantId
         });
         const cheapest = rates.filter((r) => r.currency === input.currency).sort((a, b) => a.rate - b.rate)[0];
         if (cheapest) {
-          return { source: "PROVIDER", method: cheapest.id, name: cheapest.name, amount: cheapest.rate, currency: cheapest.currency, minDays: cheapest.minDays, maxDays: cheapest.maxDays };
+          return { source: "PROVIDER", method: cheapest.id, name: cheapest.name, amount: freeByPolicy ? 0 : cheapest.rate, currency: cheapest.currency, minDays: cheapest.minDays, maxDays: cheapest.maxDays };
         }
       }
     }
@@ -43,8 +47,12 @@ export async function quoteShipping(input: { country: string; lines: { variantId
     log.warn("PROVIDER", "provider shipping rates unavailable — using configured rules", { msg: e instanceof Error ? e.message : String(e) });
   }
 
-  const { data: rules } = await sb.from("shipping_rules").select("*").eq("brand_id", env.brandId()).eq("active", true);
-  const mapped: ShippingRule[] = (rules ?? []).map((r) => ({
+  return quoteFromRules(rules, input.country, itemCount, input.subtotal, input.currency);
+}
+
+async function loadRules(): Promise<ShippingRule[]> {
+  const { data: rules } = await db().from("shipping_rules").select("*").eq("brand_id", env.brandId()).eq("active", true);
+  return (rules ?? []).map((r) => ({
     id: r.id,
     name: r.name,
     countryCodes: r.country_codes,
@@ -57,5 +65,4 @@ export async function quoteShipping(input: { country: string; lines: { variantId
     active: r.active,
     sort: r.sort,
   }));
-  return quoteFromRules(mapped, input.country, itemCount, input.subtotal, input.currency);
 }

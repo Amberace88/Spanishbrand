@@ -17,7 +17,7 @@ export function MagicLinkForm({ next = "/account", dark = false }: { next?: stri
     setState(error ? "error" : "sent");
   }
 
-  if (state === "sent") return <p className={`serif text-2xl italic ${dark ? "text-oro-2" : "text-rojo"}`}>{t("account.signin.sent")}</p>;
+  if (state === "sent") return <p className={`text-lg font-semibold ${dark ? "text-oro-2" : "text-rojo"}`}>{t("account.signin.sent")}</p>;
   return (
     <form onSubmit={submit} className="space-y-4">
       <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" className={`field ${dark ? "field-dark" : ""}`} autoComplete="email" />

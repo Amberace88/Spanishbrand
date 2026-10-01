@@ -21,18 +21,19 @@ export default async function OrderSuccess({ searchParams }: { searchParams: Pro
   const confirmed = order?.payment_status === "PAID";
 
   return (
-    <section className="grain relative flex min-h-[90svh] items-center overflow-hidden bg-ink text-bone">
-      <div className="pointer-events-none absolute left-1/2 top-[70%] aspect-square w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60" style={{ background: "radial-gradient(circle, #f0c77a 0%, #b3122e 50%, transparent 70%)" }} />
-      <Container className="relative py-32 text-center">
-        <p className="eyebrow text-oro-2">{order ? `${t("success.order")} #${order.order_number}` : ""}</p>
-        <h1 className="display mx-auto mt-5 max-w-4xl text-7xl sm:text-9xl">{t("success.title")}</h1>
-        <p className="serif mx-auto mt-6 max-w-xl text-2xl italic text-bone/80">{confirmed || !order ? t("success.body") : t("success.pending")}</p>
+    <section className="relative flex min-h-[70svh] items-center overflow-hidden bg-cream">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-oro-2/40 blur-3xl" />
+      <Container className="relative py-20 text-center">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-oliva text-3xl text-white">✓</div>
+        <p className="eyebrow mt-6 text-rojo">{order ? `${t("success.order")} #${order.order_number}` : ""}</p>
+        <h1 className="headline mx-auto mt-3 max-w-3xl text-5xl sm:text-6xl">{t("success.title")}</h1>
+        <p className="mx-auto mt-5 max-w-xl text-lg text-stone-2">{confirmed || !order ? t("success.body") : t("success.pending")}</p>
         {!confirmed && order && <meta httpEquiv="refresh" content="4" />}
         <div className="mt-10 flex justify-center gap-3">
           <Link href="/account/orders" className="btn btn-primary">
             {t("account.orders")}
           </Link>
-          <Link href="/" className="btn btn-ghost-light">
+          <Link href="/" className="btn btn-ghost">
             {t("cart.continue")}
           </Link>
         </div>

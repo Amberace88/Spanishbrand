@@ -22,7 +22,7 @@ export default async function JournalPage() {
         <Container>
           {!posts?.length ? (
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <p className="serif text-3xl leading-snug text-ink/80">Las primeras historias están en camino. Suscríbete para leerlas antes que nadie.</p>
+              <p className="text-xl leading-relaxed text-stone-2">Las primeras historias están en camino. Suscríbete para leerlas antes que nadie.</p>
               <Newsletter source="journal" />
             </div>
           ) : (

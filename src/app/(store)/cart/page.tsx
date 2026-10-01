@@ -15,14 +15,14 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
   const needsFix = cart.lines.some((l) => l.issue);
 
   return (
-    <section className="min-h-[80svh] bg-warm pb-24 pt-28 sm:pt-36">
+    <section className="min-h-[80svh] bg-warm pb-24 pt-10 sm:pt-14">
       <Container>
-        <h1 className="display text-7xl sm:text-8xl">{t("cart.title")}</h1>
+        <h1 className="headline text-4xl sm:text-5xl">{t("cart.title")}</h1>
         {cancelled && <p className="mt-4 text-sm text-stone-2">El pago se ha cancelado. Tu carrito sigue aquí.</p>}
 
         {cart.lines.length === 0 ? (
           <div className="mt-12">
-            <p className="serif text-3xl italic text-ink/70">{t("cart.empty")}</p>
+            <p className="text-xl text-stone-2">{t("cart.empty")}</p>
             <Link href="/shop" className="btn btn-ink mt-8">
               {t("cart.continue")}
             </Link>

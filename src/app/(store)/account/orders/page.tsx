@@ -14,13 +14,13 @@ export default async function OrdersPage() {
     ? await db().from("orders").select("id, order_number, status, total, currency, created_at").eq("customer_id", customer.id).neq("status", "PENDING_PAYMENT").order("created_at", { ascending: false })
     : { data: [] };
 
-  if (!orders?.length) return <p className="serif text-3xl italic text-ink/70">{t("account.noOrders")}</p>;
+  if (!orders?.length) return <p className="text-xl text-stone-2">{t("account.noOrders")}</p>;
   return (
     <ul className="divide-y divide-ink/10 border-y border-ink/10">
       {orders.map((o) => (
         <li key={o.id}>
           <Link href={`/account/orders/${o.id}`} className="grid grid-cols-2 items-center gap-4 py-5 hover:bg-bone sm:grid-cols-4">
-            <span className="display text-3xl">#{o.order_number}</span>
+            <span className="headline text-2xl">#{o.order_number}</span>
             <span className="text-sm text-stone-2">{formatDate(o.created_at)}</span>
             <span className="eyebrow text-[0.62rem]">{t(`status.${o.status}` as TKey)}</span>
             <span className="text-right tabular-nums">{formatMoney(Number(o.total), o.currency)}</span>

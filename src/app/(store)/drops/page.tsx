@@ -21,7 +21,7 @@ export default async function DropsPage() {
         <Container>
           {drops.length === 0 ? (
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <p className="display text-6xl sm:text-7xl">{t("drops.empty")}</p>
+              <p className="headline text-3xl sm:text-4xl">{t("drops.empty")}</p>
               <Newsletter source="drops" />
             </div>
           ) : (
@@ -37,7 +37,7 @@ export default async function DropsPage() {
                         {d.number ? `Drop ${String(d.number).padStart(3, "0")} · ` : ""}
                         {label(d.status)}
                       </p>
-                      <h2 className="display mt-4 text-6xl sm:text-7xl">{d.name}</h2>
+                      <h2 className="headline mt-3 text-3xl sm:text-4xl">{d.name}</h2>
                       {d.description && <p className="mt-5 max-w-lg text-stone-2">{d.description}</p>}
                       <div className="mt-8">
                         {d.status === "SCHEDULED" && d.startDate ? (

@@ -26,7 +26,7 @@ export default async function CommunityPage() {
         <Container>
           {open.length === 0 ? (
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <p className="serif text-3xl leading-snug text-ink/80">{t("community.empty")}</p>
+              <p className="text-xl leading-relaxed text-stone-2">{t("community.empty")}</p>
               <Newsletter source="community" />
             </div>
           ) : (
@@ -44,7 +44,7 @@ export default async function CommunityPage() {
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {highlights.map((h) => (
                   <div key={h.id} className="border border-ink/10 bg-bone p-6">
-                    <h3 className="display text-3xl">{h.title}</h3>
+                    <h3 className="headline text-2xl">{h.title}</h3>
                     {h.body && <p className="mt-2 text-sm text-stone-2">{h.body}</p>}
                   </div>
                 ))}

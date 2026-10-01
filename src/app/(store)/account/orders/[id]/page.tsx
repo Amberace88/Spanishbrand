@@ -34,7 +34,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
         <Link href="/account/orders" className="eyebrow link-u text-[0.62rem] text-stone-2">
           ← {t("account.orders")}
         </Link>
-        <h2 className="display mt-4 text-6xl">#{o.order_number}</h2>
+        <h2 className="headline mt-3 text-4xl">#{o.order_number}</h2>
         <p className="mt-2 text-sm text-stone-2">
           {formatDate(o.created_at)} · <span className="eyebrow text-[0.62rem] text-ink">{t(`status.${o.status}` as TKey)}</span>
         </p>

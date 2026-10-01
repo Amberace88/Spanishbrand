@@ -19,14 +19,14 @@ export default async function AboutPage() {
   return (
     <>
       <PageHero dark eyebrow={`Est. ${brand.foundedYear ?? ""}`} title={brand.name} sub={brand.description} />
-      <section className="bg-warm py-24 sm:py-32">
+      <section className="bg-warm py-16 sm:py-24">
         <Container>
           <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
-            <Reveal className="relative aspect-[4/5] overflow-hidden">
+            <Reveal className="relative aspect-[4/5] overflow-hidden rounded-[2rem]">
               <CollectionArt slug="heritage" className="absolute inset-0" />
             </Reveal>
             <div>
-              <h2 className="serif text-5xl leading-[1.05] sm:text-6xl">
+              <h2 className="headline text-4xl sm:text-5xl">
                 <MaskLines lines={["Contar España", "con diseño contemporáneo."]} />
               </h2>
               <Reveal delay={0.1}>
@@ -38,12 +38,12 @@ export default async function AboutPage() {
           </div>
         </Container>
       </section>
-      <section className="bg-bone py-24">
+      <section className="bg-cream py-20">
         <Container>
-          <div className="grid gap-px bg-ink/10 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {VALUES.map(([title, body], i) => (
-              <Reveal key={title} delay={i * 0.06} className="bg-bone p-8 sm:p-12">
-                <p className="display text-7xl text-rojo">{String(i + 1).padStart(2, "0")}</p>
+              <Reveal key={title} delay={i * 0.06} className="rounded-3xl bg-white p-8 sm:p-10">
+                <p className="headline text-5xl text-rojo">{String(i + 1).padStart(2, "0")}</p>
                 <h3 className="mt-6 text-2xl font-semibold">{title}</h3>
                 <p className="mt-3 leading-relaxed text-stone-2">{body}</p>
               </Reveal>

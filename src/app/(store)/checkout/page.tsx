@@ -19,12 +19,12 @@ export default async function CheckoutPage() {
   if (cart.lines.some((l) => l.issue)) redirect("/cart");
 
   return (
-    <section className="min-h-[80svh] bg-warm pb-24 pt-28 sm:pt-36">
+    <section className="min-h-[80svh] bg-warm pb-24 pt-10 sm:pt-14">
       <Container>
         <Link href="/cart" className="eyebrow link-u text-[0.62rem] text-stone-2">
           ← {t("cart.title")}
         </Link>
-        <h1 className="display mt-4 text-7xl sm:text-8xl">{t("checkout.title")}</h1>
+        <h1 className="headline mt-2 text-4xl sm:text-5xl">{t("checkout.title")}</h1>
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-20">
           <CheckoutForm countries={brand.supportedCountries} defaultEmail={user?.email ?? undefined} />
           <aside className="h-fit border border-ink/10 bg-bone p-6 sm:p-8">

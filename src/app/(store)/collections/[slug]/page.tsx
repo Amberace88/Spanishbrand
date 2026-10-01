@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCollectionBySlug, getPublishedProducts } from "@/lib/products/queries";
@@ -34,33 +35,25 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   return (
     <>
       <TrackView event="collection_view" collectionId={/^[0-9a-f-]{36}$/.test(c.id) ? c.id : undefined} />
-      <section className="grain relative flex min-h-[88svh] items-end overflow-hidden bg-ink text-bone">
-        <CollectionArt slug={c.slug} animated className="absolute inset-0 opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-ink/10" />
-        <Container className="relative pb-16 pt-40">
+      <section className="relative overflow-hidden border-b border-ink/[0.07] bg-cream">
+        <Container className="grid items-center gap-8 py-10 sm:py-14 lg:grid-cols-[1.2fr_1fr]">
           <Reveal>
-            <p className="eyebrow text-oro-2">{t("nav.collections")} · {products.length ? t("collections.pieces", { n: products.length }) : t("collections.soon")}</p>
+            <nav className="text-sm text-stone-2">
+              <Link href="/" className="hover:text-ink">Inicio</Link> <span className="mx-1.5">/</span>
+              <Link href="/collections" className="hover:text-ink">{t("nav.collections")}</Link> <span className="mx-1.5">/</span>
+              <span className="text-ink">{c.name}</span>
+            </nav>
+            <p className="eyebrow mt-6 text-rojo">{products.length ? t("collections.pieces", { n: products.length }) : t("collections.soon")}</p>
+            <h1 className="headline mt-3 text-5xl sm:text-7xl">{c.name}</h1>
+            {c.tagline && <p className="serif mt-3 text-2xl italic text-stone-2 sm:text-3xl">{c.tagline}</p>}
+            {c.story && <p className="mt-5 max-w-xl text-lg leading-relaxed text-stone-2">{c.story}</p>}
           </Reveal>
-          <h1 className="display mt-5 text-[22vw] sm:text-[16vw] lg:text-[12vw]">
-            <MaskLines lines={[c.name]} />
-          </h1>
-          {c.tagline && (
-            <Reveal delay={0.1}>
-              <p className="serif mt-4 text-3xl italic text-bone/85 sm:text-5xl">{c.tagline}</p>
-            </Reveal>
-          )}
+          <Reveal delay={0.08} className="relative mx-auto aspect-[4/3] w-full max-w-lg overflow-hidden rounded-[2rem]">
+            <CollectionArt slug={c.slug} animated className="absolute inset-0" />
+          </Reveal>
         </Container>
       </section>
-      {c.story && (
-        <section className="bg-warm py-20 sm:py-28">
-          <Container>
-            <Reveal>
-              <p className="serif mx-auto max-w-4xl text-center text-3xl leading-snug sm:text-5xl">{c.story}</p>
-            </Reveal>
-          </Container>
-        </section>
-      )}
-      <section className="border-t border-ink/10 bg-bone py-20">
+      <section className="bg-warm py-14 sm:py-20">
         <Container>
           {products.length ? (
             <div className="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-5 lg:grid-cols-4">
@@ -71,9 +64,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
               ))}
             </div>
           ) : (
-            <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div className="grid gap-10 rounded-3xl bg-white p-6 sm:p-10 lg:grid-cols-2 lg:items-center">
               <div>
-                <p className="display text-6xl">{t("collections.soon")}</p>
+                <p className="headline text-4xl">{t("collections.soon")}</p>
                 <p className="mt-4 max-w-md text-stone-2">{t("home.products.empty.body")}</p>
               </div>
               <Newsletter source={`collection-${c.slug}`} />

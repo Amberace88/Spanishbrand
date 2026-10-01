@@ -84,7 +84,7 @@ export function ProductBuyBox({ variants, currency }: { variants: PublicVariant[
                   disabled={!avail}
                   onClick={() => setSize(s)}
                   aria-pressed={size === s}
-                  className={`min-w-14 border px-4 py-3 text-sm transition ${size === s ? "border-ink bg-ink text-bone" : "border-ink/20 hover:border-ink"} ${!avail ? "cursor-not-allowed line-through opacity-35" : ""}`}
+                  className={`min-w-14 border px-4 py-3 text-sm transition ${size === s ? "border-ink bg-ink text-white" : "border-ink/20 hover:border-ink"} ${!avail ? "cursor-not-allowed line-through opacity-35" : ""}`}
                 >
                   {s}
                 </button>

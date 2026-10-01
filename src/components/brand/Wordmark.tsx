@@ -1,12 +1,16 @@
 export function Wordmark({ name, className = "" }: { name: string; className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <svg viewBox="0 0 24 24" className="h-[1.05em] w-[1.05em] shrink-0" aria-hidden="true">
-        <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" strokeWidth="1.4" />
-        <path d="M12 3.5 L13.6 10.4 L20.5 12 L13.6 13.6 L12 20.5 L10.4 13.6 L3.5 12 L10.4 10.4 Z" fill="currentColor" />
-        <circle cx="12" cy="12" r="2" fill="#b3122e" />
+      <svg viewBox="0 0 32 32" className="h-[1.6em] w-[1.6em] shrink-0" aria-hidden="true">
+        <g transform="translate(16 16)">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <path key={i} d="M-1.6 -15 L0 -10.5 L1.6 -15 Z" fill="#ffc629" transform={`rotate(${i * 30})`} />
+          ))}
+          <circle r="9.5" fill="#c8102e" />
+          <circle r="4.2" fill="#ffc629" />
+        </g>
       </svg>
-      <span className="display-wide text-[0.95em] tracking-[0.28em]">{name}</span>
+      <span className="text-[1.05em] font-extrabold tracking-[0.2em] [font-variation-settings:'wdth'_110]">{name}</span>
     </span>
   );
 }

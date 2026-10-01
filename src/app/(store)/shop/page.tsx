@@ -15,33 +15,35 @@ const CATEGORIES: [string, string][] = [
   ["HEADWEAR", "Gorras"],
   ["BAGS", "Bolsas"],
   ["DRINKWARE", "Tazas"],
-  ["WALL_ART", "Arte"],
+  ["WALL_ART", "Pósters"],
   ["TECH_ACCESSORIES", "Tech"],
   ["HOME_LIVING", "Hogar"],
   ["STATIONERY", "Papelería"],
 ];
 
-export default async function ShopPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
-  const { c } = await searchParams;
+export default async function ShopPage({ searchParams }: { searchParams: Promise<{ c?: string; q?: string }> }) {
+  const { c, q: rawQ } = await searchParams;
+  const q = (rawQ ?? "").trim().slice(0, 80).toLowerCase();
   const t = await getT();
   const category = CATEGORIES.find(([code]) => code === c)?.[0];
   const all = await getPublishedProducts({ limit: 200 });
-  const products = category ? all.filter((p) => p.categoryCode === category) : all;
+  const byCat = category ? all.filter((p) => p.categoryCode === category) : all;
+  const products = q ? byCat.filter((p) => [p.name, p.shortDescription, p.collection?.name].filter(Boolean).join(" ").toLowerCase().includes(q)) : byCat;
   const present = new Set(all.map((p) => p.categoryCode));
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
 
   return (
     <>
-      <PageHero eyebrow={t("shop.count", { n: products.length })} title={t("shop.title")} />
+      <PageHero eyebrow={t("shop.count", { n: products.length })} title={q ? `“${rawQ?.trim()}”` : category ? CATEGORIES.find(([code]) => code === category)![1] : t("shop.title")} />
       <section className="bg-warm pb-24">
-        <div className="sticky top-16 z-30 border-b border-ink/10 bg-warm/90 backdrop-blur sm:top-[72px]">
+        <div className="border-b border-ink/[0.07] bg-white">
           <Container>
-            <nav className="no-scrollbar flex gap-6 overflow-x-auto py-4">
-              <Link href="/shop" className={`eyebrow shrink-0 ${!category ? "text-ink" : "text-stone hover:text-ink"}`}>
+            <nav className="no-scrollbar flex gap-2 overflow-x-auto py-4">
+              <Link href="/shop" className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${!category ? "border-ink bg-ink text-white" : "border-ink/12 bg-white hover:border-ink/40"}`}>
                 {t("shop.all")}
               </Link>
-              {CATEGORIES.filter(([code]) => present.has(code)).map(([code, label]) => (
-                <Link key={code} href={`/shop?c=${code}`} className={`eyebrow shrink-0 ${category === code ? "text-ink underline underline-offset-8" : "text-stone hover:text-ink"}`}>
+              {CATEGORIES.filter(([code]) => present.has(code) || code === category || all.length === 0).map(([code, label]) => (
+                <Link key={code} href={`/shop?c=${code}`} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${category === code ? "border-ink bg-ink text-white" : "border-ink/12 bg-white hover:border-ink/40"}`}>
                   {label}
                 </Link>
               ))}
@@ -58,9 +60,9 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               ))}
             </div>
           ) : (
-            <div className="grid gap-10 border border-ink/10 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
+            <div className="grid gap-10 rounded-3xl bg-white p-6 sm:p-12 lg:grid-cols-2 lg:items-center">
               <div>
-                <p className="display text-5xl">{t("home.products.empty.title")}</p>
+                <p className="headline text-3xl">{t("home.products.empty.title")}</p>
                 <p className="mt-4 text-stone-2">{t("home.products.empty.body")}</p>
               </div>
               <Newsletter source="shop-empty" />

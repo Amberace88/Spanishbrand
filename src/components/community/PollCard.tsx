@@ -25,7 +25,7 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
   const total = results ? Object.values(results).reduce((a, b) => a + b, 0) : 0;
   return (
     <div>
-      <h3 className="display text-4xl sm:text-5xl">{post.title}</h3>
+      <h3 className="headline text-3xl sm:text-4xl">{post.title}</h3>
       {post.body && <p className={`mt-3 max-w-xl text-sm ${dark ? "text-bone/70" : "text-stone-2"}`}>{post.body}</p>}
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         {post.options.map((o) => {
@@ -39,7 +39,7 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
             >
               {pct !== null && <span className="absolute inset-y-0 left-0 bg-rojo/20 transition-all duration-700" style={{ width: `${pct}%` }} />}
               <span className="relative flex items-center justify-between gap-3">
-                <span className="display text-2xl">{o.label}</span>
+                <span className="text-xl font-bold">{o.label}</span>
                 {pct !== null && <span className="text-sm tabular-nums">{pct}%</span>}
               </span>
             </button>
@@ -51,7 +51,7 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
           {t("community.vote")}
         </button>
       ) : (
-        <p className="serif mt-6 text-2xl italic">{t("community.voted")}</p>
+        <p className="mt-6 text-lg font-semibold text-oliva">{t("community.voted")}</p>
       )}
       {error && <p className="mt-3 text-sm text-rojo">{error}</p>}
     </div>

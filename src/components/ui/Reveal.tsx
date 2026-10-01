@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /** Scroll-triggered editorial reveal. */
-export function Reveal({ children, delay = 0, y = 28, className }: { children: ReactNode; delay?: number; y?: number; className?: string }) {
+export function Reveal({ children, delay = 0, y = 20, className }: { children: ReactNode; delay?: number; y?: number; className?: string }) {
   const reduce = useReducedMotion();
   return (
     <motion.div
@@ -13,7 +13,7 @@ export function Reveal({ children, delay = 0, y = 28, className }: { children: R
       initial={reduce ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.05 }}
-      transition={{ duration: 1.1, ease: EASE, delay }}
+      transition={{ duration: 0.8, ease: EASE, delay }}
     >
       {children}
     </motion.div>
