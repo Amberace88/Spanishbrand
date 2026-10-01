@@ -11,23 +11,23 @@ export function MediaImporter({ initial }: { initial: { name: string; url: strin
   const [items, setItems] = useState(initial);
   const [log, setLog] = useState<string[]>([]);
 
-  const save = async (name: string, dataUrl: string) => {
-    const r = await fetch("/api/admin/site-image", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, dataUrl }) });
-    const j = (await r.json().catch(() => ({}))) as { url?: string; error?: string };
+  const save = async (name: string, dataUrl: string, kind?: "photo" | "art") => {
+    const r = await fetch("/api/admin/site-image", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, dataUrl, kind }) });
+    const j = (await r.json().catch(() => ({}))) as { url?: string; error?: string; aspect?: number };
     if (!r.ok || !j.url) throw new Error(j.error ?? `HTTP ${r.status}`);
     setItems((prev) => [{ name, url: `${j.url}?v=${Date.now()}` }, ...prev.filter((x) => x.name !== name)]);
-    return j.url;
+    return { url: j.url, aspect: j.aspect };
   };
 
   useEffect(() => {
     const onMsg = async (e: MessageEvent) => {
       if (!TRUSTED.includes(e.origin)) return;
-      const d = e.data as { type?: string; name?: string; dataUrl?: string };
+      const d = e.data as { type?: string; name?: string; dataUrl?: string; kind?: "photo" | "art" };
       if (d?.type !== "ryg-image" || !d.name || !d.dataUrl) return;
       try {
-        const url = await save(d.name, d.dataUrl);
-        setLog((l) => [`✓ ${d.name}`, ...l]);
-        (e.source as Window | null)?.postMessage({ type: "ryg-image-ok", name: d.name, url }, e.origin);
+        const res = await save(d.name, d.dataUrl, d.kind);
+        setLog((l) => [`✓ ${d.name}${res.aspect ? ` · aspect ${res.aspect}` : ""}`, ...l]);
+        (e.source as Window | null)?.postMessage({ type: "ryg-image-ok", name: d.name, url: res.url, aspect: res.aspect }, e.origin);
       } catch (err) {
         setLog((l) => [`✗ ${d.name}: ${(err as Error).message}`, ...l]);
         (e.source as Window | null)?.postMessage({ type: "ryg-image-error", name: d.name, error: (err as Error).message }, e.origin);

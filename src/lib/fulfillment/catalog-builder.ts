@@ -130,7 +130,7 @@ async function save(job: JobRow, patch: Partial<JobRow>) {
 }
 
 export async function listJobs() {
-  const { data } = await db().from("catalog_jobs").select("key, kind, phase, product_id, error, attempts, updated_at, locked_until").eq("brand_id", env.brandId());
+  const { data } = await db().from("catalog_jobs").select("key, kind, phase, product_id, error, attempts, updated_at, locked_until, replaces:state->>replaces").eq("brand_id", env.brandId());
   return data ?? [];
 }
 
@@ -1028,7 +1028,16 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   };
   const resolves = plan.filter((p) => p.kind === "RESOLVE" && open(p.key) && free(p.key));
   const inProgress = plan.filter((p) => p.kind === "PRODUCT" && state.has(p.key) && open(p.key) && state.get(p.key)!.phase !== "new" && free(p.key));
-  const fresh = plan.filter((p) => p.kind === "PRODUCT" && open(p.key) && (!state.has(p.key) || state.get(p.key)!.phase === "new") && free(p.key));
+  // priority: brand-defining lines first (lookbook lion, royal crown, embroidery), then pending replacements, then the rest
+  const prio = (key: string) => {
+    const d = designBySlug(key.split(":")[1] ?? "");
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado"))) return 0;
+    if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
+    return 2;
+  };
+  const fresh = plan
+    .filter((p) => p.kind === "PRODUCT" && open(p.key) && (!state.has(p.key) || state.get(p.key)!.phase === "new") && free(p.key))
+    .sort((a, b) => prio(a.key) - prio(b.key));
   const queue = [...resolves, ...inProgress, ...fresh].map((p) => p.key);
   const remaining = queue.length;
   const results: { key: string; phase: string; error?: string }[] = [];

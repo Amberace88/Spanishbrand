@@ -18,9 +18,17 @@ async function artDataUri(file: string): Promise<string> {
   try {
     buf = await readFile(path.join(process.cwd(), "public", "catalog", "art", file));
   } catch {
-    const res = await fetch(`${assetBase()}/catalog/art/${file}`, { cache: "force-cache" });
-    if (!res.ok) throw new Error(`ART_MISSING: ${file} (${res.status})`);
-    buf = Buffer.from(await res.arrayBuffer());
+    // imported illustrations live in storage; static ones fall back to the deploy's public files
+    const supa = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+    const urls = [supa && `${supa}/storage/v1/object/public/print-files/site-art/${file}`, `${assetBase()}/catalog/art/${file}`].filter(Boolean) as string[];
+    for (const u of urls) {
+      const res = await fetch(u, { cache: "force-cache" }).catch(() => null);
+      if (res?.ok) {
+        buf = Buffer.from(await res.arrayBuffer());
+        break;
+      }
+    }
+    if (!buf) throw new Error(`ART_MISSING: ${file}`);
   }
   const uri = `data:image/png;base64,${buf.toString("base64")}`;
   artCache.set(file, uri);

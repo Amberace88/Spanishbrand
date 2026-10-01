@@ -23,7 +23,10 @@ const GROUPS: { design: string; es: string; en: string; sub: [string, string] }[
   { design: "corona-real-pecho", es: "Corona Real · Pecho", en: "Royal Crown · Chest", sub: ["Discreta, a la altura del corazón.", "Discreet, over the heart."] },
   { design: "corona-real-pecho-claro", es: "Corona Real · Pecho (claro)", en: "Royal Crown · Chest (light)", sub: ["La misma firma para prendas claras.", "The same mark for light garments."] },
   { design: "corona-bordada", es: "Corona Bordada", en: "Embroidered Crown", sub: ["Bordada en hilo: gorras, gorros, parches y prendas.", "Embroidered in thread: caps, beanies, patches and garments."] },
-  { design: "leon-real", es: "León Real", en: "Royal Lion", sub: ["Solo el arte: láminas, lienzos, fundas y casa.", "Just the art: prints, canvases, cases and home."] },
+  { design: "leon-real", es: "León Real · sin texto", en: "Royal Lion · no text", sub: ["Solo el arte, a gran tamaño: prendas, láminas, lienzos, fundas y casa.", "Just the art, large: garments, prints, canvases, cases and home."] },
+  { design: "leon-real-claro", es: "León Real · claro", en: "Royal Lion · light", sub: ["El león grande, sin texto, para prendas claras.", "The big lion, no text, for light garments."] },
+  { design: "leon-escudo", es: "León al pecho", en: "Lion on the chest", sub: ["Pequeño y discreto, a la altura del corazón.", "Small and discreet, over the heart."] },
+  { design: "leon-escudo-claro", es: "León al pecho · claro", en: "Lion on the chest · light", sub: ["La versión discreta para prendas claras.", "The discreet version for light garments."] },
 ];
 
 export default async function LookbookPage() {
@@ -55,8 +58,8 @@ export default async function LookbookPage() {
               <a href="#coleccion" className="btn bg-[#c8102e] px-7 py-4 text-[15px] text-white">
                 {en ? "Shop the line" : "Comprar la línea"} <IconArrow className="h-4 w-4" />
               </a>
-              <Link href="/disena" className="btn btn-ghost-light px-7 py-4 text-[15px]">
-                {en ? "Make it yours" : "Hazla tuya"}
+              <Link href="/disena?style=leon-real" className="btn btn-ghost-light px-7 py-4 text-[15px]">
+                {en ? "Compose your own lion" : "Compón tu propio león"}
               </Link>
             </div>
           </div>

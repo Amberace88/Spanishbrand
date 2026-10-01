@@ -34,7 +34,7 @@ export function LookbookLeon({ products, en, labels }: { products: PublicProduct
                 <Link href="/lookbook" className="btn bg-[#c8102e] px-7 py-4 text-[15px] text-white hover:-translate-y-px hover:shadow-[0_12px_30px_-10px_#c8102e]">
                   {en ? "See the collection" : "Ver la colección"} <IconArrow className="h-4 w-4" />
                 </Link>
-                <Link href="/disena" className="btn btn-ghost-light px-7 py-4 text-[15px]">
+                <Link href="/disena?style=leon-real" className="btn btn-ghost-light px-7 py-4 text-[15px]">
                   {en ? "Make it yours" : "Hazla tuya"}
                 </Link>
               </div>

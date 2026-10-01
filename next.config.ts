@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.printify.com" },
     ],
   },
+  // Brand illustrations imported from the admin live in storage (site-art/); /catalog/art/<name>.png falls back there.
+  async rewrites() {
+    const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+    return base ? { beforeFiles: [], afterFiles: [], fallback: [{ source: "/catalog/art/:file", destination: `${base}/storage/v1/object/public/print-files/site-art/:file` }] } : [];
+  },
   async headers() {
     return [
       {

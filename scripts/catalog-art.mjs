@@ -624,5 +624,10 @@ for (const name of ["lion-crowned", "crown-royal"]) {
   await writeFile(new URL(`${name}.png`, OUT), out.data);
   manifest[name] = +(out.info.height / out.info.width).toFixed(4);
 }
+// Illustrations imported through the admin (stored in storage site-art/, aspects recorded here)
+try {
+  const remote = JSON.parse(await (await import("node:fs/promises")).readFile(new URL("../src/lib/catalog/remote-art.json", import.meta.url), "utf8"));
+  for (const [name, aspect] of Object.entries(remote)) manifest[name] ??= aspect;
+} catch {}
 await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
 console.log(Object.keys(manifest).length, "art files");
