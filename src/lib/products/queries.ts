@@ -173,7 +173,7 @@ function publishedQuery() {
  * ("use cache" needs the cacheComponents flag, which changes rendering for the whole app; unstable_cache
  * is the data-cache primitive that works without it in this Next version.) */
 const LISTING_TTL = 180_000;
-const LISTING_REVALIDATE = 1800; // s — new products appear within 30 min (or at once via revalidateTag("listing"))
+const LISTING_REVALIDATE = 3600; // s — new products appear within the hour (or at once via revalidateTag("listing"))
 const LISTING_CHUNK = 250;
 let snapshot: { at: number; rows: PublicProduct[] } | null = null;
 let inflight: Promise<PublicProduct[]> | null = null;
@@ -229,7 +229,7 @@ function loadListingShared() {
 }
 const cachedListingCount = unstable_cache(async () => {
   const n = (await loadListingShared()).length;
-  if (!n) throw new Error("LISTING_EMPTY"); // never pin an empty catalogue in the shared cache for 30 min
+  if (!n) throw new Error("LISTING_EMPTY"); // never pin an empty catalogue in the shared cache
   return n;
 },["listing-count-v1"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
 const cachedListingChunk = unstable_cache(async (i: number) => (await loadListingShared()).slice(i * LISTING_CHUNK, (i + 1) * LISTING_CHUNK), ["listing-chunk-v1"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });

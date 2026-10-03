@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   } else {
     return NextResponse.json({ error: "KEY_OR_ALL_REQUIRED" }, { status: 400 });
   }
-  // new photos reach the storefront at once (listing + product pages are cached for 10–30 min)
+  // new photos reach the storefront at once (listing cached up to 1 h, product pages 10 min)
   if (results.some((r) => r.phase === "done")) revalidateTag("listing", "max");
   log.info("CATALOG", "kids image refresh", { ms: Date.now() - started, results: results.length });
   const remaining = body.all ? (await listKidsRefresh()).filter((p) => !p.refresh || (p.refresh.phase !== "done" && p.refresh.phase !== "failed")).length : undefined;
