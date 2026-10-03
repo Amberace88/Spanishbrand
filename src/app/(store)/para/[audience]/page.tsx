@@ -43,7 +43,7 @@ const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; 
     seoDesc: "Camisetas y sudaderas infantiles y para peques de 2 a 5 años: Pequeño León, Mi Primer Mundial y más. Tintas al agua, fabricado en Europa.",
     word: "PEQUES",
     accent: "#d4a62a",
-    photos: ["look-barca-nino"],
+    photos: ["/lifestyle/kids-1.webp", "/lifestyle/kids-5.webp", "/lifestyle/kids-3.webp"],
     tag: "ninos",
     garments: ["kids", "kidshoodie", "toddler"],
   },
@@ -52,7 +52,7 @@ const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; 
     seoDesc: "Bodies de bebé Hecho en España, Pequeño León y Mi Primer Mundial. Algodón suave con corchetes, fabricado bajo pedido en Europa.",
     word: "BEBÉ",
     accent: "#d98b96",
-    photos: [],
+    photos: ["/lifestyle/kids-2.webp"],
     tag: "bebes",
     garments: ["baby"],
   },
@@ -61,7 +61,7 @@ const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; 
     seoDesc: "Camisetas, sudaderas, tazas y delantales para abuelos y abuelas: El mejor abuelo de España, Abuela de oro y regalos con el león coronado.",
     word: "ABUELOS",
     accent: "#9a7222",
-    photos: [],
+    photos: ["/lifestyle/kids-4.webp"],
     tag: "abuelos",
     garments: [],
   },
@@ -114,7 +114,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
 
   // hero collage: campaign photos first, then real product photos, then live design previews
-  const photos = [...cfg.photos.map((k) => site[k]).filter(Boolean), ...own.filter((p) => p.images[0]).filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i).map((p) => p.images[0].url)].slice(0, 3);
+  const photos = [...cfg.photos.map((k) => (k.startsWith("/") ? k : site[k])).filter(Boolean), ...own.filter((p) => p.images[0]).filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i).map((p) => p.images[0].url)].slice(0, 3);
   const heroDesigns = designs.slice(0, 3 - Math.min(3, photos.length));
   const href = (patch: { t?: string; page?: string }) => {
     const q = new URLSearchParams();

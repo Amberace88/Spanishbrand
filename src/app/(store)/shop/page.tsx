@@ -88,7 +88,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const q = (sp.q ?? "").trim().slice(0, 80).toLowerCase();
   const [t, locale, all, collections, site] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1500 }), getCollections(), listSiteImages()]);
   // category covers: our campaign photos (models in Spain wearing house designs) first, then product photos
-  const SITE_COVER: Record<string, string> = { APPAREL: "look-toro-hombre", KIDS: "look-barca-nino", HEADWEAR: "cat-gorras", BAGS: "cat-bolsas", DRINKWARE: "cat-tazas" };
+  const SITE_COVER: Record<string, string> = { APPAREL: "look-toro-hombre", KIDS: "/lifestyle/kids-1.webp", HEADWEAR: "cat-gorras", BAGS: "cat-bolsas", DRINKWARE: "cat-tazas" };
   const en = locale === "en";
   const category = CATEGORIES.find((code) => code === sp.c);
   const sort: Sort = SORTS.find((s) => s === sp.sort) ?? "featured";
@@ -136,7 +136,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (!filtered && !sp.all) {
     const cats = CATEGORIES.map((code) => {
       const items = all.filter((p) => p.categoryCode === code);
-      const cover = (SITE_COVER[code] && site[SITE_COVER[code]]) || (sortProducts(items, "featured").find((p) => p.images[0])?.images[0]?.url ?? null);
+      const cover = (SITE_COVER[code] && (SITE_COVER[code].startsWith("/") ? SITE_COVER[code] : site[SITE_COVER[code]])) || (sortProducts(items, "featured").find((p) => p.images[0])?.images[0]?.url ?? null);
       const types = [...new Set(items.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
       return { code, count: items.length, cover, types };
     }).filter((c) => c.count);
