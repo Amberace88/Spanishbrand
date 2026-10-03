@@ -272,7 +272,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs).replace(/</g, "\\u003c") }} />
       <TrackView event="product_view" productId={p.id} />
       <section className="bg-bg pb-20 pt-6 sm:pt-10">
-        <Container>
+        <Container className="2xl:max-w-[1760px]">
           <nav className="mb-6 flex flex-wrap gap-2 text-sm text-muted">
             <Link href="/shop" className="hover:text-fg">
               {t("nav.shop")}
