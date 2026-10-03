@@ -633,3 +633,6 @@ await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
 console.log(Object.keys(manifest).length, "art files");
 // León series art (embroidery lions, badge, shield, band) — merged into the manifest just written
 await import("./lion-art.mjs");
+// Fútbol PRO art (big terrace prints, fp-*) — merged into the manifest as well
+// own process: it loads its typefaces through a private fontconfig, which must be set before libvips starts
+(await import("node:child_process")).execFileSync(process.execPath, [new URL("./futbol-art.mjs", import.meta.url).pathname], { stdio: "inherit" });

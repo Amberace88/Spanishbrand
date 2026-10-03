@@ -15,11 +15,12 @@ import { footballDesigns } from "./football";
 import { artSeriesDesigns, refraneroDesigns } from "./art-series";
 import { leonDesigns } from "./leon";
 import { familyDesigns } from "./family";
+import { futbolProDesigns } from "./futbol-pro";
 
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
 export type Tone = "dark" | "light";
-export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket" | "cap" | "beanie" | "embtee" | "embhoodie" | "patch" | "glass" | "coaster" | "tumbler" | "flag" | "postcard" | "calendar" | "dadhat" | "trucker" | "bucket" | "truckerprint" | "bucketprint" | "bottle" | "socks" | "womtee" | "womcrop" | "womsweat" | "kidshoodie" | "toddler" | "baby";
+export type BlueprintKey = "tee" | "hoodie" | "sweat" | "mug" | "tote" | "poster" | "sticker" | "kids" | "framed" | "canvas" | "towel" | "apron" | "pillow" | "bandana" | "phonecase" | "puzzle" | "doormat" | "blanket" | "cap" | "beanie" | "embtee" | "embhoodie" | "patch" | "glass" | "coaster" | "tumbler" | "flag" | "postcard" | "calendar" | "dadhat" | "trucker" | "bucket" | "truckerprint" | "bucketprint" | "bottle" | "socks" | "womtee" | "womcrop" | "womsweat" | "kidshoodie" | "toddler" | "baby" | "jersey";
 
 export interface Design {
   slug: string;
@@ -645,7 +646,7 @@ const BASE_DESIGNS: Design[] = [
   },
 ];
 
-export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns(), ...leonDesigns(), ...familyDesigns()];
+export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns(), ...leonDesigns(), ...familyDesigns(), ...futbolProDesigns()];
 
 export const designBySlug = (slug: string) => DESIGNS.find((d) => d.slug === slug) ?? null;
 export const designsFor = (collection: string) => DESIGNS.filter((d) => d.collection === collection);

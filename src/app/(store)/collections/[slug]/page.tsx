@@ -36,7 +36,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
   const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 })]);
-  const rank = (p: (typeof all)[number]) => (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
+  const rank = (p: (typeof all)[number]) => (p.tags.includes("futbol-pro") ? 9 : 0) + (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
   const byTag = TAG_COLLECTIONS.has(c.slug);
   const own = all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))).sort((a, b) => rank(b) - rank(a));
   const designs = byTag ? DESIGNS.filter((d) => d.collection === c.slug || d.tags?.includes(c.slug)) : designsFor(c.slug);
@@ -104,6 +104,15 @@ export default async function CollectionPage({ params, searchParams }: { params:
 
       <section id="productos" className="scroll-mt-24 bg-bg py-12 sm:py-16">
         <Container>
+          {c.slug === "futbol" && (
+            <Link href="/futbol" className="group mb-10 flex items-center justify-between gap-4 overflow-hidden rounded-[1.75rem] bg-[#0b0b0b] p-6 text-white sm:p-8">
+              <div>
+                <p className="kicker text-gold">★★ {t("futbol.eyebrow")}</p>
+                <p className="mega mt-2 text-4xl sm:text-6xl">{t("futbol.title")} · {t("futbol.series.ciudad")}</p>
+              </div>
+              <span className="btn btn-primary shrink-0">{t("futbol.ctaShop")} →</span>
+            </Link>
+          )}
           {own.length > 0 && (
             <nav className="no-scrollbar mb-8 flex gap-2 overflow-x-auto">
               <Link href={`/collections/${c.slug}#productos`} className={chip(!type && !design)}>

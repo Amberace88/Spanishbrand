@@ -38,6 +38,8 @@ export interface Blueprint {
   maxVariants?: number;
   details: string;
   care: string;
+  /** All-over (cut & sew) products: extra panels that also get a print file (front = `placement`). */
+  aopPanels?: string[];
 }
 
 export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
@@ -805,6 +807,26 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
     price: 22.95,
     details: "Body de manga corta para bebé en algodón suave, con corchetes en la entrepierna para cambiar el pañal en un momento. Impresión directa (DTG) con tintas al agua.",
     care: "Lavar del revés a 30 °C. No usar lejía. Secar a baja temperatura.",
+  },
+  jersey: {
+    key: "jersey",
+    provider: "printful",
+    productType: "SPORTS_JERSEY",
+    category: "APPAREL",
+    label: "Camiseta deportiva",
+    // resolved at build time by title; candidates without EU production are skipped (ranked blueprint)
+    match: /All-Over Print.*(Sports Jersey|Athletic T-?Shirt|Soccer|Football Jersey)|Recycled.*Sports Jersey/i,
+    exclude: /Kids|Youth|Toddler|Basketball|Hockey|Baseball|Tank|Long Sleeve|Women/i,
+    prefer: [/Recycled.*Sports Jersey/i, /Sports Jersey/i, /Athletic/i],
+    placement: "front",
+    aopPanels: ["back", "sleeve_left", "sleeve_right", "left_sleeve", "right_sleeve"],
+    renderMode: "cover",
+    technique: "SUBLIMATION",
+    sizes: ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+    price: 44.95,
+    sizePremium: { "2XL": 3, "3XL": 5 },
+    details: "Camiseta deportiva de poliéster técnico, ligera y transpirable, estampada entera por sublimación: delantero, espalda y mangas en color de borde a borde, que ni se agrieta ni destiñe. Corte regular de camiseta de fútbol. Fabricada bajo pedido en Europa.",
+    care: "Lavar del revés en frío. No usar suavizante ni lejía. Secar al aire. No planchar sobre el estampado.",
   },
 };
 

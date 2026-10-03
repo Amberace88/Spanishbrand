@@ -1,0 +1,2 @@
+Fonts in this folder are licensed under the SIL Open Font License 1.1 (Anton, Big Shoulders Display, Graduate, Bungee, Yellowtail, Inter — Google Fonts, via @fontsource; WOFF converted to TTF).
+Used only by scripts/futbol-art.mjs to draw the Fútbol PRO print art; fonts.conf points fontconfig at this folder.
