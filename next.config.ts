@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import { existsSync } from "node:fs";
+import path from "node:path";
+
+// Club hero film: detected at build time so a missing file never triggers a 404 request.
+const clubMedia = (f: string) => (existsSync(path.join(process.cwd(), "public/club", f)) ? "1" : "");
 
 const supabaseHost = (() => {
   try {
@@ -10,6 +15,11 @@ const supabaseHost = (() => {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  env: {
+    CLUB_LOOP_MP4: clubMedia("club-loop.mp4"),
+    CLUB_LOOP_WEBM: clubMedia("club-loop.webm"),
+    CLUB_POSTER: clubMedia("club-poster.webp"),
+  },
   // Print rendering (Satori) reads these at runtime in serverless functions.
   outputFileTracingIncludes: { "/**": ["./src/lib/personalization/fonts/**", "./public/catalog/art/**"] },
   images: {
