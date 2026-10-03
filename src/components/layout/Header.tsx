@@ -21,6 +21,7 @@ const EXPLORE: { title: L; links: { href: string; label: L }[] }[] = [
     links: [
       { href: "/arte", label: { es: "Arte de autor", en: "Author art", de: "Autorenkunst" } },
       { href: "/lookbook", label: { es: "León Coronado", en: "Crowned Lion", de: "Gekrönter Löwe" } },
+      { href: "/collections/leon", label: { es: "Serie León", en: "Lion series", de: "Löwen-Serie" } },
       { href: "/collections/espana", label: { es: "España", en: "Spain", de: "Spanien" } },
       { href: "/collections/heritage", label: { es: "Heritage", en: "Heritage", de: "Heritage" } },
       { href: "/collections/mediterraneo", label: { es: "Mediterráneo", en: "Mediterranean", de: "Mittelmeer" } },

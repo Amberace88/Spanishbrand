@@ -27,6 +27,16 @@ const GROUPS: { design: string; es: string; en: string; sub: [string, string] }[
   { design: "leon-real-claro", es: "León Real · claro", en: "Royal Lion · light", sub: ["El león grande, sin texto, para prendas claras.", "The big lion, no text, for light garments."] },
   { design: "leon-escudo", es: "León al pecho", en: "Lion on the chest", sub: ["Pequeño y discreto, a la altura del corazón.", "Small and discreet, over the heart."] },
   { design: "leon-escudo-claro", es: "León al pecho · claro", en: "Lion on the chest · light", sub: ["La versión discreta para prendas claras.", "The discreet version for light garments."] },
+  // Serie León
+  { design: "leon-bordado", es: "León Bordado", en: "Embroidered Lion", sub: ["El león en hilo amarillo y rojo: gorras, gorros, parches y prendas.", "The lion in yellow and red thread: caps, beanies, patches and garments."] },
+  { design: "leon-espana-bordado", es: "León · España", en: "Lion · España", sub: ["El león y ESPAÑA bordados en horizontal, hechos para la gorra.", "The lion and ESPAÑA embroidered side by side, made for the cap."] },
+  { design: "leon-rojigualda-bordado", es: "León Rojigualda", en: "Red-and-gold Lion", sub: ["El león en oro viejo entre dos franjas de la bandera.", "The lion in old gold between two flag stripes."] },
+  { design: "leon-minimal-bordado", es: "León Minimal", en: "Minimal Lion", sub: ["Un solo hilo de oro viejo.", "A single old-gold thread."] },
+  { design: "leon-escudo-bordado", es: "Escudo del León", en: "Lion Crest", sub: ["Corona, escudo y LEÓN DE ESPAÑA, bordados para el pecho y en parche.", "Crown, shield and LEÓN DE ESPAÑA, embroidered for the chest and as a patch."] },
+  { design: "leon-corazon", es: "Corazón de León", en: "Lionheart", sub: ["El león coronado con «corazón de león» en letra dorada.", "The crowned lion with “corazón de león” in gold script."] },
+  { design: "leon-hispania", es: "Hispania", en: "Hispania", sub: ["La insignia de época con el león de la casa.", "The vintage badge with the house lion."] },
+  { design: "leon-blason-noche", es: "Blasón del León", en: "Lion Blazon", sub: ["El león coronado dentro de un escudo de oro.", "The crowned lion inside a gold shield."] },
+  { design: "leon-espalda", es: "León a la Espalda", en: "Lion on the Back", sub: ["Pequeño al pecho, enorme en la espalda.", "Small on the chest, big on the back."] },
 ];
 
 export default async function LookbookPage() {

@@ -631,3 +631,5 @@ try {
 } catch {}
 await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
 console.log(Object.keys(manifest).length, "art files");
+// León series art (embroidery lions, badge, shield, band) — merged into the manifest just written
+await import("./lion-art.mjs");
