@@ -16,6 +16,7 @@ import { renderPrintFile } from "@/lib/personalization/render";
 import { PRESETS, TEMPLATE_INFO } from "@/lib/personalization/presets";
 import { uploadObject } from "@/lib/personalization/storage";
 import type { PersoConfig, TemplateKey } from "@/lib/personalization/types";
+import { EMB_FONTS, EMB_MAX_COLORS, EMB_MAX_LAYERS, KINDS, THREADS } from "@/lib/personalization/kinds";
 import type { StaffSession } from "@/lib/auth/rbac";
 import { FALLBACK_COLLECTIONS } from "@/lib/products/queries";
 import { BLUEPRINTS, normSize, posterSize, retail, type Blueprint } from "@/lib/catalog/blueprints";
@@ -37,11 +38,70 @@ export interface PlanItem {
 /** Extra retail for a second (back) print: Printful charges ≈ 5–6 € per additional placement. */
 const BACK_PRINT_PRICE = 7;
 
-const BLANKS: { bp: BlueprintKey; placements: ("front" | "back")[] }[] = [
+const BLANKS: { bp: BlueprintKey; placements: ("front" | "back")[]; tones?: Tone[] }[] = [
   { bp: "tee", placements: ["front", "back"] },
   { bp: "hoodie", placements: ["front", "back"] },
   { bp: "tote", placements: ["front"] },
+  /* Designer catalogue (kinds.ts holds the print area, layout and picker category of each).
+   * Colours: blanks keep ≤ 4 (2 dark + 2 light) per garment; the back placement is offered only when the
+   * resolved provider product prints there. Socks are left out: the sublimation sock template (two socks,
+   * heel/toe zones) is not a simple rectangle a customer can design on safely. */
+  { bp: "sweat", placements: ["front", "back"] },
+  { bp: "womtee", placements: ["front", "back"] },
+  { bp: "womsweat", placements: ["front", "back"] },
+  { bp: "womcrop", placements: ["front"] },
+  { bp: "kids", placements: ["front", "back"] },
+  { bp: "kidshoodie", placements: ["front"] },
+  { bp: "toddler", placements: ["front"] },
+  { bp: "baby", placements: ["front"] },
+  { bp: "mug", placements: ["front"], tones: ["light"] }, // white glossy mug: full-colour, any background
+  { bp: "pillow", placements: ["front"] },
+  { bp: "towel", placements: ["front"] },
+  { bp: "blanket", placements: ["front"] },
+  { bp: "apron", placements: ["front"] },
+  { bp: "phonecase", placements: ["front"] },
+  { bp: "sticker", placements: ["front"] },
+  { bp: "tumbler", placements: ["front"] },
+  { bp: "flag", placements: ["front"] },
+  { bp: "poster", placements: ["front"] },
+  { bp: "framed", placements: ["front"] },
+  { bp: "canvas", placements: ["front"] },
+  // Embroidery (text only, ≤ 3 brand thread colours — see kinds.ts THREADS / validate.ts EMB_LIMITS)
+  { bp: "cap", placements: ["front"] },
+  { bp: "dadhat", placements: ["front"] },
+  { bp: "trucker", placements: ["front"] },
+  { bp: "beanie", placements: ["front"] },
 ];
+
+/** Personalization config of a designer blank: print-area ratio, layout and limits come from kinds.ts. */
+function blankConfig(b: (typeof BLANKS)[number], res: { placements: string[] }): PersoConfig {
+  const k = KINDS[b.bp];
+  const placements = b.placements.filter((p) => p === "front" || res.placements.includes("back"));
+  const emb = k?.layout === "emb";
+  return {
+    mode: "designer",
+    placements,
+    extraPrice: emb ? 6 : 5,
+    maxLayers: emb ? EMB_MAX_LAYERS : 8,
+    ...(k ? { kind: k.key, aspect: k.aspect } : {}),
+    ...(placements.includes("back") ? { backPrice: BACK_PRINT_PRICE } : {}),
+    ...(emb ? { embroidery: { threads: THREADS.map((t) => t.hex), maxColors: EMB_MAX_COLORS, fonts: EMB_FONTS } } : {}),
+  };
+}
+
+/** Mockup artwork for embroidered blanks: thread colours only. */
+const PLACEHOLDER_EMB: Design = {
+  slug: "tu-diseno",
+  collection: "esenciales",
+  name: "Tu bordado",
+  line: "",
+  tone: "dark",
+  products: [],
+  layers: [
+    { id: "a", type: "text", text: "TU NOMBRE", font: "sport", color: "#ffcc00", x: 0.5, y: 0.4, w: 0.8, rotation: 0 },
+    { id: "b", type: "text", text: "ESPAÑA", font: "serif", color: "#cc3333", x: 0.5, y: 0.62, w: 0.42, rotation: 0 },
+  ],
+};
 /** Fill-in template products for "Personaliza". */
 const TEMPLATES: { template: TemplateKey; bp: BlueprintKey; tone: Tone; sample: Record<string, string> }[] = [
   { template: "jersey", bp: "tee", tone: "dark", sample: { name: "GARCÍA", number: "10" } },
@@ -90,8 +150,7 @@ export function buildPlan(): PlanItem[] {
     }
   }
   for (const b of BLANKS) {
-    res.add(resKey(b.bp, "dark"));
-    res.add(resKey(b.bp, "light"));
+    for (const tone of b.tones ?? (["dark", "light"] as Tone[])) res.add(resKey(b.bp, tone));
     products.push({ key: `b:${b.bp}`, kind: "PRODUCT", label: `${BLUEPRINTS[b.bp].label} personalizada` });
   }
   for (const t of TEMPLATES) {
@@ -452,7 +511,7 @@ function specFor(key: string): Spec {
   }
   if (parts[0] === "b") {
     const blank = BLANKS.find((b) => b.bp === parts[1])!;
-    return { kind: "blank", bp: BLUEPRINTS[blank.bp], tones: ["dark", "light"], design: PLACEHOLDER, blank };
+    return { kind: "blank", bp: BLUEPRINTS[blank.bp], tones: blank.tones ?? ["dark", "light"], design: KINDS[blank.bp]?.layout === "emb" ? PLACEHOLDER_EMB : PLACEHOLDER, blank };
   }
   const template = TEMPLATES.find((t) => t.template === parts[1] && t.bp === parts[2]);
   if (!template) throw new Error(`Unknown template job ${key}`);
@@ -464,9 +523,17 @@ const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudade
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
   if (spec.kind === "blank") {
+    const masc = /^(Cojín|Delantal|Gorro|Póster|Lienzo|Body|Vaso|Calcetines)/.test(bp.label);
+    if (KINDS[bp.key]?.layout === "emb") {
+      return {
+        name: `${bp.label} ${masc ? "personalizado" : "personalizada"}`,
+        short: `Borda tu nombre, tus iniciales o tu frase en tu ${TYPE_ES[bp.key]}: hasta 3 colores de hilo.`,
+        story: "Escribe tu texto en nuestro estudio online, elige tipografía y colores de hilo y lo bordamos para ti. El bordado admite solo texto, con los hilos de la casa (oro viejo, rojo, amarillo, blanco y negro).",
+      };
+    }
     return {
-      name: `${bp.label} personalizada`,
-      short: `Diseña tu propia ${TYPE_ES[bp.key]}: textos, tipografías y tu imagen. La fabricamos para ti.`,
+      name: `${bp.label} ${masc ? "personalizado" : "personalizada"}`,
+      short: `Diseña ${masc ? "tu propio" : "tu propia"} ${TYPE_ES[bp.key]}: textos, tipografías y tu imagen. ${masc ? "Lo" : "La"} fabricamos para ti.`,
       story: "Crea tu diseño en nuestro estudio online con las tipografías y colores de la casa, o sube tu propia imagen. Las imágenes subidas las revisa nuestro equipo antes de imprimir.",
     };
   }
@@ -619,7 +686,7 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
   const costs = variants.map((v) => (v.cost == null ? null : Number(v.cost)));
   const personalization: PersoConfig | null =
     spec.kind === "blank"
-      ? { mode: "designer", placements: spec.blank!.placements, extraPrice: 5, maxLayers: 8 }
+      ? blankConfig(spec.blank!, res)
       : spec.kind === "template"
         ? PRESETS[spec.template!.template]
         : null;
@@ -666,7 +733,16 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
       role: "PRIMARY",
       provider_product_id: res.externalId,
       fulfillment_method: bp.technique,
-      print_config: files.length ? { files, canvas: res.printfile, catalog: job.key } : { personalized: true, placement: spec.kind === "template" ? PRESETS[spec.template!.template].placement : "front", canvas: res.printfile, catalog: job.key },
+      print_config: files.length
+        ? { files, canvas: res.printfile, catalog: job.key }
+        : {
+            personalized: true,
+            placement: spec.kind === "template" ? PRESETS[spec.template!.template].placement : "front",
+            canvas: res.printfile,
+            catalog: job.key,
+            // our side → provider file type (mugs/posters "default", caps "embroidery_front", Printify "front"…)
+            ...(spec.kind === "blank" ? { placements: { front: res.placement ?? res.placements[0] ?? bp.placement, back: "back" } } : {}),
+          },
       approved: true,
       approved_by: staff.userId,
       approved_at: new Date().toISOString(),
@@ -771,7 +847,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
       placement = preset.placement;
       png = await sharp(png).resize(width, height, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
     } else {
-      png = await renderDesign(PLACEHOLDER, { width, height, mode: bp.renderMode });
+      png = await renderDesign(spec.kind === "blank" ? design : PLACEHOLDER, { width, height, mode: bp.renderMode });
     }
     artUrl = await uploadObject(`catalog/mockup-src/${job.key.replace(/:/g, "-")}-${Date.now().toString(36)}.png`, png, "image/png");
   }

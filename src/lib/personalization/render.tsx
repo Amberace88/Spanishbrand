@@ -26,12 +26,15 @@ export async function loadFonts() {
     if (!res.ok) throw new Error(`FONT_MISSING: ${file} (${res.status})`);
     return await res.arrayBuffer();
   };
-  const [cinzel, brico, inter, pacifico, anton] = await Promise.all([
+  const [cinzel, brico, inter, pacifico, anton, graduate, spaceMono, playfair] = await Promise.all([
     load("Cinzel_700Bold.ttf"),
     load("BricolageGrotesque_800ExtraBold.ttf"),
     load("Inter_800ExtraBold.ttf"),
     load("Pacifico_400Regular.ttf"),
     load("Anton_400Regular.ttf"),
+    load("Graduate_400Regular.ttf"),
+    load("SpaceMono_700Bold.ttf"),
+    load("PlayfairDisplay_700Bold_Italic.ttf"),
   ]);
   fontsCache = [
     { name: PRINT_FONTS.serif, data: cinzel, weight: 700, style: "normal" },
@@ -39,6 +42,10 @@ export async function loadFonts() {
     { name: PRINT_FONTS.sans, data: inter, weight: 800, style: "normal" },
     { name: PRINT_FONTS.script, data: pacifico, weight: 400, style: "normal" },
     { name: PRINT_FONTS.sport, data: anton, weight: 400, style: "normal" },
+    // designer-only faces (customer text)
+    { name: PRINT_FONTS.varsity, data: graduate, weight: 400, style: "normal" },
+    { name: PRINT_FONTS.mono, data: spaceMono, weight: 700, style: "normal" },
+    { name: PRINT_FONTS.elegant, data: playfair, weight: 700, style: "normal" },
   ];
   return fontsCache;
 }

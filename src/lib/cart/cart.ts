@@ -88,7 +88,7 @@ export async function getCart(): Promise<CartView> {
     const v = it.product_variants as unknown as { variant_name: string; retail_price: number | null; active: boolean; stock_status: string; image: string | null };
     const personalized = isPersonalized(it.personalization);
     const perso = personalized ? validatePersonalization(p.personalization, it.personalization, { publicUrlFor }) : null;
-    const currentPrice = round2(Number(v.retail_price ?? p.retail_price) + extraPriceFor(p.personalization, personalized));
+    const currentPrice = round2(Number(v.retail_price ?? p.retail_price) + extraPriceFor(p.personalization, personalized, it.personalization));
     let issue: string | null = null;
     if (p.status !== "PUBLISHED" || !p.fulfillment_eligible) issue = "UNAVAILABLE";
     else if (perso && !perso.ok) issue = "UNAVAILABLE";
@@ -145,7 +145,7 @@ export async function addToCart(variantId: string, quantity: number, personaliza
     persoKey = res.data.key;
   }
   const cartId = await ensureCart();
-  const price = round2(Number(v.retail_price ?? p.retail_price) + extraPriceFor(p.personalization, persoKey !== ""));
+  const price = round2(Number(v.retail_price ?? p.retail_price) + extraPriceFor(p.personalization, persoKey !== "", persoValue));
   const { data: existing } = await sb.from("cart_items").select("id, quantity").eq("cart_id", cartId).eq("variant_id", variantId).eq("personalization_key", persoKey).maybeSingle();
   if (existing) {
     await sb.from("cart_items").update({ quantity: Math.min(MAX_QTY, existing.quantity + qty), unit_price: price }).eq("id", existing.id);
@@ -169,7 +169,7 @@ export async function setLineQuantity(lineId: string, quantity: number) {
   if (!line) return;
   const { data: v } = await sb.from("product_variants").select("retail_price, products(retail_price, personalization)").eq("id", line.variant_id).single();
   const prod = v?.products as unknown as { retail_price: number; personalization: PersoConfig | null } | undefined;
-  const price = round2(Number(v?.retail_price ?? prod?.retail_price) + extraPriceFor(prod?.personalization, isPersonalized(line.personalization)));
+  const price = round2(Number(v?.retail_price ?? prod?.retail_price) + extraPriceFor(prod?.personalization, isPersonalized(line.personalization), line.personalization));
   await sb.from("cart_items").update({ quantity: Math.min(MAX_QTY, Math.floor(quantity)), unit_price: price }).eq("id", lineId).eq("cart_id", cartId);
 }
 
