@@ -70,8 +70,7 @@ export default async function ArtePage() {
           </div>
           <div className="relative grid min-h-[420px] grid-cols-3 gap-2 p-4 sm:p-8 lg:min-h-[640px]" aria-hidden>
             {["toro", "flamenca", "quijote", "alhambra", "faro", "fallas", "paella", "galeon", "castellers"].map((k, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={k} src={siteArtSrc(`art-${k}`)} alt="" loading="eager" fetchPriority={i < 3 ? "high" : "auto"} className="aspect-square h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.18)]" />
+              <Image key={k} src={siteArtSrc(`art-${k}`)} alt="" width={420} height={420} sizes="(min-width:1024px) 15vw, 30vw" loading="eager" fetchPriority={i < 3 ? "high" : "auto"} className="aspect-square h-full w-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.18)]" />
             ))}
           </div>
         </div>
@@ -108,8 +107,7 @@ export default async function ArtePage() {
                     <Reveal key={k} delay={(i % 3) * 0.05}>
                       <div className="group overflow-hidden rounded-[1.6rem] border border-line bg-surface">
                         <Link href={lead ? `/products/${lead.slug}` : `/disena?style=arte-${k}`} className="relative block aspect-square overflow-hidden bg-[#f3ead7]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={lead?.images[0]?.url ?? siteArtSrc(pc.art)} alt={pc.name} loading="lazy" className={`h-full w-full transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105 ${lead?.images[0] ? "object-cover" : "object-contain p-8"}`} />
+                          <Image src={lead?.images[0]?.url ?? siteArtSrc(pc.art)} alt={pc.name} fill sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" className={`h-full w-full transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105 ${lead?.images[0] ? "object-cover" : "object-contain p-8"}`} />
                         </Link>
                         <div className="p-4 sm:p-5">
                           <div className="flex items-baseline justify-between gap-3">

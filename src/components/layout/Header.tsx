@@ -3,6 +3,7 @@ import { LanguageMenu } from "@/components/layout/LanguageMenu";
 import { CITIES } from "@/lib/catalog/cities";
 import { AUDIENCES } from "@/lib/catalog/audience";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -247,8 +248,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                   <Link href="/arte" className="group relative block overflow-hidden rounded-2xl bg-[#f3ead7] p-5 text-[#1c1a17]">
                     <p className="kicker text-[#a3162b]">{lx({ es: "Nuevo", en: "New", de: "Neu" })}</p>
                     <p className="headline mt-1 text-2xl uppercase leading-none">{lx({ es: "Arte que se lleva", en: "Wearable art", de: "Tragbare Kunst" })}</p>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/print-files/site-art/art-toro.png`} alt="" className="ml-auto mt-2 h-32 w-32 object-contain transition-transform duration-500 group-hover:scale-110" />
+                    <Image src={`${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/print-files/site-art/art-toro.png`} alt="" width={128} height={128} className="ml-auto mt-2 h-32 w-32 object-contain transition-transform duration-500 group-hover:scale-110" />
                   </Link>
                 </div>
               </motion.div>

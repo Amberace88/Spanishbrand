@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { dbOrNull } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 
@@ -162,24 +163,38 @@ function publishedQuery() {
 }
 
 /* Listing data: the catalog has ~1500 products × up to 48 colours × sizes, so the full join is heavy.
- * One shared, lean snapshot per server instance (2 min TTL, stale-while-revalidate) serves every
- * listing page; product pages still load their own full record via getProductBySlug. */
-const LISTING_TTL = 120_000;
+ * Three layers keep Supabase egress down (free plan: 5 GB/month; the RPC answer was ~4 MB):
+ *  1. Next's data cache (unstable_cache → Netlify's shared cache): ONE database read per LISTING_REVALIDATE
+ *     for all server instances, instead of one per cold instance every 2 minutes. Stored in chunks of
+ *     LISTING_CHUNK products so no entry nears the 2 MB data-cache item limit.
+ *  2. A per-instance snapshot (stale-while-revalidate) on top, so warm instances skip even the cache read.
+ *  3. A lean payload: per product only what listing cards use (see compactVariants / listing_products).
+ * Product pages still load their own full record via getProductBySlug.
+ * ("use cache" needs the cacheComponents flag, which changes rendering for the whole app; unstable_cache
+ * is the data-cache primitive that works without it in this Next version.) */
+const LISTING_TTL = 180_000;
+const LISTING_REVALIDATE = 1800; // s — new products appear within 30 min (or at once via revalidateTag("listing"))
+const LISTING_CHUNK = 250;
 let snapshot: { at: number; rows: PublicProduct[] } | null = null;
 let inflight: Promise<PublicProduct[]> | null = null;
 
-/** One entry per colour (and per distinct price) is all a listing card needs. */
+/** One entry per colour (and per distinct price) for the first 6 colours, plus the price extremes: all a card uses. */
 function compactVariants(p: PublicProduct): PublicProduct {
+  const images = p.images.filter((im, i) => i < 2 || (im.kind === "LIFESTYLE" && p.images.findIndex((x) => x.kind === "LIFESTYLE") === i)).map((im) => ({ ...im, alt: null }));
   // personalisable bases feed the designer / Personaliza, which need every size variant
-  if (p.personalization) return { ...p, description: null, story: null };
+  if (p.personalization) return { ...p, images, description: null, story: null, sizeGuide: null };
   const seen = new Set<string>();
-  const variants = p.variants.filter((v) => {
+  const unique = p.variants.filter((v) => {
     const k = `${v.colorHex ?? v.color ?? ""}|${v.price}`;
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
   });
-  return { ...p, variants, description: null, story: null };
+  const colours = [...new Set(unique.map((v) => v.colorHex ?? v.color ?? ""))].slice(0, 6);
+  const prices = unique.map((v) => v.price);
+  const lo = unique.find((v) => v.price === Math.min(...prices)), hi = unique.find((v) => v.price === Math.max(...prices));
+  const variants = unique.filter((v) => colours.includes(v.colorHex ?? v.color ?? "") || v === lo || v === hi);
+  return { ...p, images, variants, description: null, story: null, sizeGuide: null };
 }
 
 async function loadListing(): Promise<PublicProduct[]> {
@@ -200,11 +215,43 @@ async function loadListing(): Promise<PublicProduct[]> {
   return out;
 }
 
+/* One database read feeds every chunk that misses together (count + chunks revalidate at the same moment). */
+let shared: { at: number; p: Promise<PublicProduct[]> } | null = null;
+function loadListingShared() {
+  if (!shared || Date.now() - shared.at > 60_000) {
+    const p = loadListing();
+    shared = { at: Date.now(), p };
+    p.catch(() => {
+      if (shared?.p === p) shared = null;
+    });
+  }
+  return shared.p;
+}
+const cachedListingCount = unstable_cache(async () => {
+  const n = (await loadListingShared()).length;
+  if (!n) throw new Error("LISTING_EMPTY"); // never pin an empty catalogue in the shared cache for 30 min
+  return n;
+},["listing-count-v1"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
+const cachedListingChunk = unstable_cache(async (i: number) => (await loadListingShared()).slice(i * LISTING_CHUNK, (i + 1) * LISTING_CHUNK), ["listing-chunk-v1"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
+
+async function loadListingCached(): Promise<PublicProduct[]> {
+  try {
+    const n = await cachedListingCount();
+    const chunks = await Promise.all(Array.from({ length: Math.ceil(n / LISTING_CHUNK) }, (_, i) => cachedListingChunk(i)));
+    // chunks revalidated a moment apart can overlap by a product or two: keep the first of each
+    const seen = new Set<string>();
+    return chunks.flat().filter((p) => !seen.has(p.id) && !!seen.add(p.id));
+  } catch {
+    // outside a request / cache unavailable: read directly
+    return loadListingShared();
+  }
+}
+
 async function listing(): Promise<PublicProduct[]> {
   const fresh = snapshot && Date.now() - snapshot.at < LISTING_TTL;
   if (fresh) return snapshot!.rows;
   if (!inflight) {
-    inflight = loadListing()
+    inflight = loadListingCached()
       .then((rows) => {
         snapshot = { at: Date.now(), rows };
         return rows;
@@ -236,11 +283,26 @@ export const getPublishedProducts = cache(async (opts: { collectionId?: string; 
   return rows.slice(0, opts.limit ?? 60);
 });
 
+/* Full product record (every colour × size, size guide): 30–100 KB per read and crawlers walk all ~1500
+ * pages, so it is shared across instances for 10 min too. Checkout re-prices from the database. */
+const cachedProductRow = unstable_cache(
+  async (slug: string) => {
+    const q = publishedQuery();
+    if (!q) return null;
+    const { data, error } = await q.eq("slug", slug).maybeSingle();
+    if (error) throw new Error(error.message); // errors are not cached
+    return (data as Row | null) ?? null;
+  },
+  ["product-by-slug-v1"],
+  { revalidate: 600, tags: ["listing", "product"] },
+);
+
 export const getProductBySlug = cache(async (slug: string) => {
-  const q = publishedQuery();
-  if (!q) return null;
-  const { data } = await q.eq("slug", slug).maybeSingle();
-  return data ? mapProduct(data as Row) : null;
+  const row = await cachedProductRow(slug).catch(async () => {
+    const q = publishedQuery();
+    return q ? ((await q.eq("slug", slug).maybeSingle()).data as Row | null) : null;
+  });
+  return row ? mapProduct(row) : null;
 });
 
 /** Bestsellers from REAL paid orders only; empty when there are no sales yet. */

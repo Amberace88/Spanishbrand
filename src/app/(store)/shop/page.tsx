@@ -211,8 +211,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               </div>
               <div className="grid grid-cols-3 gap-1 p-4 sm:p-6" aria-hidden>
                 {["toro", "flamenca", "faro", "paella", "fallas", "quijote"].map((k) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={k} src={siteArtSrc(`art-${k}`)} alt="" loading="lazy" className="aspect-square w-full object-contain transition-transform duration-700 group-hover:scale-105" />
+                  <Image key={k} src={siteArtSrc(`art-${k}`)} alt="" width={256} height={256} sizes="(min-width:1024px) 10vw, 30vw" className="aspect-square w-full object-contain transition-transform duration-700 group-hover:scale-105" />
                 ))}
               </div>
             </Link>

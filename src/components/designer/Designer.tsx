@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
+import Image from "next/image";
 import { Shape } from "@/components/art/Mockup";
 import { Artwork, BROWSER_FONTS, fitFontSize } from "@/lib/personalization/artwork";
 import { FONTS, FONT_LABEL, type FontKey, type Layer, type Placement } from "@/lib/personalization/types";
@@ -356,8 +357,8 @@ export function Designer({ products, styles = [], arts = [], initialStyle = null
               {arts.map((a) => (
                 <button key={a.name} onClick={() => addArt(a)} title={a.label} className="group text-left">
                   <span className="relative block aspect-square overflow-hidden rounded-xl border border-line bg-[#f3ead7] transition-colors group-hover:border-fg">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={a.src} alt={a.label} loading="lazy" className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-110" />
+                    {/* thumbnail through the image CDN: the source illustrations are 1600 px PNGs in storage */}
+                    <Image src={a.src} alt={a.label} fill sizes="96px" className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-110" />
                   </span>
                   <span className="mt-1 block truncate text-[10px] font-semibold">{a.label}</span>
                 </button>

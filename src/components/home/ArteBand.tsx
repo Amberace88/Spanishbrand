@@ -60,8 +60,8 @@ export function ArteBand({ arts, looks = [], products, en, labels }: { arts: { k
                   <div className={`${r ? "marquee-track-rev" : "marquee-track"} flex w-max gap-3 hover:[animation-play-state:paused]`} style={{ animationDuration: `${60 + r * 12}s` }}>
                     {[...row, ...row].map((a, i) => (
                       <Link key={`${a.key}-${i}`} href={`/disena?arte=${a.key}`} aria-hidden={i >= row.length} tabIndex={i >= row.length ? -1 : 0} className="group relative block h-40 w-40 shrink-0 overflow-hidden rounded-2xl bg-[#ebe0c8] sm:h-52 sm:w-52">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={a.src} alt={a.name} loading="lazy" className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-110" />
+                        {/* through the image CDN: the source illustrations are 1600 px PNGs in storage, shown at ≤ 208 px */}
+                        <Image src={a.src} alt={a.name} fill sizes="(min-width:640px) 208px, 160px" className="object-contain p-3 transition-transform duration-500 group-hover:scale-110" />
                         <span className="absolute inset-x-2 bottom-2 translate-y-2 rounded-full bg-[#1c1a17]/85 px-3 py-1 text-center text-[11px] font-semibold text-[#f3ead7] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">{a.name}</span>
                       </Link>
                     ))}

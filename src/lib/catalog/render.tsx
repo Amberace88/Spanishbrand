@@ -7,24 +7,53 @@ import { loadFonts } from "@/lib/personalization/render";
 import type { Layer } from "@/lib/personalization/types";
 import type { Design } from "./designs";
 
+import { dbOrNull } from "@/lib/supabase/admin";
 import { assetBase } from "./assets";
 export { assetBase };
 
 const artCache = new Map<string, string>();
 const artDims = new Map<string, number>(); // file → true height/width ratio, read from the PNG header
+
+/*
+ * Imported illustrations (storage site-art/) are overwritten in place when re-imported. They used to be
+ * fetched with ?v=<deploy id>, which missed the Supabase CDN on every deploy and every cold instance
+ * (uncached egress, 1–3 MB per illustration). Now the cache-buster is the object's own update time,
+ * read from one small storage listing per instance every 10 minutes: the CDN serves repeat fetches and a
+ * re-imported illustration still gets a fresh URL.
+ */
+let artVersions: { at: number; map: Map<string, string> } | null = null;
+async function siteArtVersion(file: string): Promise<string | undefined> {
+  if (!artVersions || Date.now() - artVersions.at > 600_000) {
+    const map = new Map<string, string>();
+    try {
+      const sb = dbOrNull();
+      const { data } = sb ? await sb.storage.from("print-files").list("site-art", { limit: 1000 }) : { data: null };
+      for (const f of data ?? []) if (f.updated_at) map.set(f.name, new Date(f.updated_at).getTime().toString(36));
+    } catch {
+      /* listing unavailable: fall back to the deploy id below */
+    }
+    artVersions = { at: Date.now(), map };
+  }
+  return artVersions.map.get(file);
+}
+
 async function artDataUri(file: string): Promise<string> {
-  const hit = artCache.get(file);
-  if (hit) return hit;
+  const local = artCache.get(file);
+  if (local) return local;
   let buf: Buffer | null = null;
+  let cacheKey = file;
   try {
     buf = await readFile(path.join(process.cwd(), "public", "catalog", "art", file));
   } catch {
     // imported illustrations live in storage; static ones fall back to the deploy's public files
+    const v = (await siteArtVersion(file)) ?? process.env.DEPLOY_ID ?? process.env.COMMIT_REF ?? "";
+    cacheKey = `${file}@${v}`;
+    const hit = artCache.get(cacheKey);
+    if (hit) return hit;
     const supa = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
     const urls = [supa && `${supa}/storage/v1/object/public/print-files/site-art/${file}`, `${assetBase()}/catalog/art/${file}`].filter(Boolean) as string[];
     for (const u of urls) {
-      // no-store: the data cache outlives deploys, so a force-cached art file kept serving an old crown after the art changed
-      const v = process.env.DEPLOY_ID ?? process.env.COMMIT_REF ?? "";
+      // no-store: the data cache outlives deploys (and a 2 MB entry limit); freshness comes from the version above
       const res = await fetch(v ? `${u}${u.includes("?") ? "&" : "?"}v=${v}` : u, { cache: "no-store" }).catch(() => null);
       if (res?.ok) {
         buf = Buffer.from(await res.arrayBuffer());
@@ -38,7 +67,7 @@ async function artDataUri(file: string): Promise<string> {
     if (w > 0 && h > 0) artDims.set(file, h / w);
   }
   const uri = `data:image/png;base64,${buf.toString("base64")}`;
-  artCache.set(file, uri);
+  artCache.set(cacheKey, uri);
   return uri;
 }
 

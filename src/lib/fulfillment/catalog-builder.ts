@@ -24,6 +24,10 @@ import { renderDesign } from "@/lib/catalog/render";
 import { LEON_EXTRAS } from "@/lib/catalog/leon";
 import { AUDIENCE_BLUEPRINTS } from "@/lib/catalog/blueprints";
 import { AUDIENCE_EXTRAS } from "@/lib/catalog/audience";
+import { createHash } from "node:crypto";
+import { familyDesigns } from "@/lib/catalog/family";
+import { mockupArtUrl } from "@/lib/catalog/mockup-art";
+import { isKidsBlueprint, orderKidsImages, pickOptionGroups, styleOf, type MockupStyle } from "@/lib/fulfillment/mockup-styles";
 
 /* ───────────────────────── plan ───────────────────────── */
 
@@ -599,14 +603,16 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     files.push({ type: "default", url: `${env.siteUrl()}/catalog/calendars/${design.slug}.pdf` });
   } else if (spec.kind === "design") {
     const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
-    // versioned path: Printful caches files by URL, so an overwritten print kept producing the old artwork
-    const ver = Date.now().toString(36);
-    const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}.png`, png, "image/png");
+    // content-addressed path: Printful caches files by URL, so a changed print needs a new URL — but identical
+    // renders (retries, rebuilds without artwork changes) reuse the same object instead of adding a new copy
+    const ver = printHash(png);
+    const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}.png`, png, "image/png", { immutable: true });
     files.push({ type: res.placement ?? bp.placement, url });
     // two-sided designs: second print file on the back (Printful garments that offer a back placement)
     if (design.back?.length && res.provider === "printful" && bp.renderMode === "print" && res.placements.includes("back")) {
       const backPng = await renderDesign({ ...design, layers: design.back }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
-      const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}-back.png`, backPng, "image/png");
+      const backHash = printHash(backPng);
+      const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${backHash}-back.png`, backPng, "image/png", { immutable: true });
       files.push({ type: "back", url: backUrl });
     }
   }
@@ -711,7 +717,40 @@ function priceFor(target: number, cost: number | null) {
 /* ───────────────────────── mockups ───────────────────────── */
 
 async function webp(buf: Buffer, width = 1400) {
-  return sharp(buf).resize({ width, height: width, fit: "inside", withoutEnlargement: true }).webp({ quality: 84 }).toBuffer();
+  // q80 + effort 5: ~15 % smaller than q84 with no visible difference on product photos (storage + egress)
+  return sharp(buf).resize({ width, height: width, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 5 }).toBuffer();
+}
+
+/** Short content hash for content-addressed storage paths. */
+function printHash(buf: Buffer) {
+  return createHash("sha256").update(buf).digest("hex").slice(0, 12);
+}
+
+/** Per-build media version: product photos get unique paths, so the year-long CDN cache never serves a stale one. */
+function mediaVer(job: JobRow) {
+  const st = job.state as { mediaVer?: string };
+  return (st.mediaVer ??= Date.now().toString(36));
+}
+
+/**
+ * Artwork for a mockup: a small signed render from our own domain for library designs (Printful only
+ * composites a ~1000 px photo), so the provider does not download the full print file from storage.
+ */
+function mockupSource(spec: Spec, file: { type: string; url: string }, printfile: { width: number; height: number }, side: "front" | "back", job: JobRow) {
+  // fallback to the stored print: non-library art, embroidery (thread digitising wants the real file), opt-out, or a failed attempt
+  if (spec.kind !== "design" || spec.bp.technique === "EMBROIDERY" || process.env.MOCKUP_ART_FROM_SITE === "0" || (job.state as { noSiteArt?: boolean }).noSiteArt) return file.url;
+  if (side === "back" && !spec.design.back?.length) return file.url;
+  const v = createHash("sha256").update(file.url).digest("hex").slice(0, 12);
+  return mockupArtUrl(env.siteUrl(), { d: spec.design.slug, s: side, m: side === "back" ? "print" : spec.bp.renderMode, v, width: printfile.width, height: printfile.height }) ?? file.url;
+}
+
+/** Small local render for poster scenes (Gelato/Prodigi): no download of the 10–47 MB poster file from storage. */
+async function posterSource(spec: Spec, printfile: { width: number; height: number }, artUrl: string) {
+  if (spec.kind === "design") {
+    const k = Math.min(1, 1400 / Math.max(printfile.width, printfile.height));
+    return renderDesign(spec.design, { width: Math.round(printfile.width * k), height: Math.round(printfile.height * k), mode: spec.bp.renderMode });
+  }
+  return Buffer.from(await (await fetch(artUrl)).arrayBuffer());
 }
 
 /** Lifestyle-style scenes for posters (Gelato has no mockup API): framed on a wall + flat detail. */
@@ -773,23 +812,25 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
     } else {
       png = await renderDesign(PLACEHOLDER, { width, height, mode: bp.renderMode });
     }
-    artUrl = await uploadObject(`catalog/mockup-src/${job.key.replace(/:/g, "-")}-${Date.now().toString(36)}.png`, png, "image/png");
+    // content-addressed: identical placeholder/sample renders share one object
+    artUrl = await uploadObject(`catalog/mockup-src/${job.key.replace(/:/g, "-")}-${printHash(png)}.png`, png, "image/png", { immutable: true });
   }
+  const mv = mediaVer(job);
 
   if (res.provider === "prodigi") {
-    const poster = Buffer.from(await (await fetch(artUrl)).arrayBuffer());
+    const poster = await posterSource(spec, res.printfile, artUrl);
     const colors = [...new Set((pvars ?? []).map((v) => v.color))];
     let n = 0;
     for (const color of colors) {
       const hex = !color ? null : ({ black: "#141414", white: "#f4f2ee", natural: "#b48a5a" } as Record<string, string>)[color.toLowerCase()] ?? "#141414";
       const [scene] = await posterScenes(poster, bp.key === "canvas" ? { frame: null, mat: false } : { frame: hex ?? "#141414", mat: true });
-      const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-scene-${n}.webp`, scene, "image/webp");
+      const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${mv}-scene-${n}.webp`, scene, "image/webp", { immutable: true });
       const v = (pvars ?? []).find((x) => x.color === color);
       await addImage(product!.id, url, [product!.name, color].filter(Boolean).join(" — "), n++, color ? (v?.id ?? null) : null, "LIFESTYLE");
       if (v) await sb.from("product_variants").update({ image: url }).eq("product_id", product!.id).eq("color", color ?? "");
     }
     const [, flat] = await posterScenes(poster, { frame: null, mat: false });
-    await addImage(product!.id, await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-flat.webp`, flat, "image/webp"), `${product!.name} — detalle`, n, null);
+    await addImage(product!.id, await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${mv}-flat.webp`, flat, "image/webp", { immutable: true }), `${product!.name} — detalle`, n, null);
     await save(job, { phase: "publish" });
     return { key: job.key, phase: "publish", done: false };
   }
@@ -839,10 +880,10 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   }
 
   if (res.provider === "gelato") {
-    const poster = await (await fetch(artUrl)).arrayBuffer();
-    const [scene, flat] = await posterScenes(Buffer.from(poster));
-    const a = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-scene.webp`, scene, "image/webp");
-    const b = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-flat.webp`, flat, "image/webp");
+    const poster = await posterSource(spec, res.printfile, artUrl);
+    const [scene, flat] = await posterScenes(poster);
+    const a = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${mv}-scene.webp`, scene, "image/webp", { immutable: true });
+    const b = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${mv}-flat.webp`, flat, "image/webp", { immutable: true });
     await addImage(product!.id, a, `${product!.name} — en la pared`, 0, null, "LIFESTYLE");
     await addImage(product!.id, b, `${product!.name} — detalle`, 1, null);
     await save(job, { phase: "publish" });
@@ -858,17 +899,22 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   }
   const placementOk = res.placements.includes(placement) ? placement : res.placements[0];
   const { width, height } = res.printfile;
+  // kids' garments: ask for several photo styles (flat lay, ghost, girl/boy models…) so the grid is not one photo repeated
+  let optionGroups: string[] | undefined;
+  if (isKidsBlueprint(bp.key)) {
+    optionGroups = pickOptionGroups((await getPrintfiles(res.externalId).catch(() => null))?.option_groups);
+    if (!optionGroups.length) optionGroups = undefined;
+  }
+  const frontUrl = st.files[0] ? mockupSource(spec, st.files[0], res.printfile, "front", job) : artUrl;
+  const files = [
+    { placement: placementOk, imageUrl: frontUrl, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } },
+    ...st.files.filter((f) => f.type === "back" && res.placements.includes("back")).map((f) => ({ placement: "back", imageUrl: mockupSource(spec, f, res.printfile, "back", job), position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } })),
+  ];
   try {
-    const taskKey = await createMockupTask({
-      productId: res.externalId,
-      variantIds: [...perColor.values()],
-      format: "jpg",
-      files: [
-        { placement: placementOk, imageUrl: artUrl, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } },
-        ...st.files.filter((f) => f.type === "back" && res.placements.includes("back")).map((f) => ({ placement: "back", imageUrl: f.url, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } })),
-      ],
-    });
-    await save(job, { phase: "poll", state: { ...st, taskKey, perColor: Object.fromEntries(perColor), design: design.slug } });
+    const input = { productId: res.externalId, variantIds: [...perColor.values()], format: "jpg" as const, files };
+    // a style list Printful refuses must never block a build: fall back to its default photos
+    const taskKey = optionGroups ? await createMockupTask({ ...input, optionGroups }).catch((e) => (isProviderError(e) && e.status === 400 ? createMockupTask(input) : Promise.reject(e))) : await createMockupTask(input);
+    await save(job, { phase: "poll", state: { ...st, taskKey, perColor: Object.fromEntries(perColor), design: design.slug, siteArt: frontUrl !== artUrl } });
     return { key: job.key, phase: "poll", done: false, waitMs: 8000 };
   } catch (e) {
     if (isProviderError(e) && e.status === 429) return { key: job.key, phase: "mockup", done: false, waitMs: 30_000, message: "Printful rate limit — esperando" };
@@ -876,23 +922,51 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   }
 }
 
+export type PendingImage = { url: string; color: string; kind: "MOCKUP" | "LIFESTYLE"; title: string; style?: MockupStyle };
+export type TaskMockup = { placement: string; variant_ids: number[]; mockup_url: string; extra?: { title?: string; url: string; option?: string; option_group?: string }[] };
+
+/** Printful mockup task result → images to copy, in gallery order. Kids' garments get varied, rotated lead styles. */
+export function mockupPending(mockups: TaskMockup[], perColor: Record<string, string>, key: string): PendingImage[] {
+  const [, slug = "", bpKey = ""] = key.split(":");
+  const kids = isKidsBlueprint(bpKey);
+  const colorOf = new Map(Object.entries(perColor).map(([c, ext]) => [Number(ext), c]));
+  const pending: PendingImage[] = [];
+  for (const [i, m] of mockups.entries()) {
+    const color = colorOf.get(m.variant_ids[0]) ?? "_";
+    // the main photo carries no style label: it only leads when no labelled style is available
+    pending.push({ url: m.mockup_url, color, kind: "MOCKUP", title: "", style: "other" });
+    // extra angles: skip views of placements we do not print on (e.g. a blank back)
+    const printed = String(m.placement ?? "front");
+    const label = (x: { title?: string; option?: string; option_group?: string }) => `${x.option_group ?? ""} ${x.option ?? ""} ${x.title ?? ""}`;
+    let extra = (m.extra ?? []).filter((x) => !(/back/i.test(`${x.title} ${x.option}`) && !/back/i.test(printed)));
+    if (kids) {
+      // one photo of each style first (girl, boy, flat, ghost…), then the rest
+      const firsts = extra.filter((x, j) => extra.findIndex((y) => styleOf(label(y)) === styleOf(label(x))) === j);
+      extra = [...firsts, ...extra.filter((x) => !firsts.includes(x))];
+    }
+    extra = extra.slice(0, kids ? (i === 0 ? 6 : 2) : i === 0 ? 3 : 1);
+    for (const x of extra) {
+      const style = styleOf(label(x));
+      const model = style === "girl" || style === "boy" || style === "model" || /lifestyle|model|men|women|person/i.test(label(x));
+      pending.push({ url: x.url, color, kind: model ? "LIFESTYLE" : "MOCKUP", title: x.title ?? "", style });
+    }
+  }
+  return kids ? orderKidsImages(pending, `${slug}:${bpKey}`) : pending;
+}
+
 async function stepPoll(job: JobRow): Promise<StepResult> {
-  const st = job.state as { taskKey: string; perColor: Record<string, string> };
+  const st = job.state as { taskKey: string; perColor: Record<string, string>; siteArt?: boolean };
   const task = await getMockupTask(st.taskKey);
   if (task.status === "pending") return { key: job.key, phase: "poll", done: false, waitMs: 6000 };
-  if (task.status === "failed") throw new Error(`Mockup task failed: ${task.error ?? "unknown"}`);
-  const colorOf = new Map(Object.entries(st.perColor).map(([c, ext]) => [Number(ext), c]));
-  const pending: { url: string; color: string; kind: "MOCKUP" | "LIFESTYLE"; title: string }[] = [];
-  for (const [i, m] of (task.mockups ?? []).entries()) {
-    const color = colorOf.get(m.variant_ids[0]) ?? "_";
-    pending.push({ url: m.mockup_url, color, kind: "MOCKUP", title: "" });
-    // extra angles: skip views of placements we do not print on (e.g. a blank back)
-    const printed = String((m as { placement?: string }).placement ?? "front");
-    const extra = ((m as { extra?: { title?: string; url: string; option?: string }[] }).extra ?? [])
-      .filter((x) => !(/back/i.test(`${x.title} ${x.option}`) && !/back/i.test(printed)))
-      .slice(0, i === 0 ? 3 : 1);
-    for (const x of extra) pending.push({ url: x.url, color, kind: /lifestyle|model|men|women|person/i.test(`${x.title} ${x.option}`) ? "LIFESTYLE" : "MOCKUP", title: x.title ?? "" });
+  if (task.status === "failed") {
+    // the low-res render from our domain could not be fetched: retry once with the stored print file
+    if (st.siteArt) {
+      await save(job, { phase: "mockup", state: { ...job.state, siteArt: false, noSiteArt: true } });
+      return { key: job.key, phase: "mockup", done: false, waitMs: 2000, message: "mockup: reintento con el archivo de impresión" };
+    }
+    throw new Error(`Mockup task failed: ${task.error ?? "unknown"}`);
   }
+  const pending = mockupPending((task.mockups ?? []) as TaskMockup[], st.perColor, job.key);
   if (!pending.length) throw new Error("Mockup task returned no images");
   // two-sided prints: the big back artwork sells the piece, so its photos lead
   const backFirst = (task.mockups ?? []).some((m) => (m as { placement?: string }).placement === "back");
@@ -906,7 +980,7 @@ async function stepPoll(job: JobRow): Promise<StepResult> {
 
 async function stepImages(job: JobRow): Promise<StepResult> {
   const sb = db();
-  const st = job.state as { slug: string; pending: { url: string; color: string; kind: "MOCKUP" | "LIFESTYLE"; title: string }[]; done: number };
+  const st = job.state as { slug: string; pending: PendingImage[]; done: number };
   const { data: product } = await sb.from("products").select("id, name").eq("id", job.product_id!).single();
   const { data: pvars } = await sb.from("product_variants").select("id, color, image").eq("product_id", job.product_id!);
   const batch = st.pending.slice(st.done, st.done + 3);
@@ -914,7 +988,7 @@ async function stepImages(job: JobRow): Promise<StepResult> {
     const n = st.done + j;
     const r = await fetch(img.url);
     if (!r.ok) throw new Error(`mockup download ${r.status}`);
-    const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${n}.webp`, await webp(Buffer.from(await r.arrayBuffer())), "image/webp");
+    const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${mediaVer(job)}-${n}.webp`, await webp(Buffer.from(await r.arrayBuffer())), "image/webp", { immutable: true });
     const variant = (pvars ?? []).find((v) => (v.color ?? "_") === img.color) ?? null;
     await addImage(product!.id, url, [product!.name, img.color !== "_" ? img.color : null, img.title || null].filter(Boolean).join(" — "), n, variant?.id ?? null, img.kind);
     // first image of each colour becomes that colour's variant image
@@ -1045,6 +1119,8 @@ async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSess
  * jobs already in progress, then new plan items. Leases make it safe next to the browser runner.
  * A new step only starts while there is time left for it to finish inside the function limit.
  */
+const FAMILY_SLUGS = new Set(familyDesigns().map((d) => d.slug));
+
 export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: number; workers?: number } = {}) {
   const started = Date.now();
   const budget = opts.budgetMs ?? 9_000;
@@ -1066,6 +1142,9 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   const prio = (key: string) => {
     const d = designBySlug(key.split(":")[1] ?? "");
     if (d?.tags?.includes("serie-leon")) return BLUEPRINTS[key.split(":")[2] as BlueprintKey]?.category === "HEADWEAR" ? -2 : -1; // León series first, lion caps before all
+    // family / audience garments (Para quién: abuelos, niños, bebés, mujer) right after León — /para/bebes was empty.
+    // Ahead of the other prio-0 lines too: ~140 of those were queued first, so a plain 0 would not move them.
+    if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || AUDIENCE_BLUEPRINTS.includes(key.split(":")[2] as BlueprintKey))) return -0.5;
     if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;

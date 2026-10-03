@@ -3,6 +3,8 @@ import sharp from "sharp";
 import { getStaffSession, hasRole } from "@/lib/auth/rbac";
 import { uploadObject as uploadOnce } from "@/lib/personalization/storage";
 import { audit } from "@/lib/audit";
+import { revalidateTag } from "next/cache";
+import { SITE_IMAGES_TAG } from "@/lib/site-images";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -66,6 +68,7 @@ async function handle(req: Request) {
   }
   const out = await sharp(buf).rotate().resize({ width: 1800, height: 1800, fit: "inside", withoutEnlargement: true }).webp({ quality: 84 }).toBuffer();
   const url = await uploadObject(`site/${name}.webp`, out, "image/webp");
+  revalidateTag(SITE_IMAGES_TAG, { expire: 0 }); // the cached site/ listing carries the ?v= cache-buster
   await audit({ action: "site.image", actorId: s.userId, actorEmail: s.email, entityType: "site", entityId: name, after: { bytes: out.length, width: meta.width, height: meta.height } }).catch(() => null);
   return NextResponse.json({ ok: true, url, width: meta.width, height: meta.height });
 }
