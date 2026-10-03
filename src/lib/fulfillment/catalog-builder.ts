@@ -1066,7 +1066,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   const prio = (key: string) => {
     const d = designBySlug(key.split(":")[1] ?? "");
     if (d?.tags?.includes("serie-leon")) return BLUEPRINTS[key.split(":")[2] as BlueprintKey]?.category === "HEADWEAR" ? -2 : -1; // León series first, lion caps before all
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon"))) return 0;
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria"))) return 0; // sabiduria: Refranero series
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };
