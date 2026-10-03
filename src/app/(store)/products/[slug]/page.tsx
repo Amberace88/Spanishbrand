@@ -124,14 +124,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       {p.shortDescription && <p className="mt-3 text-lg leading-relaxed text-muted">{p.shortDescription}</p>}
       {alternatives.length > 0 && (
         <div className="mt-6">
-          <p className="kicker text-muted">{t("product.otherDesigns" as never)}</p>
-          <div className="no-scrollbar -mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
-            <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-accent bg-surface-2" aria-current="true" title={p.name}>
-              {p.images[0] && <Image src={p.images[0].url} alt={p.name} fill sizes="64px" className="object-cover" />}
+          <p className="flex items-baseline justify-between gap-3 text-muted">
+            <span className="kicker">{t("product.otherDesigns" as never)}</span>
+            <span className="text-xs tabular-nums">{alternatives.length + 1}</span>
+          </p>
+          {/* compact: one row, two rows (scrolling sideways) once there are many designs */}
+          <div
+            className={`no-scrollbar -mx-1 mt-2.5 grid snap-x auto-cols-[3.25rem] grid-flow-col gap-1.5 overflow-x-auto px-1 py-1 [mask-image:linear-gradient(to_right,black_92%,transparent)] ${alternatives.length + 1 > 9 ? "grid-rows-2" : "grid-rows-1"}`}
+          >
+            <span className="relative block aspect-square snap-start overflow-hidden rounded-lg bg-surface-2 ring-2 ring-accent ring-offset-1 ring-offset-bg" aria-current="true" title={p.name}>
+              {p.images[0] && <Image src={p.images[0].url} alt={p.name} fill sizes="52px" className="object-cover" />}
             </span>
             {alternatives.map((x) => (
-              <Link key={x.id} href={`/products/${x.slug}`} title={x.name} className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-surface-2 transition hover:border-fg">
-                <Image src={x.images[0].url} alt={x.name} fill sizes="64px" className="object-cover" />
+              <Link
+                key={x.id}
+                href={`/products/${x.slug}`}
+                title={x.name}
+                className="relative block aspect-square snap-start overflow-hidden rounded-lg border border-line bg-surface-2 opacity-85 transition hover:border-fg hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+              >
+                <Image src={x.images[0].url} alt={x.name} fill sizes="52px" className="object-cover" />
               </Link>
             ))}
           </div>
