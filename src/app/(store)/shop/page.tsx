@@ -26,11 +26,14 @@ const TYPES: [string, string, string][] = [
   ["KIDS_TSHIRT", "Infantil", "Kids"],
   ["CAP", "Gorras", "Caps"],
   ["BEANIE", "Gorros", "Beanies"],
+  ["BUCKET_HAT", "Gorros de pescador", "Bucket hats"],
+  ["SOCKS", "Calcetines", "Socks"],
   ["APRON", "Delantales", "Aprons"],
   ["BANDANA", "Bandanas", "Bandanas"],
   ["MUG", "Tazas", "Mugs"],
   ["GLASS", "Vasos", "Glasses"],
   ["TUMBLER", "Termos", "Tumblers"],
+  ["WATER_BOTTLE", "Botellas", "Bottles"],
   ["TOTE", "Bolsas", "Tote bags"],
   ["POSTER", "Pósters", "Posters"],
   ["FRAMED_PRINT", "Láminas enmarcadas", "Framed prints"],
@@ -228,6 +231,8 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const typesHere = [...new Set(products.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
   if (type) products = products.filter((p) => p.productType === type);
   products = sortProducts(products, sort);
+  // headwear: the house lion (León series caps and beanies) leads the listing
+  if (category === "HEADWEAR" && sort === "featured") products = [...products.filter((p) => p.tags.includes("leon")), ...products.filter((p) => !p.tags.includes("leon"))];
   if (sort === "featured") products = interleave(products);
   const shown = products.slice(0, page * PAGE);
   const presentCols = collections.filter((c) => all.some((p) => p.collection?.slug === c.slug && (!category || p.categoryCode === category)));

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCollectionBySlug, getPublishedProducts } from "@/lib/products/queries";
 import { getT } from "@/lib/i18n/server";
-import { designsFor } from "@/lib/catalog/designs";
+import { DESIGNS, designsFor } from "@/lib/catalog/designs";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -26,7 +26,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-const TYPES = ["APPAREL", "KIDS", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING", "TECH_ACCESSORIES", "STATIONERY", "PETS"] as const;
+/** Collections that also gather every product tagged with their slug (the León series spans esenciales + leon). */
+const TAG_COLLECTIONS = new Set(["leon"]);
+
+const TYPES = ["APPAREL", "HEADWEAR", "KIDS", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING", "TECH_ACCESSORIES", "STATIONERY", "PETS"] as const;
 
 export default async function CollectionPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string; d?: string }> }) {
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
@@ -34,8 +37,9 @@ export default async function CollectionPage({ params, searchParams }: { params:
   if (!c) notFound();
   const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 })]);
   const rank = (p: (typeof all)[number]) => (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
-  const own = all.filter((p) => p.collection?.slug === c.slug).sort((a, b) => rank(b) - rank(a));
-  const designs = designsFor(c.slug);
+  const byTag = TAG_COLLECTIONS.has(c.slug);
+  const own = all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))).sort((a, b) => rank(b) - rank(a));
+  const designs = byTag ? DESIGNS.filter((d) => d.collection === c.slug || d.tags?.includes(c.slug)) : designsFor(c.slug);
   const type = TYPES.find((x) => x === sp.c);
   const design = designs.find((d) => d.slug === sp.d);
   let products = own;

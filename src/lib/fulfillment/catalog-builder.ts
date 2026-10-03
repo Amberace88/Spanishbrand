@@ -21,6 +21,7 @@ import { FALLBACK_COLLECTIONS } from "@/lib/products/queries";
 import { BLUEPRINTS, normSize, posterSize, retail, type Blueprint } from "@/lib/catalog/blueprints";
 import { DESIGNS, designBySlug, type BlueprintKey, type Design, type Tone } from "@/lib/catalog/designs";
 import { renderDesign } from "@/lib/catalog/render";
+import { LEON_EXTRAS } from "@/lib/catalog/leon";
 
 /* ───────────────────────── plan ───────────────────────── */
 
@@ -72,6 +73,7 @@ export function productsFor(d: Design): BlueprintKey[] {
   const list = new Set<BlueprintKey>(d.products);
   if (d.products.includes("poster")) list.add("framed");
   for (const [bp, slugs] of Object.entries(EXTRAS) as [BlueprintKey, string[]][]) if (slugs.includes(d.slug)) list.add(bp);
+  for (const [bp, slugs] of Object.entries(LEON_EXTRAS) as [BlueprintKey, string[]][]) if (slugs.includes(d.slug)) list.add(bp);
   return [...list];
 }
 
@@ -446,7 +448,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
@@ -1052,7 +1054,8 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   // priority: brand-defining lines first (lookbook lion, royal crown, embroidery), then pending replacements, then the rest
   const prio = (key: string) => {
     const d = designBySlug(key.split(":")[1] ?? "");
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte"))) return 0;
+    if (d?.tags?.includes("serie-leon")) return BLUEPRINTS[key.split(":")[2] as BlueprintKey]?.category === "HEADWEAR" ? -2 : -1; // León series first, lion caps before all
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };

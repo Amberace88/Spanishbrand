@@ -215,5 +215,16 @@
   "art-churros": 0.9487,
   "art-feria": 1.1453,
   "art-sanfermin": 1.1348,
-  "art-vermut": 0.8825
+  "art-vermut": 0.8825,
+  "shield-emb": 1.2167,
+  "shieldline-gold": 1.2074,
+  "shieldline-ink": 1.2074,
+  "band-emb": 0.1304,
+  "badge-gold": 1,
+  "badge-ink": 1,
+  "lion-emb": 1.1875,
+  "lion-emb-claro": 1.1875,
+  "lion-emb-oro": 1.1875,
+  "lion-emb-blanco": 1.1875,
+  "lion-emb-amarillo": 1.1875
 }
