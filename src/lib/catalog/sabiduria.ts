@@ -347,8 +347,8 @@ function pop(s: Saying, tone: Tone): Layer[] {
   );
   // ornaments sit just outside the type block: sparkles over the first line's corners, a star under the last
   const first = lines[0] as TextLayer, last = lines[lines.length - 1] as TextLayer;
-  const sizeOf = (l: TextLayer) => l.w / span(l.text, l.font);
-  const half = (l: TextLayer) => (sizeOf(l) * real(l.text, l.font)) / 2;
+  const sizeOf = (l: TextLayer) => l.w / span(l.text, l.font as "display");
+  const half = (l: TextLayer) => (sizeOf(l) * real(l.text, l.font as "display")) / 2;
   const fx0 = Math.max(0.07, 0.5 - half(first) - 0.02), fx1 = Math.min(0.93, 0.5 + half(first) + 0.02), lx1 = Math.min(0.92, 0.5 + half(last) + 0.03);
   const fTop = first.y - (sizeOf(first) * VH.display) / 2, lBot = last.y + (sizeOf(last) * VH.display) / 2;
   return [

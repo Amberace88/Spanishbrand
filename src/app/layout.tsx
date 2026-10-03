@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import "@/lib/personalization/print-fonts.css";
 import { getBrand } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/server";
 import { I18nProvider } from "@/components/providers/I18nProvider";

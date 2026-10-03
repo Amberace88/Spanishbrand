@@ -125,7 +125,7 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
             <JerseyTile photo={persoPhoto ?? null} badge={t("nav.personalize")} title={t("hero3.perso")} labels={{ name: t("hero3.tile.name"), number: t("hero3.tile.number"), go: t("hero3.tile.go") }} />
           </motion.div>
           <motion.div {...tile(0.22)} className="h-full">
-            <DesignTile photo={designPhoto ?? null} badge={t("hero3.designBadge")} title={t("hero3.design")} labels={{ text: t("hero3.tile.text"), go: t("hero3.tile.go") }} />
+            <DesignTile photo={designPhoto ?? null} badge={t("hero3.designBadge")} title={t("hero3.design")} labels={{ text: t("hero3.tile.text"), go: t("hero3.tile.go"), font: t("hero3.tile.font"), tpl: t("hero3.tile.tpl") }} />
           </motion.div>
         </div>
       </div>

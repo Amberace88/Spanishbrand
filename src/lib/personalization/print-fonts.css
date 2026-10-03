@@ -1,0 +1,14 @@
+/*
+ * The exact typefaces the print renderer (Satori) uses, subset to Latin-1 + € and typographic quotes
+ * (public/fonts/designer, generated from src/lib/personalization/fonts/*.ttf). Every on-screen preview of a
+ * personalised design uses these families, so the preview and the printed file share the same glyphs.
+ * Browsers only download a face when it is actually used.
+ */
+@font-face { font-family: "RYG Print Display"; src: url("/fonts/designer/BricolageGrotesque_800ExtraBold.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Serif"; src: url("/fonts/designer/Cinzel_700Bold.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Sans"; src: url("/fonts/designer/Inter_800ExtraBold.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Script"; src: url("/fonts/designer/Pacifico_400Regular.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Sport"; src: url("/fonts/designer/Anton_400Regular.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Varsity"; src: url("/fonts/designer/Graduate_400Regular.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Mono"; src: url("/fonts/designer/SpaceMono_700Bold.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "RYG Print Elegant"; src: url("/fonts/designer/PlayfairDisplay_700Bold_Italic.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }

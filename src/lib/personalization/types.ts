@@ -12,12 +12,20 @@
 export const FONTS = ["display", "serif", "sans", "script", "sport"] as const;
 export type FontKey = (typeof FONTS)[number];
 
-export const FONT_LABEL: Record<FontKey, string> = {
+/** Extra typefaces for the designer (customer text only; brand catalog designs keep the five above). */
+export const EXTRA_FONTS = ["varsity", "mono", "elegant"] as const;
+export const ALL_FONTS = [...FONTS, ...EXTRA_FONTS] as const;
+export type AnyFontKey = (typeof ALL_FONTS)[number];
+
+export const FONT_LABEL: Record<AnyFontKey, string> = {
   display: "Moderna",
-  serif: "Clásica",
+  serif: "Romana",
   sans: "Limpia",
   script: "Manuscrita",
   sport: "Deportiva",
+  varsity: "Universitaria",
+  mono: "Máquina",
+  elegant: "Elegante",
 };
 
 export const TEMPLATES = ["jersey", "pueblo", "text", "year"] as const;
@@ -37,18 +45,43 @@ export interface PersoField {
 
 export type PersoConfig =
   | { mode: "fields"; template: TemplateKey; placement: Placement; fields: PersoField[]; extraPrice: number; ink?: string; font?: FontKey }
-  | { mode: "designer"; placements: Placement[]; extraPrice: number; maxLayers?: number; colors?: { name: string; hex: string; variantColor?: string }[] };
+  | {
+      mode: "designer";
+      placements: Placement[];
+      extraPrice: number;
+      maxLayers?: number;
+      colors?: { name: string; hex: string; variantColor?: string }[];
+      /** Product kind (blueprint key) → silhouette, print-area ratio and print layout (see kinds.ts). */
+      kind?: string;
+      /** Print-area ratio (height / width) the customer designs on; default 4:3 (garments). */
+      aspect?: number;
+      /** Extra price when the design is printed on the back as well (two placements). */
+      backPrice?: number;
+      /** Embroidery: text only, thread colours only, few colours. */
+      embroidery?: { threads: string[]; maxColors: number; fonts: AnyFontKey[] };
+    };
 
 export interface TextLayer {
   id: string;
   type: "text";
-  text: string;
-  font: FontKey;
+  text: string; // may contain up to 3 lines ("\n")
+  font: AnyFontKey;
   color: string; // #rrggbb
   x: number;
   y: number;
   w: number;
   rotation: number;
+  /** Letter spacing in em (−0.05 … 0.5). */
+  spacing?: number;
+  /** Line height for multi-line text (0.8 … 1.6). */
+  lineHeight?: number;
+  align?: "left" | "center" | "right";
+  /** Outline: colour + width as a fraction of the font size (0.02 … 0.12). */
+  stroke?: { color: string; width: number };
+  /** Drop shadow: colour + offset/blur as fractions of the font size. */
+  shadow?: { color: string; x: number; y: number; blur: number };
+  /** Curved text: total sweep in degrees (−300 … 300); > 0 arches up, < 0 smiles down. */
+  arc?: number;
 }
 
 export interface ImageLayer {
@@ -57,6 +90,8 @@ export interface ImageLayer {
   path: string; // storage path "uploads/<uuid>.<ext>"
   url: string; // public URL (derived server-side, never trusted from the client)
   aspect: number; // height / width of the source image
+  /** Source width in pixels (uploads) — used to warn about print resolution. */
+  px?: number;
   x: number;
   y: number;
   w: number;
@@ -67,7 +102,7 @@ export type Layer = TextLayer | ImageLayer;
 
 export type Personalization =
   | { mode: "fields"; template: TemplateKey; values: Record<string, string> }
-  | { mode: "designer"; placement: Placement; layers: Layer[] };
+  | { mode: "designer"; placement: Placement; layers: Layer[]; background?: string; back?: Layer[] };
 
 export interface ValidatedPersonalization {
   value: Personalization;

@@ -1,1 +1,1 @@
-Fonts in this folder are licensed under the SIL Open Font License 1.1 (Cinzel, Bricolage Grotesque, Inter, Pacifico, Anton — Google Fonts). Used to render customer print files.
+Fonts in this folder are licensed under the SIL Open Font License 1.1 (Cinzel, Bricolage Grotesque, Inter, Pacifico, Anton, Graduate, Space Mono, Playfair Display — Google Fonts). Used to render customer print files; the storefront preview loads the very same files from /fonts/print so preview and print match.
