@@ -58,7 +58,7 @@ function deliveryWindow(locale: string) {
   return [f(add(now, 4)), f(add(now, 9))] as const;
 }
 
-const KIND_FOR_TYPE: Record<string, "tee" | "hoodie" | "tote" | "poster" | "flat"> = { TSHIRT: "tee", KIDS_TSHIRT: "tee", HOODIE: "hoodie", SWEATSHIRT: "hoodie", TOTE: "tote", POSTER: "poster" };
+const KIND_FOR_TYPE: Record<string, "tee" | "hoodie" | "tote" | "poster" | "flat"> = { TSHIRT: "tee", KIDS_TSHIRT: "tee", HOODIE: "hoodie", SWEATSHIRT: "hoodie", TOTE: "tote", POSTER: "poster", WOMENS_TSHIRT: "tee", TODDLER_TSHIRT: "tee", BABY_BODYSUIT: "tee", WOMENS_HOODIE: "hoodie", WOMENS_SWEATSHIRT: "hoodie", KIDS_HOODIE: "hoodie" };
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

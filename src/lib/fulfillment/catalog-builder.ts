@@ -22,6 +22,8 @@ import { BLUEPRINTS, normSize, posterSize, retail, type Blueprint } from "@/lib/
 import { DESIGNS, designBySlug, type BlueprintKey, type Design, type Tone } from "@/lib/catalog/designs";
 import { renderDesign } from "@/lib/catalog/render";
 import { LEON_EXTRAS } from "@/lib/catalog/leon";
+import { AUDIENCE_BLUEPRINTS } from "@/lib/catalog/blueprints";
+import { AUDIENCE_EXTRAS } from "@/lib/catalog/audience";
 
 /* ───────────────────────── plan ───────────────────────── */
 
@@ -74,6 +76,7 @@ export function productsFor(d: Design): BlueprintKey[] {
   if (d.products.includes("poster")) list.add("framed");
   for (const [bp, slugs] of Object.entries(EXTRAS) as [BlueprintKey, string[]][]) if (slugs.includes(d.slug)) list.add(bp);
   for (const [bp, slugs] of Object.entries(LEON_EXTRAS) as [BlueprintKey, string[]][]) if (slugs.includes(d.slug)) list.add(bp);
+  for (const [bp, slugs] of Object.entries(AUDIENCE_EXTRAS) as [BlueprintKey, string[]][]) if (slugs.includes(d.slug)) list.add(bp);
   return [...list];
 }
 
@@ -213,6 +216,8 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
     try {
       const p = await getCatalogProduct(cid);
       if (p.product.discontinued || !ok(p.product.title)) return;
+      // ranked (audience) blueprints: skip candidates without EU production instead of failing on the first one
+      if (bp.prefer && !p.variants.some((v) => Object.entries(v.availability ?? {}).some(([r, st]) => r.startsWith("EU") && /in_stock|stocked_on_demand|active/i.test(String(st))))) return;
       const pf = await getPrintfiles(cid, wantsEmb ? "EMBROIDERY" : undefined);
       const pls = Object.keys(pf.variant_printfiles[0]?.placements ?? {}).filter(printable);
       const pick = pls.includes(bp.placement) ? bp.placement : wantsEmb ? (pls.find((x) => /front|chest_left|chest_center/.test(x)) ?? pls[0] ?? null) : pls.includes("default") ? "default" : pls.find((x) => x === "front" || x.startsWith("front")) ?? null;
@@ -227,7 +232,13 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   for (const cid of spec.preferredIds ?? []) await consider(cid);
   if (!found) {
     const all = await listCatalogProducts();
-    for (const c of all.filter((p) => !p.discontinued && ok(p.title)).slice(0, 6)) await consider(c.externalId);
+    const rankOf = (title: string) => {
+      const i = bp.prefer?.findIndex((re) => re.test(title)) ?? -1;
+      return i < 0 ? 99 : i;
+    };
+    const cands = all.filter((p) => !p.discontinued && ok(p.title));
+    if (bp.prefer) cands.sort((a, b) => rankOf(a.title) - rankOf(b.title));
+    for (const c of cands.slice(0, bp.prefer ? 10 : 6)) await consider(c.externalId);
   }
   if (!found || !pfiles) throw new Error(`No printable Printful product matches ${spec.match}`);
   const fp = found as Awaited<ReturnType<typeof getCatalogProduct>>;
@@ -238,7 +249,7 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   const pfId = firstVariant?.placements[place];
   const pf = pfs.printfiles.find((x) => x.printfile_id === pfId) ?? pfs.printfiles[0];
   let sizeGuide: unknown;
-  if (["tee", "hoodie", "sweat", "kids"].includes(bp.key)) {
+  if (["tee", "hoodie", "sweat", "kids"].includes(bp.key) || AUDIENCE_BLUEPRINTS.includes(bp.key)) {
     try {
       sizeGuide = await getSizeGuide(p.externalId);
     } catch {
@@ -448,7 +459,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines", womtee: "camiseta de mujer", womcrop: "sudadera corta de mujer", womsweat: "sudadera de mujer", kidshoodie: "sudadera infantil", toddler: "camiseta de peque", baby: "body de bebé" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;

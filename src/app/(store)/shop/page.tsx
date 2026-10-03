@@ -9,6 +9,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Container, PageHero, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
+import { AUDIENCES, isAudience, isFor } from "@/lib/catalog/audience";
 
 export const metadata: Metadata = { title: "Tienda", description: "Camisetas, sudaderas, gorras, tazas, bolsas, láminas y regalos con diseños originales de identidad española. Fabricado bajo pedido en Europa.", alternates: { canonical: "/shop" } };
 export const revalidate = 120;
@@ -24,6 +25,12 @@ const TYPES: [string, string, string][] = [
   ["HOODIE", "Sudaderas con capucha", "Hoodies"],
   ["SWEATSHIRT", "Sudaderas", "Sweatshirts"],
   ["KIDS_TSHIRT", "Infantil", "Kids"],
+  ["WOMENS_TSHIRT", "Camisetas de mujer", "Women's T-shirts"],
+  ["WOMENS_HOODIE", "Sudaderas cortas", "Crop hoodies"],
+  ["WOMENS_SWEATSHIRT", "Sudaderas de mujer", "Women's sweatshirts"],
+  ["KIDS_HOODIE", "Sudaderas infantiles", "Kids' hoodies"],
+  ["TODDLER_TSHIRT", "Peques (2–5 años)", "Toddler (2–5)"],
+  ["BABY_BODYSUIT", "Bodies de bebé", "Baby bodysuits"],
   ["CAP", "Gorras", "Caps"],
   ["BEANIE", "Gorros", "Beanies"],
   ["BUCKET_HAT", "Gorros de pescador", "Bucket hats"],
@@ -75,7 +82,7 @@ function interleave(list: PublicProduct[]) {
   return out;
 }
 
-export default async function ShopPage({ searchParams }: { searchParams: Promise<{ c?: string; q?: string; col?: string; sort?: string; p?: string; t?: string; page?: string; all?: string }> }) {
+export default async function ShopPage({ searchParams }: { searchParams: Promise<{ c?: string; q?: string; col?: string; sort?: string; p?: string; t?: string; page?: string; all?: string; a?: string }> }) {
   const sp = await searchParams;
   const q = (sp.q ?? "").trim().slice(0, 80).toLowerCase();
   const [t, locale, all, collections, site] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1500 }), getCollections(), listSiteImages()]);
@@ -87,14 +94,15 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const onlyPerso = sp.p === "1";
   const colSlug = sp.col && collections.some((c) => c.slug === sp.col) ? sp.col : undefined;
   const type = TYPES.some((x) => x[0] === sp.t) ? sp.t : undefined;
+  const audience = isAudience(sp.a) ? sp.a : undefined;
   const page = Math.max(1, Math.min(50, Number(sp.page) || 1));
-  const filtered = Boolean(category || colSlug || q || onlyPerso || type);
+  const filtered = Boolean(category || colSlug || q || onlyPerso || type || audience);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const present = new Set(all.map((p) => p.categoryCode));
 
   const href = (patch: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
-    const merged = { c: category, col: colSlug, t: type, sort: sort === "featured" ? undefined : sort, q: sp.q, p: onlyPerso ? "1" : undefined, all: sp.all, ...patch };
+    const merged = { c: category, col: colSlug, t: type, sort: sort === "featured" ? undefined : sort, q: sp.q, p: onlyPerso ? "1" : undefined, all: sp.all, a: audience, ...patch };
     for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
     const s = params.toString();
     return s ? `/shop?${s}` : "/shop";
@@ -129,6 +137,12 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       const types = [...new Set(items.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
       return { code, count: items.length, cover, types };
     }).filter((c) => c.count);
+    const AUDIENCE_COVER: Record<string, string> = { mujer: "look-leon-mujer", hombre: "look-toro-hombre", ninos: "look-barca-nino" };
+    const audienceTiles = AUDIENCES.map((x) => {
+      const items = all.filter((p) => isFor(p, x));
+      const cover = (AUDIENCE_COVER[x] && site[AUDIENCE_COVER[x]]) || (sortProducts(items, "featured").find((p) => p.images[0])?.images[0]?.url ?? null);
+      return { a: x, count: items.length, cover };
+    });
     const picks = interleave(sortProducts(all, "featured")).filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i).slice(0, 8);
     const cols = collections
       .map((c) => ({ c, items: all.filter((p) => p.collection?.slug === c.slug) }))
@@ -156,6 +170,34 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
                   </Link>
                 </Reveal>
               ))}
+            </div>
+
+            <div className="mt-12">
+              <p className="kicker flex items-center gap-2 text-gold">
+                <span className="flag-line inline-block h-[3px] w-6 rounded-full" />
+                {t("audience.title")}
+              </p>
+              <div className="no-scrollbar -mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+                {audienceTiles.map((x, i) => (
+                  <Reveal key={x.a} delay={i * 0.04} className="w-[42vw] shrink-0 snap-start sm:w-auto">
+                    <Link href={`/para/${x.a}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[1.6rem] bg-[#0b0b0b] text-white">
+                      {x.cover ? (
+                        <Image src={x.cover} alt={t(`audience.${x.a}`)} fill sizes="(min-width:640px) 20vw, 42vw" className="object-cover opacity-90 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src="/catalog/art/lion-crowned.png" alt="" className="absolute inset-0 m-auto h-1/2 w-1/2 object-contain opacity-80 transition-transform duration-700 group-hover:scale-110" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        {x.count > 0 && <p className="text-[11px] font-bold uppercase tracking-wider text-[#e0b84a]">{t("audience.count", { n: x.count })}</p>}
+                        <p className="headline mt-1 flex items-center justify-between gap-2 text-xl uppercase sm:text-2xl">
+                          {t(`audience.${x.a}`)} <IconArrow className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                        </p>
+                      </div>
+                    </Link>
+                  </Reveal>
+                ))}
+              </div>
             </div>
 
             <Link href="/arte" className="group mt-12 grid overflow-hidden rounded-[1.6rem] bg-[#f3ead7] text-[#1c1a17] sm:grid-cols-[1.1fr_1fr]">
@@ -227,6 +269,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (category) products = products.filter((p) => p.categoryCode === category);
   if (colSlug) products = products.filter((p) => p.collection?.slug === colSlug);
   if (onlyPerso) products = products.filter((p) => p.personalization);
+  if (audience) products = products.filter((p) => isFor(p, audience));
   if (q) products = products.filter((p) => [p.name, p.shortDescription, p.collection?.name, ...p.tags].filter(Boolean).join(" ").toLowerCase().includes(q));
   const typesHere = [...new Set(products.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
   if (type) products = products.filter((p) => p.productType === type);
@@ -236,7 +279,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (sort === "featured") products = interleave(products);
   const shown = products.slice(0, page * PAGE);
   const presentCols = collections.filter((c) => all.some((p) => p.collection?.slug === c.slug && (!category || p.categoryCode === category)));
-  const title = q ? `“${sp.q?.trim()}”` : type ? typeLabel(type, en) : category ? t(`shop.cat.${category}` as never) : onlyPerso ? t("shop.personalize") : t("shop.title");
+  const title = q ? `“${sp.q?.trim()}”` : type ? typeLabel(type, en) : category ? t(`shop.cat.${category}` as never) : onlyPerso ? t("shop.personalize") : audience ? t(`audience.${audience}.title`) : t("shop.title");
 
   return (
     <>
@@ -244,6 +287,18 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       <section className="bg-bg pb-24">
         {CategoryNav}
         <Container className="pt-6">
+          {/* Para quién: audience filter (combines with category, type and search) */}
+          <nav className="no-scrollbar -mx-4 mb-3 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label={t("audience.title")}>
+            <span className="mr-1 shrink-0 text-[13px] font-semibold text-muted">{t("audience.title")}</span>
+            <Link href={href({ a: undefined, page: undefined })} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${!audience ? "border-fg bg-fg text-bg" : "border-line hover:border-fg/40"}`}>
+              {t("audience.all")}
+            </Link>
+            {AUDIENCES.map((x) => (
+              <Link key={x} href={href({ a: x, page: undefined })} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${audience === x ? "border-fg bg-fg text-bg" : "border-line hover:border-fg/40"}`}>
+                {t(`audience.${x}`)}
+              </Link>
+            ))}
+          </nav>
           {typesHere.length > 1 && (
             <nav className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
               <Link href={href({ t: undefined, page: undefined })} className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold ${!type ? "bg-accent text-white" : "bg-surface-2 hover:bg-line"}`}>
@@ -260,6 +315,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
             {category && <input type="hidden" name="c" value={category} />}
             {type && <input type="hidden" name="t" value={type} />}
             {onlyPerso && <input type="hidden" name="p" value="1" />}
+            {audience && <input type="hidden" name="a" value={audience} />}
             {sp.q && <input type="hidden" name="q" value={sp.q} />}
             {sp.all && <input type="hidden" name="all" value="1" />}
             <label className="flex items-center gap-2 text-sm text-muted">

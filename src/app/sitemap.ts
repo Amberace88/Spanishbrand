@@ -1,4 +1,5 @@
 import { CITIES } from "@/lib/catalog/cities";
+import { AUDIENCES } from "@/lib/catalog/audience";
 import type { MetadataRoute } from "next";
 import { getCollections, getPublishedProducts } from "@/lib/products/queries";
 import { REGIONS, isRedundantProvince } from "@/lib/regions";
@@ -13,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...statics.map((p) => ({ url: `${site}${p}`, changeFrequency: "weekly" as const, priority: p === "" ? 1 : 0.6 })),
     ...collections.map((c) => ({ url: `${site}/collections/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
     ...REGIONS.filter((r) => !isRedundantProvince(r)).map((r) => ({ url: `${site}/regiones/${r.slug}`, changeFrequency: "monthly" as const, priority: 0.5 })),
+    ...AUDIENCES.map((a) => ({ url: `${site}/para/${a}`, changeFrequency: "weekly" as const, priority: 0.7 })),
     ...CITIES.map((c) => ({ url: `${site}/ciudades/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.6 })),
     ...products.map((p) => ({ url: `${site}/products/${p.slug}`, lastModified: p.updatedAt, changeFrequency: "weekly" as const, priority: 0.7 })),
   ];
