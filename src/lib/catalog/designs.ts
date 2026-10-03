@@ -15,6 +15,7 @@ import { footballDesigns } from "./football";
 import { artSeriesDesigns, refraneroDesigns } from "./art-series";
 import { leonDesigns } from "./leon";
 import { familyDesigns } from "./family";
+import { sabiduriaDesigns } from "./sabiduria";
 
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
@@ -645,7 +646,7 @@ const BASE_DESIGNS: Design[] = [
   },
 ];
 
-export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns(), ...leonDesigns(), ...familyDesigns()];
+export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns(), ...leonDesigns(), ...familyDesigns(), ...sabiduriaDesigns()];
 
 export const designBySlug = (slug: string) => DESIGNS.find((d) => d.slug === slug) ?? null;
 export const designsFor = (collection: string) => DESIGNS.filter((d) => d.collection === collection);

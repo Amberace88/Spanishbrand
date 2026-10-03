@@ -1145,7 +1145,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
     // family / audience garments (Para quién: abuelos, niños, bebés, mujer) right after León — /para/bebes was empty.
     // Ahead of the other prio-0 lines too: ~140 of those were queued first, so a plain 0 would not move them.
     if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || AUDIENCE_BLUEPRINTS.includes(key.split(":")[2] as BlueprintKey))) return -0.5;
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon"))) return 0;
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };

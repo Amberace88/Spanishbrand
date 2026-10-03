@@ -480,6 +480,19 @@ const es = {
   "audience.showMore": "Ver más",
   "audience.showing": "Mostrando {n} de {total}",
   "audience.shopTitle": "Compra por destinatario",
+  "sab.kicker": "Refranero y sabiduría",
+  "sab.title1": "DICHO",
+  "sab.title2": "Y HECHO",
+  "sab.intro": "Refranes de siempre, frases de abuela, humor español y orgullo de aquí, compuestos a lo grande: tipografía XL, azulejos, sellos vintage y el león de la casa. Fabricado bajo pedido en Europa.",
+  "sab.cta": "Ver las frases",
+  "sab.ctaDesign": "Escribe la tuya",
+  "sab.stylesTitle": "Nueve formas de decirlo",
+  "sab.stylesSub": "Cada frase tiene su letra: elige la que va contigo.",
+  "sab.designs": "{n} diseños",
+  "sab.products": "{n} productos",
+  "sab.inProduction": "En producción",
+  "sab.customise": "Personalizar",
+  "sab.night": "Noche",
 };
 
 export type TKey = keyof typeof es;
@@ -957,6 +970,19 @@ const en: Dict = {
   "audience.showMore": "Show more",
   "audience.showing": "Showing {n} of {total}",
   "audience.shopTitle": "Shop by recipient",
+  "sab.kicker": "Sayings and wisdom",
+  "sab.title1": "SAID",
+  "sab.title2": "AND DONE",
+  "sab.intro": "Classic Spanish proverbs, grandma sayings, Spanish humour and pride of home, set big: XL type, azulejo tiles, vintage seals and the house lion. Made to order in Europe.",
+  "sab.cta": "See the sayings",
+  "sab.ctaDesign": "Write your own",
+  "sab.stylesTitle": "Nine ways to say it",
+  "sab.stylesSub": "Every saying has its lettering: pick the one that suits you.",
+  "sab.designs": "{n} designs",
+  "sab.products": "{n} products",
+  "sab.inProduction": "In production",
+  "sab.customise": "Customise",
+  "sab.night": "Night",
 };
 
 const de: Dict = {
@@ -1431,6 +1457,19 @@ const de: Dict = {
   "audience.showMore": "Mehr anzeigen",
   "audience.showing": "{n} von {total}",
   "audience.shopTitle": "Nach Empfänger einkaufen",
+  "sab.kicker": "Sprichwörter und Weisheit",
+  "sab.title1": "GESAGT",
+  "sab.title2": "GETAN",
+  "sab.intro": "Spanische Sprichwörter, Omas Sprüche, spanischer Humor und Heimatstolz, ganz groß gesetzt: XL-Typografie, Azulejos, Vintage-Siegel und der Löwe des Hauses. Auf Bestellung in Europa gefertigt.",
+  "sab.cta": "Sprüche ansehen",
+  "sab.ctaDesign": "Schreib deinen eigenen",
+  "sab.stylesTitle": "Neun Arten, es zu sagen",
+  "sab.stylesSub": "Jeder Spruch hat seine Schrift: Wähle die, die zu dir passt.",
+  "sab.designs": "{n} Designs",
+  "sab.products": "{n} Artikel",
+  "sab.inProduction": "In Produktion",
+  "sab.customise": "Anpassen",
+  "sab.night": "Nacht",
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = { es, en, fr: {}, de, it: {}, pt: {}, ca, eu, gl };
