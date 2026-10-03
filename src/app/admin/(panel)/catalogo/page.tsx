@@ -1,6 +1,6 @@
 import { requireStaff } from "@/lib/auth/rbac";
 import { isConfigured } from "@/lib/env";
-import { DESIGNS } from "@/lib/catalog/designs";
+import { ACTIVE_DESIGNS } from "@/lib/catalog/designs";
 import { buildPlan } from "@/lib/fulfillment/catalog-builder";
 import { CatalogBuilder } from "@/components/admin/CatalogBuilder";
 
@@ -14,7 +14,7 @@ export default async function CatalogBuilderPage() {
       <div>
         <h1 className="text-3xl font-bold">Constructor de catálogo</h1>
         <p className="mt-2 max-w-3xl text-sm text-stone-600">
-          Convierte la biblioteca de diseños ({DESIGNS.length} diseños originales) en productos reales: busca el producto en Printful/Gelato, genera el archivo de impresión a la
+          Convierte la biblioteca de diseños ({ACTIVE_DESIGNS.length} diseños originales) en productos reales: busca el producto en Printful/Gelato, genera el archivo de impresión a la
           medida exacta, crea variantes y mapeos, ejecuta la prueba de fulfillment (presupuesto sin cargo), genera los mockups, aprueba y publica. Cada paso es reanudable — puedes
           cerrar la página y continuar más tarde.
         </p>

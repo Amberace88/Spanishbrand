@@ -13,7 +13,7 @@ export function productsForCity(slug: string, all: PublicProduct[]) {
 export function cityCards(all: PublicProduct[]) {
   return CITIES.map((c) => {
     const own = productsForCity(c.slug, all);
-    const d = designBySlug(`ciudad-${c.slug}`);
+    const d = designBySlug(`ciudad-${c.slug}-cartel`); // the poster line (the old coordinate badge is retired)
     const tee = own.find((p) => p.productType === "TSHIRT" && p.images[0]) ?? own.find((p) => p.images[0]);
     return {
       slug: c.slug,

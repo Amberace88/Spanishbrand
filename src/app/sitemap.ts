@@ -8,11 +8,12 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const [collections, products] = await Promise.all([getCollections(), getPublishedProducts({ limit: 1000 })]);
-  const statics = ["", "/shop", "/collections", "/drops", "/about", "/journal", "/community", "/shipping", "/returns", "/contact", "/privacy", "/terms", "/deportes", "/personaliza", "/disena", "/regiones", "/ciudades", "/lookbook", "/arte", "/sabiduria", "/club", "/regalos", "/empresas", "/creadores", "/causas"];
+  const [collections, products] = await Promise.all([getCollections(), getPublishedProducts({ limit: 5000 })]);
+  const statics = ["", "/shop", "/collections", "/drops", "/about", "/journal", "/community", "/shipping", "/returns", "/contact", "/privacy", "/terms", "/deportes", "/personaliza", "/disena", "/regiones", "/ciudades", "/lookbook", "/arte", "/sabiduria", "/futbol", "/club", "/regalos", "/empresas", "/creadores", "/causas"];
   return [
     ...statics.map((p) => ({ url: `${site}${p}`, changeFrequency: "weekly" as const, priority: p === "" ? 1 : 0.6 })),
-    ...collections.map((c) => ({ url: `${site}/collections/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
+    // only collections with live products (retired lines leave some empty; those URLs redirect to /shop)
+    ...collections.filter((c) => !products.length || products.some((p) => p.collection?.slug === c.slug)).map((c) => ({ url: `${site}/collections/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
     ...REGIONS.filter((r) => !isRedundantProvince(r)).map((r) => ({ url: `${site}/regiones/${r.slug}`, changeFrequency: "monthly" as const, priority: 0.5 })),
     ...AUDIENCES.map((a) => ({ url: `${site}/para/${a}`, changeFrequency: "weekly" as const, priority: 0.7 })),
     ...CITIES.map((c) => ({ url: `${site}/ciudades/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.6 })),

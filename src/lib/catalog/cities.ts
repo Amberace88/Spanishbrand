@@ -79,7 +79,7 @@ function art(name: ArtName, y: number, maxW: number, maxH: number): ImageLayer {
   const w = +Math.min(maxW, maxH / (a * 0.75)).toFixed(4);
   return { id: id(), type: "image", path: artPath(name), url: artUrl(name), aspect: a, x: 0.5, y, w, rotation: 0 };
 }
-const dms = (v: number, pos: string, neg: string) => {
+export const dms = (v: number, pos: string, neg: string) => {
   const total = Math.round(Math.abs(v) * 60);
   const d = Math.floor(total / 60);
   const m = total % 60;

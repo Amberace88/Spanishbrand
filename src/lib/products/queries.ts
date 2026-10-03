@@ -3,6 +3,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { dbOrNull } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
+import { isRetiredDesign } from "@/lib/catalog/retired";
 
 /**
  * Storefront reads. Explicit public column lists only: costs, provider IDs and
@@ -150,6 +151,9 @@ function mapProduct(r: Row): PublicProduct {
   };
 }
 
+/** Products made from a retired library design are hidden at once (before the DB archive runs). */
+export const isLive = (p: Pick<PublicProduct, "design">) => !isRetiredDesign(p.design);
+
 function publishedQuery() {
   const sb = dbOrNull();
   if (!sb) return null;
@@ -252,6 +256,8 @@ async function listing(): Promise<PublicProduct[]> {
   if (fresh) return snapshot!.rows;
   if (!inflight) {
     inflight = loadListingCached()
+      // filtered after the shared cache, so entries cached before a retirement deploy are cleaned too
+      .then((all) => all.filter(isLive))
       .then((rows) => {
         snapshot = { at: Date.now(), rows };
         return rows;
@@ -275,7 +281,7 @@ export const getPublishedProducts = cache(async (opts: { collectionId?: string; 
     const q = publishedQuery();
     if (q) {
       const { data } = await q.eq("collection_id", opts.collectionId).lt("product_images.sort", 4).order("published_at", { ascending: false }).limit(opts.limit ?? 60);
-      return (data ?? []).map((r) => compactVariants(mapProduct(r as Row))).filter((p) => !opts.category || p.categoryCode === opts.category);
+      return (data ?? []).map((r) => compactVariants(mapProduct(r as Row))).filter((p) => isLive(p) && (!opts.category || p.categoryCode === opts.category));
     }
   }
   if (opts.featured) rows = rows.filter((p) => p.featured);
@@ -323,7 +329,7 @@ export const getBestsellers = cache(async (limit = 8) => {
   if (!q) return [];
   const { data } = await q.in("id", ids);
   const byId = new Map((data ?? []).map((r) => [r.id as string, mapProduct(r as Row)]));
-  return ids.map((id) => byId.get(id)).filter(Boolean) as PublicProduct[];
+  return (ids.map((id) => byId.get(id)).filter(Boolean) as PublicProduct[]).filter(isLive);
 });
 
 function mapCollection(c: Record<string, unknown>): PublicCollection {
@@ -356,9 +362,9 @@ export const FALLBACK_COLLECTIONS: PublicCollection[] = [
   { id: "fiestas", slug: "fiestas", name: "FIESTAS", tagline: "Fallas, Hogueras, ferias y verbenas.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
   { id: "playa", slug: "playa", name: "PLAYA", tagline: "Verano, chiringuito y Mediterráneo.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
   { id: "tapas", slug: "tapas", name: "TAPAS & VINO", tagline: "Un vino, unas tapas y la mejor compañía.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
-  { id: "ciudades", slug: "ciudades", name: "CIUDADES", tagline: "Tu ciudad, en coordenadas.", story: "Una serie para las ciudades de España: nombre, coordenadas y un detalle de su paisaje. De Madrid a Tenerife.", heroImage: null, accentColor: null, featured: true, seoTitle: "Camisetas de ciudades de España", seoDescription: "Camisetas, tazas, bolsas y pósters de Madrid, Barcelona, València, Sevilla, Bilbao, Málaga y más ciudades de España.", ogImage: null },
+  { id: "ciudades", slug: "ciudades", name: "CIUDADES", tagline: "Tu ciudad, a tamaño cartel.", story: "Una serie de carteles tipográficos para las ciudades de España: el nombre en grande, la rojigualda, su lema y sus coordenadas. De Madrid a Tenerife.", heroImage: null, accentColor: null, featured: true, seoTitle: "Camisetas de ciudades de España", seoDescription: "Camisetas, tazas, bolsas y pósters de Madrid, Barcelona, València, Sevilla, Bilbao, Málaga y más ciudades de España.", ogImage: null },
   { id: "militar", slug: "militar", name: "ESTILO MILITAR", tagline: "Camuflaje, parches y orgullo de servicio.", story: "Inspiración militar sin emblemas oficiales: camuflajes, parches de bandera y homenajes a quienes sirvieron.", heroImage: null, accentColor: null, featured: false, seoTitle: "Camisetas estilo militar: camuflaje y parches de España", seoDescription: "Camisetas, sudaderas y tazas de estilo militar: camuflaje, parche de bandera, veteranos y más.", ogImage: null },
-  { id: "profesiones", slug: "profesiones", name: "PROFESIONES", tagline: "Orgullo de oficio: sanidad, emergencias, taxi, campo, cocina y más.", story: "Una línea para la gente que mueve el país cada día. Cada diseño existe con el sello de la casa o limpio, y puedes añadir tu nombre o cambiar el texto en «Diseña en este estilo».", heroImage: null, accentColor: null, featured: true, seoTitle: "Camisetas de profesiones: sanidad, bomberos, taxi, cocina…", seoDescription: "Camisetas, sudaderas y tazas para médicos, enfermería, bomberos, taxistas, camioneros, docentes, cocineros y más. Personalizables con tu nombre.", ogImage: null },
+  { id: "profesiones", slug: "profesiones", name: "PROFESIONES", tagline: "Orgullo de oficio: sanidad, emergencias, taxi, campo, cocina y más.", story: "Una línea para la gente que mueve el país cada día. Cada oficio en ilustración de autor a gran tamaño o en cartel tipográfico, y puedes añadir tu nombre o cambiar el texto en «Diseña en este estilo».", heroImage: null, accentColor: null, featured: true, seoTitle: "Camisetas de profesiones: sanidad, bomberos, taxi, cocina…", seoDescription: "Camisetas, sudaderas y tazas para médicos, enfermería, bomberos, taxistas, camioneros, docentes, cocineros y más. Personalizables con tu nombre.", ogImage: null },
   { id: "leon", slug: "leon", name: "LEÓN", tagline: "El león de la casa: bordado, impreso y a la espalda.", story: "Toda la serie del león: gorras y gorros bordados en hilo de oro y rojo, el león coronado en camisetas y sudaderas de doble cara, la insignia HISPANIA, el blasón y «corazón de león» en tazas, bolsas, botellas, fundas y láminas.", heroImage: null, accentColor: null, featured: true, seoTitle: "Serie León: gorras bordadas, camisetas y accesorios con el león", seoDescription: "Gorras y gorros bordados con el león, camisetas y sudaderas del león coronado, tazas, bolsas, botellas, fundas y láminas. Fabricado bajo pedido en Europa.", ogImage: null },
   { id: "camino", slug: "camino", name: "CAMINO", tagline: "Buen Camino hasta Santiago.", story: null, heroImage: null, accentColor: null, featured: false, seoTitle: null, seoDescription: null, ogImage: null },
   { id: "sabiduria", slug: "sabiduria", name: "REFRANERO Y SABIDURÍA", tagline: "Refranes de siempre, frases de abuela y humor español, compuestos a lo grande.", story: "Una serie tipográfica con el refranero español y frases nuestras: refranes clásicos, orgullo de aquí, frases de abuela, humor, calma, amor y peques. Letra grande, azulejos, sellos vintage y el león de la casa.", heroImage: null, accentColor: null, featured: true, seoTitle: "Camisetas con refranes y frases españolas", seoDescription: "Camisetas, sudaderas, tazas, delantales, cojines y láminas con refranes españoles, frases de abuela y humor español. Fabricado bajo pedido en Europa.", ogImage: null },
@@ -386,7 +392,7 @@ export const getCollectionsBySlugs = cache(async (slugs: string[]) => {
 });
 
 export const getCollectionCounts = cache(async () => {
-  const products = await getPublishedProducts({ limit: 500 });
+  const products = await getPublishedProducts({ limit: 5000 });
   const counts: Record<string, number> = {};
   for (const p of products) if (p.collection) counts[p.collection.slug] = (counts[p.collection.slug] ?? 0) + 1;
   return counts;

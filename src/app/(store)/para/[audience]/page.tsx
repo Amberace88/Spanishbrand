@@ -6,7 +6,7 @@ import { getLocale, getT } from "@/lib/i18n/server";
 import { getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
 import { listSiteImages } from "@/lib/site-images";
 import { AUDIENCES, AUDIENCE_EXTRAS, AUDIENCE_TYPE_ORDER, audienceTypeLabel, isAudience, isFor, type Audience } from "@/lib/catalog/audience";
-import { artUrl, DESIGNS, type BlueprintKey, type Design } from "@/lib/catalog/designs";
+import { ACTIVE_DESIGNS, artUrl, type BlueprintKey, type Design } from "@/lib/catalog/designs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { Container, SectionHead } from "@/components/ui/Section";
@@ -80,7 +80,7 @@ const PAGE_SIZE = 24;
 function designsFor(a: Audience): Design[] {
   const g = PAGE[a].garments;
   const tag = PAGE[a].tag;
-  const list = DESIGNS.filter((d) => {
+  const list = ACTIVE_DESIGNS.filter((d) => {
     if (tag) return d.tags?.includes(tag) || g.some((k) => d.products.includes(k) || AUDIENCE_EXTRAS[k]?.includes(d.slug));
     if (a === "mujer") return g.some((k) => d.products.includes(k) || AUDIENCE_EXTRAS[k]?.includes(d.slug));
     return d.tags?.includes("leon") && d.products.includes("tee") && !d.tags.includes("abuelos");

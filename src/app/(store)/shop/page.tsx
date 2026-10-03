@@ -10,6 +10,7 @@ import { Container, PageHero, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
 import { AUDIENCES, isAudience, isFor } from "@/lib/catalog/audience";
+import { COLLECTION_THEMES, themeByKey } from "@/lib/catalog/themes";
 
 export const metadata: Metadata = { title: "Tienda", description: "Camisetas, sudaderas, gorras, tazas, bolsas, láminas y regalos con diseños originales de identidad española. Fabricado bajo pedido en Europa.", alternates: { canonical: "/shop" } };
 export const revalidate = 120;
@@ -82,7 +83,7 @@ function interleave(list: PublicProduct[]) {
   return out;
 }
 
-export default async function ShopPage({ searchParams }: { searchParams: Promise<{ c?: string; q?: string; col?: string; sort?: string; p?: string; t?: string; page?: string; all?: string; a?: string }> }) {
+export default async function ShopPage({ searchParams }: { searchParams: Promise<{ c?: string; q?: string; col?: string; sort?: string; p?: string; t?: string; page?: string; all?: string; a?: string; tema?: string }> }) {
   const sp = await searchParams;
   const q = (sp.q ?? "").trim().slice(0, 80).toLowerCase();
   const [t, locale, all, collections, site] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1500 }), getCollections(), listSiteImages()]);
@@ -95,14 +96,16 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const colSlug = sp.col && collections.some((c) => c.slug === sp.col) ? sp.col : undefined;
   const type = TYPES.some((x) => x[0] === sp.t) ? sp.t : undefined;
   const audience = isAudience(sp.a) ? sp.a : undefined;
+  const theme = themeByKey(sp.tema);
+  const lx = (l: { es: string; en: string; de: string }) => (locale === "en" ? l.en : locale === "de" ? l.de : l.es);
   const page = Math.max(1, Math.min(50, Number(sp.page) || 1));
-  const filtered = Boolean(category || colSlug || q || onlyPerso || type || audience);
+  const filtered = Boolean(category || colSlug || q || onlyPerso || type || audience || theme);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const present = new Set(all.map((p) => p.categoryCode));
 
   const href = (patch: Record<string, string | undefined>) => {
     const params = new URLSearchParams();
-    const merged = { c: category, col: colSlug, t: type, sort: sort === "featured" ? undefined : sort, q: sp.q, p: onlyPerso ? "1" : undefined, all: sp.all, a: audience, ...patch };
+    const merged = { c: category, col: colSlug, t: type, sort: sort === "featured" ? undefined : sort, q: sp.q, p: onlyPerso ? "1" : undefined, all: sp.all, a: audience, tema: theme?.key, ...patch };
     for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
     const s = params.toString();
     return s ? `/shop?${s}` : "/shop";
@@ -143,6 +146,13 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       const cover = (AUDIENCE_COVER[x] && site[AUDIENCE_COVER[x]]) || (sortProducts(items, "featured").find((p) => p.images[0])?.images[0]?.url ?? null);
       return { a: x, count: items.length, cover };
     });
+    // the house's curated lines as big tiles (only those with products; cover = best product photo, else house art)
+    const themeTiles = COLLECTION_THEMES.map((th) => {
+      const items = all.filter(th.match);
+      const photo = sortProducts(items, "featured").find((p) => p.images[0])?.images[0]?.url ?? null;
+      const art = th.art.startsWith("site-art:") ? siteArtSrc(th.art.slice(9)) : th.art || null;
+      return { th, count: items.length, photo, art };
+    }).filter((x) => x.count > 0);
     const picks = interleave(sortProducts(all, "featured")).filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i).slice(0, 8);
     const cols = collections
       .map((c) => ({ c, items: all.filter((p) => p.collection?.slug === c.slug) }))
@@ -155,6 +165,38 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         <section className="bg-bg pb-24">
           {CategoryNav}
           <Container className="pt-10">
+            {themeTiles.length > 0 && (
+              <div className="mb-12">
+                <p className="kicker flex items-center gap-2 text-gold">
+                  <span className="flag-line inline-block h-[3px] w-6 rounded-full" />
+                  {en ? "Collections" : "Colecciones"}
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                  {themeTiles.map((x, i) => (
+                    <Reveal key={x.th.key} delay={(i % 4) * 0.05}>
+                      <Link href={x.th.href} className="group relative block aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#0b0b0b] text-white">
+                        {x.photo ? (
+                          <Image src={x.photo} alt={lx(x.th.label)} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover opacity-90 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
+                        ) : x.art ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={x.art} alt="" className="absolute inset-0 m-auto h-[62%] w-[62%] object-contain transition-transform duration-700 group-hover:scale-110" />
+                        ) : (
+                          <span className="mega absolute inset-x-4 top-1/3 text-center text-5xl text-[#e0b84a]" aria-hidden>{lx(x.th.label)}</span>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
+                        <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-[#e0b84a]">{x.count} {en ? "items" : "piezas"}</p>
+                          <p className="headline mt-1 flex items-center justify-between gap-2 text-2xl uppercase leading-none sm:text-4xl">
+                            {lx(x.th.label)} <IconArrow className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1" />
+                          </p>
+                          <p className="mt-1.5 line-clamp-2 text-xs text-white/70 sm:text-sm">{lx(x.th.sub)}</p>
+                        </div>
+                      </Link>
+                    </Reveal>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {cats.map((c, i) => (
                 <Reveal key={c.code} delay={(i % 5) * 0.04}>
@@ -239,7 +281,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
             {cols.length > 0 && (
               <div className="mt-20">
-                <SectionHead eyebrow={t("nav.collections")} title={en ? "Shop by collection" : "Compra por colección"} />
+                <SectionHead eyebrow={en ? "Themes" : "Temas"} title={en ? "Shop by theme" : "Compra por tema"} />
                 <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-4">
                   {cols.map(({ c, items }) => {
                     const cover = sortProducts(items, "featured").find((p) => p.images[0])?.images[0]?.url;
@@ -269,6 +311,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (colSlug) products = products.filter((p) => p.collection?.slug === colSlug);
   if (onlyPerso) products = products.filter((p) => p.personalization);
   if (audience) products = products.filter((p) => isFor(p, audience));
+  if (theme) products = products.filter(theme.match);
   if (q) products = products.filter((p) => [p.name, p.shortDescription, p.collection?.name, ...p.tags].filter(Boolean).join(" ").toLowerCase().includes(q));
   const typesHere = [...new Set(products.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
   if (type) products = products.filter((p) => p.productType === type);
@@ -278,7 +321,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (sort === "featured") products = interleave(products);
   const shown = products.slice(0, page * PAGE);
   const presentCols = collections.filter((c) => all.some((p) => p.collection?.slug === c.slug && (!category || p.categoryCode === category)));
-  const title = q ? `“${sp.q?.trim()}”` : type ? typeLabel(type, en) : category ? t(`shop.cat.${category}` as never) : onlyPerso ? t("shop.personalize") : audience ? t(`audience.${audience}.title`) : t("shop.title");
+  const title = q ? `“${sp.q?.trim()}”` : theme ? lx(theme.label) : type ? typeLabel(type, en) : category ? t(`shop.cat.${category}` as never) : onlyPerso ? t("shop.personalize") : audience ? t(`audience.${audience}.title`) : t("shop.title");
 
   return (
     <>

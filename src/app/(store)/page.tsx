@@ -29,7 +29,7 @@ export default async function Home() {
     getPublishedProducts({ limit: 8 }),
     getDrops(),
     getOpenPoll(),
-    getCollectionsBySlugs(["futbol", "padel", "ciclismo", "motor", "fiestas", "mi-pueblo", "playa", "tapas", "camino"]),
+    getCollectionsBySlugs(["futbol", "fiestas", "playa", "tapas", "sabiduria", "heritage", "mediterraneo", "profesiones"]),
     getLocale(),
     getPublishedProducts({ limit: 500 }),
     listSiteImages(),
@@ -89,11 +89,12 @@ export default async function Home() {
         </section>
       ) : null}
 
-      <ThemesBento collections={themes} />
+      {/* only themes with something to buy (retired lines leave some collections empty) */}
+      <ThemesBento collections={catalog.length ? themes.filter((c) => counts[c.slug]) : themes} />
       <BigMarquee words={t("marquee.words").split("|")} />
       <PersonalizeTeaser />
       <FiestasCalendar />
-      {!products.length && <ComingSoonGrid collections={core.length ? [...core, ...collections.filter((c) => c.slug === "motor")] : collections} />}
+      {!products.length && <ComingSoonGrid collections={core.length ? core : collections} />}
       <Manifesto kicker={t("manifesto.kicker")} text={t("manifesto.text")} highlight={["identidad", "españa", "identity", "spain"]} />
       <CollectionsBento collections={core.length ? core : collections} counts={counts} />
 

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getCollectionBySlug, getPublishedProducts } from "@/lib/products/queries";
 import { getT } from "@/lib/i18n/server";
-import { DESIGNS, designsFor } from "@/lib/catalog/designs";
+import { ACTIVE_DESIGNS, designsFor } from "@/lib/catalog/designs";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -39,7 +39,9 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const rank = (p: (typeof all)[number]) => (p.tags.includes("futbol-pro") ? 9 : 0) + (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
   const byTag = TAG_COLLECTIONS.has(c.slug);
   const own = all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))).sort((a, b) => rank(b) - rank(a));
-  const designs = byTag ? DESIGNS.filter((d) => d.collection === c.slug || d.tags?.includes(c.slug)) : designsFor(c.slug);
+  const designs = byTag ? ACTIVE_DESIGNS.filter((d) => d.collection === c.slug || d.tags?.includes(c.slug)) : designsFor(c.slug);
+  // a collection whose every design was retired (lib/catalog/retired.ts) and has nothing left: send old links to the shop
+  if (!own.length && !designs.length) permanentRedirect("/shop");
   const type = TYPES.find((x) => x === sp.c);
   const design = designs.find((d) => d.slug === sp.d);
   let products = own;

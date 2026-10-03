@@ -12,6 +12,7 @@
 import type { BlueprintKey, Design } from "./designs";
 import { artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 import type { FontKey, ImageLayer, TextLayer } from "@/lib/personalization/types";
+import { fit, stack, track, type Item } from "./sabiduria";
 
 const WF: Record<FontKey, number> = { display: 0.6, serif: 0.78, sans: 0.62, script: 0.62, sport: 0.47 };
 const RATIO = 3200 / 2400;
@@ -108,6 +109,33 @@ export function professionDesigns(): Design[] {
       posterBg: "#0d0d0d",
       tags: ["profesion", p.key, "personalizable", "arte"],
     };
-    return [arte, seal, minimal];
+    // cartel edition: big type in the Refranero style (the title across ~86 % of the width, motto in serif)
+    const words = p.title.split(" ");
+    const lines = words.length > 1 ? words : [p.title];
+    // the motto is the second display element: two balanced serif lines (a "·" list splits at a dot)
+    const mw = p.motto.split(" ").filter(Boolean);
+    let cut = 1;
+    for (let i = 1; i < mw.length; i++) if (Math.abs(mw.slice(0, i).join(" ").length - mw.slice(i).join(" ").length) < Math.abs(mw.slice(0, cut).join(" ").length - mw.slice(cut).join(" ").length)) cut = i;
+    const clean = (s: string) => s.replace(/^·\s*|\s*·$/g, "");
+    const mottoLines = mw.length > 1 ? [clean(mw.slice(0, cut).join(" ")), clean(mw.slice(cut).join(" "))] : [p.motto];
+    const mottoSize = Math.min(...mottoLines.map((l) => fit(l, "serif", 0.8, 0.1)));
+    const items: Item[] = [
+      { kind: "t", fixed: true, text: track("Orgullo de oficio"), font: "sans", color: G, size: 0.026, gap: 0.04 },
+      ...lines.map((l, i): Item => ({ kind: "t", text: l, font: "sport", color: i === lines.length - 1 ? "#f0c75a" : CR, size: fit(l, "sport", 0.86, lines.length > 1 ? 0.24 : 0.3), gap: i === lines.length - 1 ? 0.04 : 0.02 })),
+      { kind: "i", name: "stripes-rg", w: 0.86, gap: 0.045 },
+      ...mottoLines.map((l, i): Item => ({ kind: "t", text: l, font: "serif", color: i === mottoLines.length - 1 ? G : CR, size: mottoSize, gap: i === mottoLines.length - 1 ? 0 : 0.025 })),
+    ];
+    const cartel: Design = {
+      slug: `oficio-${p.key}-cartel`,
+      collection: "profesiones",
+      name: `${p.label} · Cartel`,
+      line: `${p.line} El oficio a tamaño cartel, con la rojigualda y su lema.`,
+      tone: "dark",
+      layers: stack(items, 0.45, 0.86),
+      products: ["tee", "hoodie", "sweat", "mug", ...(p.extra ?? [])],
+      posterBg: "#0d0d0d",
+      tags: ["profesion", p.key, "personalizable", "cartel", "tipografia"],
+    };
+    return [arte, cartel, seal, minimal];
   });
 }

@@ -110,13 +110,13 @@ export async function CategoryGrid() {
   );
 }
 
-/** "Lo que nos mueve": bento of what matters in Spain — football, pueblo, fiesta, sea, tapas, Camino. */
+/** "Lo que nos mueve": bento of what matters in Spain — football, sayings, fiesta, sea, tapas, trades. */
 export async function ThemesBento({ collections }: { collections: PublicCollection[] }) {
   const [t, show] = await Promise.all([getT(), getShowcase()]);
   const spans: Record<string, string> = {
     futbol: "col-span-2 row-span-2",
-    "mi-pueblo": "col-span-2 row-span-2",
-    camino: "col-span-2",
+    sabiduria: "col-span-2 row-span-2",
+    profesiones: "col-span-2",
   };
   return (
     <section className="bg-bg py-16 sm:py-24">
@@ -125,7 +125,7 @@ export async function ThemesBento({ collections }: { collections: PublicCollecti
         <div className="grid grid-flow-dense auto-rows-[210px] grid-cols-2 gap-3 sm:auto-rows-[250px] lg:grid-cols-4">
           {collections.map((c, i) => {
             const th = themeFor(c.slug);
-            const big = c.slug === "futbol" || c.slug === "mi-pueblo";
+            const big = c.slug === "futbol" || c.slug === "sabiduria";
             return (
               <Reveal key={c.slug} delay={(i % 4) * 0.05} className={spans[c.slug] ?? ""}>
                 <Link href={`/collections/${c.slug}`} className={`group relative flex h-full flex-col overflow-hidden rounded-3xl p-5 sm:p-6 ${th.tile}`}>
@@ -193,7 +193,7 @@ export async function FiestasCalendar() {
 export async function PersonalizeTeaser() {
   const [t, show, site] = await Promise.all([getT(), getShowcase(), listSiteImages()]);
   const photo = site["campaign-garcia"];
-  const pueblo = show.byCollection["mi-pueblo"]?.[0] ?? show.byType.POSTER ?? null;
+  const pueblo = show.byType.POSTER ?? null;
   return (
     <section className="bg-bg pb-16 sm:pb-24">
       <Container>

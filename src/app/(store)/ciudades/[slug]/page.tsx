@@ -41,7 +41,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   const own = productsForCity(c.slug, all).sort((a, b) => (TYPE_ORDER.indexOf(a.productType) + 99) % 99 - (TYPE_ORDER.indexOf(b.productType) + 99) % 99);
   const extras = all.filter((p) => p.tags.includes("calendario") && p.tags.includes("ciudad"));
   const region = regionBySlug(c.region);
-  const design = designBySlug(`ciudad-${c.slug}`);
+  const design = designBySlug(`ciudad-${c.slug}-cartel`);
   const neighbours = CITIES.filter((x) => x.region === c.region && x.slug !== c.slug);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const jsonLd = {
@@ -56,7 +56,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PageHero eyebrow={`${region?.name ?? ""} · ${c.sub}`} title={c.label} sub={c.line}>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={`/disena?style=ciudad-${c.slug}`} className="btn btn-primary px-6 py-3.5">
+          <Link href={`/disena?style=ciudad-${c.slug}-cartel`} className="btn btn-primary px-6 py-3.5">
             {en ? "Customise this design" : "Personaliza este diseño"} <IconArrow className="h-4 w-4" />
           </Link>
           <Link href="/ciudades" className="btn btn-ghost px-6 py-3.5">
@@ -88,7 +88,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
                   <p className="kicker text-gold">{en ? "Coming very soon" : "Muy pronto"}</p>
                   <h2 className="headline mt-2 text-3xl sm:text-4xl">{en ? `The ${c.label} collection is being produced` : `La colección de ${c.label} está en producción`}</h2>
                   <p className="mt-3 text-muted">{en ? "Meanwhile you can make it your own in the designer." : "Mientras tanto, puedes hacerla tuya en el diseñador."}</p>
-                  <Link href={`/disena?style=ciudad-${c.slug}`} className="btn btn-primary mt-6 px-6 py-3.5">
+                  <Link href={`/disena?style=ciudad-${c.slug}-cartel`} className="btn btn-primary mt-6 px-6 py-3.5">
                     {en ? "Design it" : "Diséñala"} →
                   </Link>
                 </div>

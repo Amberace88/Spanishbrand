@@ -20,7 +20,7 @@ import { EMB_FONTS, EMB_MAX_COLORS, EMB_MAX_LAYERS, KINDS, THREADS } from "@/lib
 import type { StaffSession } from "@/lib/auth/rbac";
 import { FALLBACK_COLLECTIONS } from "@/lib/products/queries";
 import { BLUEPRINTS, normSize, posterSize, retail, type Blueprint } from "@/lib/catalog/blueprints";
-import { DESIGNS, designBySlug, type BlueprintKey, type Design, type Tone } from "@/lib/catalog/designs";
+import { ACTIVE_DESIGNS, designBySlug, type BlueprintKey, type Design, type Tone } from "@/lib/catalog/designs";
 import { renderDesign } from "@/lib/catalog/render";
 import { LEON_EXTRAS } from "@/lib/catalog/leon";
 import { AUDIENCE_BLUEPRINTS } from "@/lib/catalog/blueprints";
@@ -118,21 +118,22 @@ const TEMPLATES: { template: TemplateKey; bp: BlueprintKey; tone: Tone; sample: 
 const resKey = (bp: BlueprintKey, tone: Tone) => (BLUEPRINTS[bp].alt?.[tone] ? `res:${bp}:${tone}` : `res:${bp}`);
 
 /** Extra products (Printify / Prodigi range) per design, on top of each design's own list. */
-const EXTRAS: Partial<Record<BlueprintKey, string[]>> = {
+export const EXTRAS: Partial<Record<BlueprintKey, string[]>> = {
   framed: [], // filled below: every design that has a poster
-  canvas: ["firma-leon", "sol-de-espana", "tierra-de-castillos", "rosa-de-los-vientos", "atardecer-mediterraneo", "casa-azulejo", "ciudad-madrid", "ciudad-sevilla"],
-  towel: ["atardecer-mediterraneo", "vivir-cerca-del-mar", "chiringuito-club", "costa", "casa-azulejo", "ciudad-malaga", "ciudad-cadiz", "ciudad-barcelona", "espana-bandas"],
-  apron: ["hora-del-vermut", "tapeo", "casa-azulejo", "ciudad-logrono"],
-  pillow: ["casa-azulejo", "rosa-de-los-vientos", "sol-de-espana", "firma-leon", "hecho-en-espana"],
-  bandana: ["aficion-balon", "espana-bandas", "firma-texto", "verbena"],
-  phonecase: ["firma-leon", "espana-bandas", "sol-de-espana", "atardecer-mediterraneo", "aficion-balon", "padel-club", "casa-azulejo"],
+  // only active designs (lib/catalog/retired.ts); the art series already carries canvas and pillow itself
+  canvas: ["firma-leon", "ciudad-madrid-cartel", "ciudad-sevilla-cartel", "ciudad-barcelona-cartel"],
+  towel: ["arte-chiringuito", "arte-faro", "arte-barca", "espana-bandas", "ciudad-malaga-cartel", "ciudad-cadiz-cartel"],
+  apron: ["sab-has-comido", "sab-croquetas"],
+  pillow: ["firma-leon", "sab-familia-primero", "sab-pan-y-cebolla"],
+  bandana: ["espana-bandas", "fp-campeones-bandas", "fp-bufanda-espana"],
+  phonecase: ["firma-leon", "espana-bandas", "arte-chiringuito", "arte-paella"],
   // Puzzles and doormats: no EU print provider at Printful/Printify/Gelato/Prodigi → not offered (customs + slow delivery).
-  glass: ["un-vino", "vino-y-tapas", "hora-del-vermut", "hecho-en-espana", "casa-azulejo"],
-  coaster: ["tapeo", "un-vino", "al-porron", "casa-azulejo", "hecho-en-espana", "ciudad-madrid", "ciudad-sevilla", "ciudad-barcelona"],
-  tumbler: ["firma-leon", "camo-espana", "oficio-medicina", "oficio-enfermeria", "oficio-bomberos", "oficio-docente", "aficion-balon"],
-  flag: ["espana-bandas", "aficion-balon", "hecho-en-espana", "firma-leon", "parche-espana", "ciudad-madrid", "ciudad-barcelona", "ciudad-sevilla", "ciudad-valencia"],
-  postcard: ["ciudad-madrid", "ciudad-barcelona", "ciudad-valencia", "ciudad-sevilla", "ciudad-malaga", "ciudad-bilbao", "ciudad-granada", "ciudad-cadiz", "ciudad-santiago", "ciudad-alicante", "casa-azulejo", "buen-camino"],
-  blanket: ["casa-azulejo", "sol-de-espana", "firma-leon", "espana-bandas", "aficion-balon", "rosa-de-los-vientos", "ciudad-madrid", "ciudad-barcelona", "ciudad-sevilla"],
+  glass: ["arte-vino", "arte-vermut", "arte-jamon"],
+  coaster: ["arte-vino", "arte-vermut", "arte-paella", "arte-churros", "arte-jamon"],
+  tumbler: ["firma-leon", "oficio-medicina-arte", "oficio-enfermeria-arte", "oficio-bomberos-arte", "oficio-docente-arte", "fp-campeones-mundo-noche"],
+  flag: ["espana-bandas", "firma-leon", "fp-campeones-bandas", "ciudad-madrid-cartel", "ciudad-barcelona-cartel", "ciudad-sevilla-cartel", "ciudad-valencia-cartel"],
+  postcard: ["arte-toro", "arte-alhambra", "arte-faro", "arte-pueblo-blanco", "arte-peregrino", "arte-feria", "arte-fallas", "ciudad-madrid-cartel", "ciudad-sevilla-cartel"],
+  blanket: ["firma-leon", "espana-bandas", "arte-toro", "arte-chiringuito", "ciudad-madrid-cartel", "ciudad-barcelona-cartel"],
 };
 
 export function productsFor(d: Design): BlueprintKey[] {
@@ -147,7 +148,8 @@ export function productsFor(d: Design): BlueprintKey[] {
 export function buildPlan(): PlanItem[] {
   const res = new Set<string>();
   const products: PlanItem[] = [];
-  for (const d of DESIGNS) {
+  // retired designs (lib/catalog/retired.ts) never get new jobs; their definitions stay for old orders
+  for (const d of ACTIVE_DESIGNS) {
     for (const bp of productsFor(d)) {
       res.add(resKey(bp, d.tone));
       products.push({ key: `p:${d.slug}:${bp}`, kind: "PRODUCT", label: `${d.name} — ${BLUEPRINTS[bp].label}` });
@@ -649,7 +651,7 @@ async function uniqueSlug(base: string) {
   return `${base}-${Date.now()}`;
 }
 
-const FEATURED = new Set(["p:firma-leon:tee", "p:espana-bandas:tee", "p:sol-de-espana:tee", "p:aficion-balon:tee", "p:atardecer-mediterraneo:tee", "p:firma-leon:hoodie", "p:hora-del-vermut:mug", "p:tierra-de-castillos:poster"]);
+const FEATURED = new Set(["p:firma-leon:tee", "p:espana-bandas:tee", "p:leon-coronado:tee", "p:arte-toro:tee", "p:arte-chiringuito:tee", "p:firma-leon:hoodie", "p:arte-vermut:mug", "p:arte-quijote:poster"]);
 
 async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult> {
   const sb = db();

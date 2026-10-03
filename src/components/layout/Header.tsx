@@ -2,6 +2,7 @@
 import { LanguageMenu } from "@/components/layout/LanguageMenu";
 import { CITIES } from "@/lib/catalog/cities";
 import { AUDIENCES } from "@/lib/catalog/audience";
+import { CATEGORY_LINKS, COLLECTION_THEMES, TOPIC_THEMES, type L3 } from "@/lib/catalog/themes";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,40 +13,15 @@ import { useLocale, useT } from "@/components/providers/I18nProvider";
 import { IconArrow, IconBag, IconClose, IconMenu, IconSearch, IconUser } from "@/components/ui/Icons";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
-const CATS = ["APPAREL", "HEADWEAR", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING"] as const;
 const ease = [0.16, 1, 0.3, 1] as const;
 
-type L = { es: string; en: string; de: string };
-/** Everything the shop holds, in three tidy columns (desktop mega menu + mobile drawer). */
-const EXPLORE: { title: L; links: { href: string; label: L }[] }[] = [
-  {
-    title: { es: "Colecciones", en: "Collections", de: "Kollektionen" },
-    links: [
-      { href: "/arte", label: { es: "Arte de autor", en: "Author art", de: "Autorenkunst" } },
-      { href: "/sabiduria", label: { es: "Refranero", en: "Spanish sayings", de: "Sprichwörter" } },
-      { href: "/lookbook", label: { es: "León Coronado", en: "Crowned Lion", de: "Gekrönter Löwe" } },
-      { href: "/collections/leon", label: { es: "Serie León", en: "Lion series", de: "Löwen-Serie" } },
-      { href: "/collections/espana", label: { es: "España", en: "Spain", de: "Spanien" } },
-      { href: "/collections/heritage", label: { es: "Heritage", en: "Heritage", de: "Heritage" } },
-      { href: "/collections/mediterraneo", label: { es: "Mediterráneo", en: "Mediterranean", de: "Mittelmeer" } },
-      { href: "/collections/fiestas", label: { es: "Fiestas", en: "Fiestas", de: "Fiestas" } },
-      { href: "/collections/tapas", label: { es: "Tapas y vino", en: "Tapas & wine", de: "Tapas & Wein" } },
-      { href: "/collections/playa", label: { es: "Playa", en: "Beach", de: "Strand" } },
-      { href: "/collections/camino", label: { es: "Camino", en: "The Way", de: "Jakobsweg" } },
-      { href: "/collections/profesiones", label: { es: "Profesiones", en: "Professions", de: "Berufe" } },
-    ],
-  },
-  {
-    title: { es: "Tu tierra y tu equipo", en: "Your place & team", de: "Deine Heimat & dein Team" },
-    links: [
-      { href: "/ciudades", label: { es: "Ciudades", en: "Cities", de: "Städte" } },
-      { href: "/regiones", label: { es: "Regiones", en: "Regions", de: "Regionen" } },
-      { href: "/collections/mi-pueblo", label: { es: "Mi pueblo", en: "My village", de: "Mein Dorf" } },
-      { href: "/deportes", label: { es: "Deportes", en: "Sports", de: "Sport" } },
-      { href: "/futbol", label: { es: "Fútbol", en: "Football", de: "Fußball" } },
-      { href: "/regalos", label: { es: "Regalos", en: "Gifts", de: "Geschenke" } },
-    ],
-  },
+/**
+ * Mega menu / drawer columns (lib/catalog/themes.ts): Categorías · Para quién · Colecciones · Temas.
+ * Only curated, active lines are linked (retired collections such as Mi pueblo or Estilo militar are gone).
+ */
+const EXPLORE = [
+  { key: "colecciones", title: { es: "Colecciones", en: "Collections", de: "Kollektionen" }, wide: true, links: COLLECTION_THEMES.map((x) => ({ href: x.href, label: x.label })) },
+  { key: "temas", title: { es: "Temas", en: "Themes", de: "Themen" }, wide: false, links: TOPIC_THEMES },
 ];
 
 /** Continuous ticker — black in day mode, white in night mode. */
@@ -72,7 +48,7 @@ function Ticker({ messages }: { messages: string[] }) {
 export function Header({ brandName, cartCount, messages }: { brandName: string; cartCount: number; messages: string[] }) {
   const t = useT();
   const locale = useLocale() as string;
-  const lx = (l: L) => (locale === "en" ? l.en : locale === "de" ? l.de : l.es);
+  const lx = (l: L3) => (locale === "en" ? l.en : locale === "de" ? l.de : l.es);
   const [mega, setMega] = useState(false);
   const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const megaOpen = () => {
@@ -126,11 +102,11 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
     { href: "/disena", label: t("hero3.design"), badge: true },
     { href: "/club", label: t("nav.club") },
   ] as { href: string; label: string; badge?: boolean }[];
-  const cats = CATS.map((c) => ({ href: `/shop?c=${c}`, label: t(`nav.cat.${c}` as never) }));
+  const cats = CATEGORY_LINKS.map((c) => ({ href: c.href, label: lx(c.label) }));
   /** Mega menu / drawer groups: "Para quién" first, then the editorial EXPLORE columns. */
   const groups = [
-    { key: "para", title: t("audience.title"), links: AUDIENCES.map((a) => ({ href: `/para/${a}`, label: t(`audience.${a}`) })) },
-    ...EXPLORE.map((g) => ({ key: g.title.es, title: lx(g.title), links: g.links.map((x) => ({ href: x.href, label: lx(x.label) })) })),
+    { key: "para", title: t("audience.title"), wide: false, links: AUDIENCES.map((a) => ({ href: `/para/${a}`, label: t(`audience.${a}`) })) },
+    ...EXPLORE.map((g) => ({ key: g.key, title: lx(g.title), wide: g.wide, links: g.links.map((x) => ({ href: x.href, label: lx(x.label) })) })),
   ];
   const secondary = [
     { href: "/regalos", label: t("nav.gifts") },
@@ -220,7 +196,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
               >
                 <div className="mx-auto grid max-w-[1440px] grid-cols-[1fr_0.85fr_1.4fr_1fr_1.1fr] gap-9 px-8 py-9">
                   <div>
-                    <p className="kicker text-muted">{lx({ es: "Productos", en: "Products", de: "Produkte" })}</p>
+                    <p className="kicker text-muted">{lx({ es: "Categorías", en: "Categories", de: "Kategorien" })}</p>
                     <ul className="mt-4 space-y-2.5">
                       {cats.map((c) => (
                         <li key={c.href}>
@@ -237,7 +213,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                   {groups.map((g) => (
                     <div key={g.key}>
                       <p className="kicker text-muted">{g.title}</p>
-                      <ul className={`mt-4 grid gap-x-6 gap-y-2.5 ${g.links.length > 7 ? "grid-cols-2" : ""}`}>
+                      <ul className={`mt-4 grid gap-x-6 gap-y-2.5 ${g.wide ? "grid-cols-2" : ""}`}>
                         {g.links.map((x) => (
                           <li key={x.href}>
                             <Link href={x.href} className="text-[15px] font-semibold text-fg/85 transition-colors hover:text-accent">{x.label}</Link>
@@ -335,7 +311,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
               ))}
               <div className="grid gap-6 border-b border-line py-6 sm:grid-cols-2">
                 <div>
-                  <p className="kicker text-muted">{lx({ es: "Productos", en: "Products", de: "Produkte" })}</p>
+                  <p className="kicker text-muted">{lx({ es: "Categorías", en: "Categories", de: "Kategorien" })}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {cats.map((c) => (
                       <Link key={c.href} href={c.href} className="rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold hover:border-fg">{c.label}</Link>

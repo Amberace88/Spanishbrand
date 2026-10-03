@@ -62,11 +62,11 @@ export const AUDIENCE_GARMENTS: Record<Audience, BlueprintKey[]> = {
  * The crowned lion leads every list.
  */
 export const AUDIENCE_EXTRAS: Partial<Record<BlueprintKey, string[]>> = {
-  womtee: ["leon-coronado", "leon-coronado-noche", "leon-real-claro", "leon-escudo", "leon-escudo-claro", "firma-leon", "espana-bandas", "sol-de-espana", "hecho-en-espana"],
-  womcrop: ["leon-coronado", "leon-coronado-noche", "leon-escudo", "firma-leon"],
-  womsweat: ["leon-coronado", "leon-real-claro", "leon-escudo-claro"],
+  womtee: ["leon-coronado", "leon-coronado-noche", "leon-real-claro", "leon-corazon", "leon-corazon-claro", "firma-leon", "espana-bandas"],
+  womcrop: ["leon-coronado", "leon-coronado-noche", "leon-real-claro", "firma-leon"],
+  womsweat: ["leon-coronado", "leon-real-claro", "leon-corazon-claro"],
   kidshoodie: ["leon-coronado-noche", "leon-real-claro"],
-  toddler: ["leon-real-claro", "firma-texto"],
+  toddler: ["leon-real-claro"],
   baby: ["leon-real-claro"],
 };
 

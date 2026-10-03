@@ -34,9 +34,9 @@ const span = (t: string, font: FontKey) => RATIO * [...t].length * WF[font];
 const GW = glyphWidths as Record<FontKey, Record<string, number>>;
 const real = (t: string, font: FontKey) => RATIO * [...t].reduce((s, c) => s + (GW[font]?.[c] ?? WF[font]), 0);
 /** Font size (fraction of canvas height) so `t` really spans `width` (fraction of canvas width), capped at `max`. */
-const fit = (t: string, font: FontKey, width: number, max: number) => Math.min(max, width / real(t, font));
+export const fit = (t: string, font: FontKey, width: number, max: number) => Math.min(max, width / real(t, font));
 /** Letter-spaced caps for small labels (non-breaking spaces survive whitespace collapsing). */
-const track = (t: string) => [...t.toUpperCase()].map((c) => (c === " " ? "  " : c)).join(" ");
+export const track = (t: string) => [...t.toUpperCase()].map((c) => (c === " " ? "  " : c)).join(" ");
 
 /**
  * Text layer at font size `size`. The renderer sizes text from the box width with its average-width
@@ -56,7 +56,7 @@ const I = (name: string, y: number, w: number, x = 0.5): ImageLayer => ({ id: id
 const VH: Record<FontKey, number> = { sport: 0.9, serif: 0.74, display: 0.8, sans: 0.74, script: 1.1 };
 const VOFF: Record<FontKey, number> = { sport: 0, serif: 0, display: 0, sans: 0, script: -0.06 };
 
-type Item = { kind: "t"; text: string; font: FontKey; color: string; size: number; gap?: number; fixed?: boolean } | { kind: "i"; name: string; w: number; gap?: number; x?: number };
+export type Item = { kind: "t"; text: string; font: FontKey; color: string; size: number; gap?: number; fixed?: boolean } | { kind: "i"; name: string; w: number; gap?: number; x?: number };
 const hOf = (it: Item) => (it.kind === "t" ? it.size * VH[it.font] : it.w * artAspect(it.name) * 0.75);
 
 /** Extra clearance between two lines: accents over capitals, descenders (Q, commas, script loops). */
@@ -69,7 +69,7 @@ function clearance(a: Item, b: Item | undefined) {
 const gapsOf = (items: Item[]) => items.slice(0, -1).reduce((s, it, i) => s + (it.gap ?? 0.03) + clearance(it, items[i + 1]), 0);
 
 /** Lays the items out top→bottom centred on `cy`; if taller than `maxH`, text shrinks to fit. */
-function stack(items: Item[], cy: number, maxH = 0.74): Layer[] {
+export function stack(items: Item[], cy: number, maxH = 0.74): Layer[] {
   const total = items.reduce((s, it) => s + hOf(it), 0) + gapsOf(items);
   if (total > maxH) {
     const textH = items.filter((i) => i.kind === "t" && !i.fixed).reduce((s, it) => s + hOf(it), 0);

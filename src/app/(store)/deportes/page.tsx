@@ -20,8 +20,10 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function SportsPage() {
-  const [t, cols, all, show, site] = await Promise.all([getT(), getCollectionsBySlugs(SPORT_SLUGS.length ? ["futbol", "padel", "ciclismo", "motor"] : []), getPublishedProducts({ limit: 300 }), getShowcase(), listSiteImages()]);
+  const [t, allCols, all, show, site] = await Promise.all([getT(), getCollectionsBySlugs(SPORT_SLUGS.length ? ["futbol", "padel", "ciclismo", "motor"] : []), getPublishedProducts({ limit: 5000 }), getShowcase(), listSiteImages()]);
   const products = all.filter((p) => p.collection && SPORT_SLUGS.includes(p.collection.slug));
+  // never link a sport whose collection has nothing left (retired lines); with no listing at all keep the editorial tiles
+  const cols = all.length ? allCols.filter((c) => products.some((p) => p.collection?.slug === c.slug)) : allCols;
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   return (
     <>

@@ -4,7 +4,8 @@ import { getDesignerProducts } from "@/lib/products/queries";
 import { Designer, type DesignerArt, type DesignerProduct, type DesignerStyle } from "@/components/designer/Designer";
 import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
 import { artAspect } from "@/lib/catalog/designs-art";
-import { DESIGNS } from "@/lib/catalog/designs";
+import { ACTIVE_DESIGNS } from "@/lib/catalog/designs";
+import { isRetiredDesign, replacementFor, seriesOf } from "@/lib/catalog/retired";
 import { KINDS, kindFromProduct } from "@/lib/personalization/kinds";
 import { Container, PageHero } from "@/components/ui/Section";
 
@@ -20,9 +21,18 @@ type SP = { p?: string; style?: string; arte?: string; texto?: string; tinta?: s
 /** Catalogue order inside the picker (by kind), then cheapest first. */
 const ORDER = Object.keys(KINDS);
 
+/** "Estilos de la casa": only active, full designs, strongest series first (embroidery and calendars have their own flows). */
+const STYLE_SERIES = ["lookbook", "leon", "arte", "oficios-arte", "sabiduria", "futbol-pro", "refranero", "familia", "ciudades-cartel", "oficios-cartel", "base"];
+const HOUSE_STYLES: DesignerStyle[] = ACTIVE_DESIGNS.filter((d) => STYLE_SERIES.includes(seriesOf(d)) && !d.products.every((p) => p === "jersey"))
+  .map((d, i) => ({ d, i, rank: STYLE_SERIES.indexOf(seriesOf(d)) }))
+  .sort((a, b) => a.rank - b.rank || a.i - b.i)
+  .map(({ d }) => ({ slug: d.slug, name: d.name, collection: d.collection, tone: d.tone, layers: d.layers }));
+
 export default async function DesignPage({ searchParams }: { searchParams: Promise<SP> }) {
   const [t, products, sp] = await Promise.all([getT(), getDesignerProducts(), searchParams]);
-  const styles: DesignerStyle[] = DESIGNS.map((d) => ({ slug: d.slug, name: d.name, collection: d.collection, tone: d.tone, layers: d.layers }));
+  const styles = HOUSE_STYLES;
+  // old "Diseña en este estilo" links to a retired look open its replacement
+  const style = sp.style && isRetiredDesign(sp.style) ? (replacementFor(sp.style) ?? undefined) : sp.style;
   const arts: DesignerArt[] = [
     { name: "lion-crowned", label: "León Coronado", aspect: artAspect("lion-crowned"), src: "/catalog/art/lion-crowned.png" },
     ...ART_SERIES.map((p) => ({ name: p.art, label: p.name, aspect: artAspect(p.art), src: siteArtSrc(p.art) })),
@@ -61,7 +71,7 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
             products={list}
             styles={styles}
             arts={arts}
-            initial={{ product: clip(sp.p, 120), style: clip(sp.style, 80), art: clip(sp.arte, 80), text: clip(sp.texto, 40), ink: clip(sp.tinta, 7), font: clip(sp.font, 12), tpl: clip(sp.tpl, 20) }}
+            initial={{ product: clip(sp.p, 120), style: clip(style, 80), art: clip(sp.arte, 80), text: clip(sp.texto, 40), ink: clip(sp.tinta, 7), font: clip(sp.font, 12), tpl: clip(sp.tpl, 20) }}
           />
         </Container>
       </section>

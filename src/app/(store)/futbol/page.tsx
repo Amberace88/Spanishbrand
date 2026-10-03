@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
-import { DESIGNS, type Design } from "@/lib/catalog/designs";
+import { ACTIVE_DESIGNS as DESIGNS, type Design } from "@/lib/catalog/designs";
 import { FUTBOL_AOP, FUTBOL_CITIES, FUTBOL_SERIES, type FutbolCity } from "@/lib/catalog/futbol-pro";
 import { Container } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";

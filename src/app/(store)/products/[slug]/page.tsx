@@ -3,11 +3,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { SizeFinder } from "@/components/product/SizeFinder";
 import { formatMoney } from "@/lib/format";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getProductBySlug, getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
 import { getBrand } from "@/lib/brand";
 import { getT } from "@/lib/i18n/server";
 import { designBySlug } from "@/lib/catalog/designs";
+import { isRetiredDesign } from "@/lib/catalog/retired";
+import { retiredRedirect } from "@/lib/catalog/retired-redirect";
 import { ProductView } from "@/components/product/ProductView";
 import { ProductCard } from "@/components/product/ProductCard";
 import { CollectionArt } from "@/components/art/CollectionArt";
@@ -63,6 +65,11 @@ const KIND_FOR_TYPE: Record<string, "tee" | "hoodie" | "tote" | "poster" | "flat
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const p = await getProductBySlug(slug);
+  // retired designs (lib/catalog/retired.ts): old links move permanently to the replacement / collection
+  if (!p || isRetiredDesign(p.design)) {
+    const moved = await retiredRedirect(slug, p);
+    if (moved) permanentRedirect(moved);
+  }
   if (!p) notFound();
   const [brand, t, rating, all] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 2000 })]);
   const design = p.design ? designBySlug(p.design) : null;

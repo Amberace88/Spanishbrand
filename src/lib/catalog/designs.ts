@@ -10,6 +10,7 @@
 import type { FontKey, ImageLayer, Layer, TextLayer } from "@/lib/personalization/types";
 import { artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 import { cityDesigns } from "./cities";
+import { cityPosterDesigns } from "./city-posters";
 import { professionDesigns } from "./professions";
 import { footballDesigns } from "./football";
 import { artSeriesDesigns, refraneroDesigns } from "./art-series";
@@ -17,6 +18,7 @@ import { leonDesigns } from "./leon";
 import { familyDesigns } from "./family";
 import { sabiduriaDesigns } from "./sabiduria";
 import { futbolProDesigns } from "./futbol-pro";
+import { RETIRED_DESIGNS } from "./retired";
 
 export { ART_NAMES, artAspect, artPath, artUrl, type ArtName } from "./designs-art";
 
@@ -37,6 +39,8 @@ export interface Design {
   back?: Layer[];
   /** Fill-in template customers can use with this look (Personaliza). */
   template?: "pueblo" | "jersey" | "year" | "text";
+  /** Retired from the shop (lib/catalog/retired.ts): kept only so old orders still render. */
+  retired?: true;
 }
 
 
@@ -647,10 +651,17 @@ const BASE_DESIGNS: Design[] = [
   },
 ];
 
-export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns(), ...leonDesigns(), ...familyDesigns(), ...sabiduriaDesigns(), ...futbolProDesigns()];
+/** Every design ever sold, retired ones included (old orders, print files, redirects). */
+export const DESIGNS: Design[] = [...BASE_DESIGNS, ...cityDesigns(), ...cityPosterDesigns(), ...professionDesigns(), ...footballDesigns(), ...artSeriesDesigns(), ...refraneroDesigns(), ...leonDesigns(), ...familyDesigns(), ...sabiduriaDesigns(), ...futbolProDesigns()].map((d) =>
+  RETIRED_DESIGNS.has(d.slug) ? { ...d, retired: true as const } : d,
+);
+/** What the shop sells and shows: use this for anything customer-facing or for new catalog jobs. */
+export const ACTIVE_DESIGNS: Design[] = DESIGNS.filter((d) => !d.retired);
 
-export const designBySlug = (slug: string) => DESIGNS.find((d) => d.slug === slug) ?? null;
-export const designsFor = (collection: string) => DESIGNS.filter((d) => d.collection === collection);
+const BY_SLUG = new Map(DESIGNS.map((d) => [d.slug, d]));
+export const designBySlug = (slug: string) => BY_SLUG.get(slug) ?? null;
+/** Active designs of a collection. */
+export const designsFor = (collection: string) => ACTIVE_DESIGNS.filter((d) => d.collection === collection);
 
 /** Layers with absolute art URLs (server rendering / external consumers). */
 export function absoluteLayers(layers: Layer[], base: string): Layer[] {

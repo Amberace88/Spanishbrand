@@ -20,13 +20,9 @@ const GROUPS: { design: string; es: string; en: string; sub: [string, string] }[
   { design: "leon-coronado", es: "León Coronado", en: "Crowned Lion", sub: ["Para prendas claras: el león, el nombre en rojo y oro viejo.", "For light garments: the lion, the name in red and old gold."] },
   { design: "leon-coronado-noche", es: "León Coronado · Noche", en: "Crowned Lion · Night", sub: ["Para prendas oscuras: letras en blanco y oro.", "For dark garments: white and gold lettering."] },
   { design: "rojo-y-gualda-real", es: "Rojo y Gualda · Real", en: "Rojo y Gualda · Royal", sub: ["La corona real sobre el nombre de la casa.", "The royal crown over the name of the house."] },
-  { design: "corona-real-pecho", es: "Corona Real · Pecho", en: "Royal Crown · Chest", sub: ["Discreta, a la altura del corazón.", "Discreet, over the heart."] },
-  { design: "corona-real-pecho-claro", es: "Corona Real · Pecho (claro)", en: "Royal Crown · Chest (light)", sub: ["La misma firma para prendas claras.", "The same mark for light garments."] },
   { design: "corona-bordada", es: "Corona Bordada", en: "Embroidered Crown", sub: ["Bordada en hilo: gorras, gorros, parches y prendas.", "Embroidered in thread: caps, beanies, patches and garments."] },
   { design: "leon-real", es: "León Real · sin texto", en: "Royal Lion · no text", sub: ["Solo el arte, a gran tamaño: prendas, láminas, lienzos, fundas y casa.", "Just the art, large: garments, prints, canvases, cases and home."] },
   { design: "leon-real-claro", es: "León Real · claro", en: "Royal Lion · light", sub: ["El león grande, sin texto, para prendas claras.", "The big lion, no text, for light garments."] },
-  { design: "leon-escudo", es: "León al pecho", en: "Lion on the chest", sub: ["Pequeño y discreto, a la altura del corazón.", "Small and discreet, over the heart."] },
-  { design: "leon-escudo-claro", es: "León al pecho · claro", en: "Lion on the chest · light", sub: ["La versión discreta para prendas claras.", "The discreet version for light garments."] },
   // Serie León
   { design: "leon-bordado", es: "León Bordado", en: "Embroidered Lion", sub: ["El león en hilo amarillo y rojo: gorras, gorros, parches y prendas.", "The lion in yellow and red thread: caps, beanies, patches and garments."] },
   { design: "leon-espana-bordado", es: "León · España", en: "Lion · España", sub: ["El león y ESPAÑA bordados en horizontal, hechos para la gorra.", "The lion and ESPAÑA embroidered side by side, made for the cap."] },

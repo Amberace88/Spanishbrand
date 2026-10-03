@@ -13,9 +13,10 @@ export const metadata: Metadata = { title: "Colecciones", description: "España,
 export const revalidate = 300;
 
 export default async function CollectionsPage() {
-  const [t, dbCollections, products] = await Promise.all([getT(), getCollections(), getPublishedProducts({ limit: 500 })]);
+  const [t, dbCollections, products] = await Promise.all([getT(), getCollections(), getPublishedProducts({ limit: 5000 })]);
   // DB collections first, then the theme hubs that always exist editorially.
-  const collections = [...dbCollections, ...FALLBACK_COLLECTIONS.filter((f) => !dbCollections.some((c) => c.slug === f.slug))].filter((c) => designsFor(c.slug).length || products.some((p) => p.collection?.slug === c.slug));
+  // Only collections with something to buy (retired lines leave some empty); with no listing at all (DB down) the active designs decide.
+  const collections = [...dbCollections, ...FALLBACK_COLLECTIONS.filter((f) => !dbCollections.some((c) => c.slug === f.slug))].filter((c) => (products.length ? products.some((p) => p.collection?.slug === c.slug) : designsFor(c.slug).length > 0));
 
   return (
     <>
