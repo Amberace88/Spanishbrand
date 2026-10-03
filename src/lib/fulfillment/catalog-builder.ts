@@ -222,6 +222,8 @@ interface Resolved {
   paper?: string;
   /** Printful: the placement (file type) the print file goes to. */
   placement?: string;
+  /** All-over products: print file size of every extra panel (back, sleeves) that gets its own file. */
+  panels?: Record<string, { width: number; height: number }>;
 }
 
 async function resolved(key: string): Promise<Resolved | null> {
@@ -312,7 +314,7 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   const pfId = firstVariant?.placements[place];
   const pf = pfs.printfiles.find((x) => x.printfile_id === pfId) ?? pfs.printfiles[0];
   let sizeGuide: unknown;
-  if (["tee", "hoodie", "sweat", "kids"].includes(bp.key) || AUDIENCE_BLUEPRINTS.includes(bp.key)) {
+  if (["tee", "hoodie", "sweat", "kids", "jersey"].includes(bp.key) || AUDIENCE_BLUEPRINTS.includes(bp.key)) {
     try {
       sizeGuide = await getSizeGuide(p.externalId);
     } catch {
@@ -343,7 +345,18 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   // Huge print areas (beach towel 9300×4800) can't be rendered inside a serverless step; Printful accepts any
   // file with the same aspect ratio and scales it, so cap the longest side.
   const cap = Math.min(1, 4800 / Math.max(pf.width, pf.height));
-  return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: Math.round(pf.width * cap), height: Math.round(pf.height * cap) }, placements, placement: place, sizeGuide, variantIds };
+  // all-over products: every extra panel (back, sleeves) gets its own file at its own size
+  let panels: Resolved["panels"];
+  if (bp.aopPanels) {
+    panels = {};
+    for (const pl of bp.aopPanels.filter((x) => placements.includes(x) && x !== place)) {
+      const f = pfs.printfiles.find((x) => x.printfile_id === firstVariant?.placements[pl]);
+      if (!f) continue;
+      const k = Math.min(1, 4800 / Math.max(f.width, f.height));
+      panels[pl] = { width: Math.round(f.width * k), height: Math.round(f.height * k) };
+    }
+  }
+  return { provider: "printful", rowId, externalId: p.externalId, title: p.title, printfile: { width: Math.round(pf.width * cap), height: Math.round(pf.height * cap) }, placements, placement: place, sizeGuide, variantIds, panels };
 }
 
 /** Gelato A3 portrait wall calendar (printed in Spain). The print file is a static 14-page PDF per design. */
@@ -522,7 +535,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines", womtee: "camiseta de mujer", womcrop: "sudadera corta de mujer", womsweat: "sudadera de mujer", kidshoodie: "sudadera infantil", toddler: "camiseta de peque", baby: "body de bebé" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines", womtee: "camiseta de mujer", womcrop: "sudadera corta de mujer", womsweat: "sudadera de mujer", kidshoodie: "sudadera infantil", toddler: "camiseta de peque", baby: "body de bebé", jersey: "camiseta deportiva" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
@@ -682,8 +695,16 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
       const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${backHash}-back.png`, backPng, "image/png", { immutable: true });
       files.push({ type: "back", url: backUrl });
     }
+    // all-over garments: back panel = the design's back (or its pattern), sleeves = the pattern alone
+    if (res.panels && bp.renderMode === "cover") {
+      for (const [pl, size] of Object.entries(res.panels)) {
+        const layers = pl === "back" && design.back?.length ? design.back : design.layers.slice(0, 1);
+        const panelPng = await renderDesign({ ...design, layers }, { ...size, mode: "cover" });
+        files.push({ type: pl, url: await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}-${pl}.png`, panelPng, "image/png") });
+      }
+    }
   }
-  const twoSided = files.some((f) => f.type === "back");
+  const twoSided = !bp.aopPanels && files.some((f) => f.type === "back");
 
   const copy = copyFor(spec, res);
   const collectionSlug = spec.kind === "design" ? design.collection : spec.kind === "template" ? (spec.template!.template === "jersey" ? "futbol" : spec.template!.template === "pueblo" ? "mi-pueblo" : "esenciales") : "esenciales";
@@ -984,7 +1005,9 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   const frontUrl = st.files[0] ? mockupSource(spec, st.files[0], res.printfile, "front", job) : artUrl;
   const files = [
     { placement: placementOk, imageUrl: frontUrl, position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } },
-    ...st.files.filter((f) => f.type === "back" && res.placements.includes("back")).map((f) => ({ placement: "back", imageUrl: mockupSource(spec, f, res.printfile, "back", job), position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } })),
+    ...st.files.filter((f) => f.type === "back" && res.placements.includes("back") && !res.panels?.back).map((f) => ({ placement: "back", imageUrl: mockupSource(spec, f, res.printfile, "back", job), position: { area_width: width, area_height: height, width, height, top: 0, left: 0 } })),
+    // all-over panels at their own print-file size
+    ...st.files.filter((f) => res.panels?.[f.type]).map((f) => ({ placement: f.type, imageUrl: f.url, position: { area_width: res.panels![f.type].width, area_height: res.panels![f.type].height, width: res.panels![f.type].width, height: res.panels![f.type].height, top: 0, left: 0 } })),
   ];
   try {
     const input = { productId: res.externalId, variantIds: [...perColor.values()], format: "jpg" as const, files };
@@ -1221,7 +1244,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
     // family / audience garments (Para quién: abuelos, niños, bebés, mujer) right after León — /para/bebes was empty.
     // Ahead of the other prio-0 lines too: ~140 of those were queued first, so a plain 0 would not move them.
     if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || AUDIENCE_BLUEPRINTS.includes(key.split(":")[2] as BlueprintKey))) return -0.5;
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria"))) return 0;
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria") || d.tags?.includes("futbol-pro"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };

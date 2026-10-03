@@ -33,7 +33,7 @@ export default async function SportsPage() {
               const th = themeFor(c.slug);
               return (
                 <Reveal key={c.slug} delay={i * 0.05}>
-                  <Link href={`/collections/${c.slug}`} className={`group relative flex min-h-[340px] flex-col overflow-hidden rounded-[2rem] p-8 ${th.tile}`}>
+                  <Link href={c.slug === "futbol" ? "/futbol" : `/collections/${c.slug}`} className={`group relative flex min-h-[340px] flex-col overflow-hidden rounded-[2rem] p-8 ${th.tile}`}>
                     <div className="relative z-10 flex items-start justify-between">
                       <div>
                         <h2 className="mega text-6xl sm:text-7xl">{c.name}</h2>

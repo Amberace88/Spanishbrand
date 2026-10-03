@@ -95,7 +95,7 @@ export function contentBox(layers: Layer[], pad = 0.03) {
   return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
 }
 
-export type RenderMode = "print" | "mug" | "poster" | "sticker" | "fill" | "emb";
+export type RenderMode = "print" | "mug" | "poster" | "sticker" | "fill" | "emb" | "cover";
 
 /**
  * Render a library design to PNG at an exact provider print-file size.
@@ -119,13 +119,14 @@ export async function renderDesign(input: Pick<Design, "layers" | "posterBg" | "
     }),
   };
   const src = (p: string, url: string) => art.get(p) ?? url;
-  const cb = contentBox(design.layers);
+  const cbAll = contentBox(design.layers);
 
   // Place the (cropped) design into a target rectangle, preserving aspect.
-  const placed = (box: { left: number; top: number; width: number; height: number }, crop: boolean, key: string) => {
+  const placed = (box: { left: number; top: number; width: number; height: number }, crop: boolean, key: string, cover?: ReturnType<typeof contentBox>) => {
+    const cb = cover ?? cbAll;
     const cw = crop ? cb.w : 1;
     const ch = crop ? cb.h * (4 / 3) : 4 / 3; // in canvas-width units
-    const scale = Math.min(box.width / cw, box.height / ch); // px per canvas-width unit
+    const scale = (cover ? Math.max : Math.min)(box.width / cw, box.height / ch); // px per canvas-width unit
     const dw = scale, dh = scale * (4 / 3); // full design canvas size in px
     const vw = cw * scale, vh = ch * scale; // visible window
     const left = box.left + (box.width - vw) / 2;
@@ -140,7 +141,15 @@ export async function renderDesign(input: Pick<Design, "layers" | "posterBg" | "
   };
 
   let body: React.ReactNode;
-  if (mode === "print") {
+  if (mode === "cover") {
+    // all-over (sublimation) panels: the first layer (the full-bleed pattern) is scaled to cover the print file edge to edge
+    body = (
+      <>
+        <div style={{ position: "absolute", left: 0, top: 0, width: W, height: H, background: design.posterBg ?? "#ffffff", display: "flex" }} />
+        {placed({ left: 0, top: 0, width: W, height: H }, true, "v", contentBox(design.layers.slice(0, 1), 0))}
+      </>
+    );
+  } else if (mode === "print") {
     body = placed({ left: 0, top: 0, width: W, height: H }, false, "p");
   } else if (mode === "mug") {
     const side = { width: W * 0.42, height: H * 0.86 };

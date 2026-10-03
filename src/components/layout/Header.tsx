@@ -42,7 +42,7 @@ const EXPLORE: { title: L; links: { href: string; label: L }[] }[] = [
       { href: "/regiones", label: { es: "Regiones", en: "Regions", de: "Regionen" } },
       { href: "/collections/mi-pueblo", label: { es: "Mi pueblo", en: "My village", de: "Mein Dorf" } },
       { href: "/deportes", label: { es: "Deportes", en: "Sports", de: "Sport" } },
-      { href: "/collections/futbol", label: { es: "Fútbol", en: "Football", de: "Fußball" } },
+      { href: "/futbol", label: { es: "Fútbol", en: "Football", de: "Fußball" } },
       { href: "/regalos", label: { es: "Regalos", en: "Gifts", de: "Geschenke" } },
     ],
   },
