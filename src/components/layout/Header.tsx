@@ -1,6 +1,7 @@
 "use client";
 import { LanguageMenu } from "@/components/layout/LanguageMenu";
 import { CITIES } from "@/lib/catalog/cities";
+import { AUDIENCES } from "@/lib/catalog/audience";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -123,6 +124,11 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
     { href: "/club", label: t("nav.club") },
   ] as { href: string; label: string; badge?: boolean }[];
   const cats = CATS.map((c) => ({ href: `/shop?c=${c}`, label: t(`nav.cat.${c}` as never) }));
+  /** Mega menu / drawer groups: "Para quién" first, then the editorial EXPLORE columns. */
+  const groups = [
+    { key: "para", title: t("audience.title"), links: AUDIENCES.map((a) => ({ href: `/para/${a}`, label: t(`audience.${a}`) })) },
+    ...EXPLORE.map((g) => ({ key: g.title.es, title: lx(g.title), links: g.links.map((x) => ({ href: x.href, label: lx(x.label) })) })),
+  ];
   const secondary = [
     { href: "/regalos", label: t("nav.gifts") },
     { href: "/causas", label: t("nav.causes") },
@@ -209,7 +215,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                 transition={{ duration: 0.22, ease }}
                 className="absolute inset-x-0 top-full hidden border-b border-line bg-bg/95 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.45)] backdrop-blur-xl xl:block"
               >
-                <div className="mx-auto grid max-w-[1440px] grid-cols-[1fr_1.4fr_1fr_1.1fr] gap-10 px-8 py-9">
+                <div className="mx-auto grid max-w-[1440px] grid-cols-[1fr_0.85fr_1.4fr_1fr_1.1fr] gap-9 px-8 py-9">
                   <div>
                     <p className="kicker text-muted">{lx({ es: "Productos", en: "Products", de: "Produkte" })}</p>
                     <ul className="mt-4 space-y-2.5">
@@ -225,13 +231,13 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                       </li>
                     </ul>
                   </div>
-                  {EXPLORE.map((g) => (
-                    <div key={g.title.es}>
-                      <p className="kicker text-muted">{lx(g.title)}</p>
+                  {groups.map((g) => (
+                    <div key={g.key}>
+                      <p className="kicker text-muted">{g.title}</p>
                       <ul className={`mt-4 grid gap-x-6 gap-y-2.5 ${g.links.length > 7 ? "grid-cols-2" : ""}`}>
                         {g.links.map((x) => (
                           <li key={x.href}>
-                            <Link href={x.href} className="text-[15px] font-semibold text-fg/85 transition-colors hover:text-accent">{lx(x.label)}</Link>
+                            <Link href={x.href} className="text-[15px] font-semibold text-fg/85 transition-colors hover:text-accent">{x.label}</Link>
                           </li>
                         ))}
                       </ul>
@@ -325,7 +331,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                   </Link>
                 </motion.div>
               ))}
-              <div className="grid gap-6 border-b border-line py-6 sm:grid-cols-3">
+              <div className="grid gap-6 border-b border-line py-6 sm:grid-cols-2">
                 <div>
                   <p className="kicker text-muted">{lx({ es: "Productos", en: "Products", de: "Produkte" })}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -334,12 +340,12 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
                     ))}
                   </div>
                 </div>
-                {EXPLORE.map((g) => (
-                  <div key={g.title.es}>
-                    <p className="kicker text-muted">{lx(g.title)}</p>
+                {groups.map((g) => (
+                  <div key={g.key}>
+                    <p className="kicker text-muted">{g.title}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {g.links.map((x) => (
-                        <Link key={x.href} href={x.href} className="rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold hover:border-fg">{lx(x.label)}</Link>
+                        <Link key={x.href} href={x.href} className="rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold hover:border-fg">{x.label}</Link>
                       ))}
                     </div>
                   </div>
