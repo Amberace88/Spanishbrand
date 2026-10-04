@@ -162,8 +162,8 @@ export function EditorialTile({
         <div className="plx absolute -inset-4" style={{ "--d": "-10px" } as CSSProperties}>
           <Image src={photo} alt="" fill loading={priority ? "eager" : undefined} fetchPriority={priority ? "high" : undefined} sizes={tileSizes} className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
           {/* scrim follows the type: titles at the top get a top wash, titles at the bottom a bottom wash */}
-          <div className="absolute inset-0" style={{ background: textTop ? `linear-gradient(to bottom, ${T.deep} 0%, ${T.deep}e6 18%, ${T.deep}80 36%, transparent 58%), linear-gradient(to top, ${T.deep}99 0%, transparent 30%)` : `linear-gradient(to top, ${T.deep} 4%, ${T.deep}d9 28%, ${T.deep}33 62%, transparent 85%)` }} />
-          <div className="absolute inset-0 mix-blend-multiply" style={{ background: `${T.bg}40` }} />
+          <div className="absolute inset-0" style={{ background: textTop ? `linear-gradient(to bottom, ${T.deep}d9 0%, ${T.deep}8c 16%, ${T.deep}26 32%, transparent 46%), linear-gradient(to top, ${T.deep}66 0%, transparent 24%)` : `linear-gradient(to top, ${T.deep} 4%, ${T.deep}d9 28%, ${T.deep}33 62%, transparent 85%)` }} />
+          <div className="absolute inset-0 mix-blend-multiply" style={{ background: `${T.bg}1f` }} />
         </div>
       )}
       {/* texture + giant word */}
@@ -198,15 +198,14 @@ export function EditorialTile({
       <div className={`${L.text} ${L.pad} z-10`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
+            {title && <h3 className={`mega break-words ${L.title} ${photo ? "[text-shadow:0_1px_18px_rgba(0,0,0,.35)]" : ""}`}>{title}</h3>}
             {kicker && (
-              <p className="kicker flex min-w-0 items-center gap-2" style={{ color: T.accent }}>
-                <span className={`inline-block h-[2px] w-5 shrink-0 rounded-full ${compact ? "max-sm:hidden" : ""}`} style={{ background: T.accent }} />
+              <p className={`mt-1.5 min-w-0 text-[13px] font-medium sm:text-sm ${photo ? "[text-shadow:0_1px_10px_rgba(0,0,0,.45)]" : ""}`} style={{ color: T.fg, opacity: 0.86 }}>
                 {/* small tiles on phones: the first part only ("120 diseños") */}
-                <span className={`truncate whitespace-nowrap ${compact ? "max-sm:hidden" : ""}`}>{kicker}</span>
-                {compact && <span className="truncate whitespace-nowrap sm:hidden">{kicker.split(" · ")[0]}</span>}
+                <span className={`block truncate ${compact ? "max-sm:hidden" : ""}`}>{kicker}</span>
+                {compact && <span className="block truncate sm:hidden">{kicker.split(" · ")[0]}</span>}
               </p>
             )}
-            {title && <h3 className={`mega mt-2 break-words ${L.title}`}>{title}</h3>}
             {tagline && <p className={`serif mt-2 italic leading-snug opacity-85 ${L.tagline}`}>{tagline}</p>}
             {L.cta && cta && (
               <span className="mt-4 inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[12px] font-semibold sm:mt-5 sm:px-5 sm:py-2.5 sm:text-[13px] transition-transform duration-300 group-hover:translate-x-1" style={{ background: T.accent, color: T.onAccent }}>

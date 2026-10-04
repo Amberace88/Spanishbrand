@@ -10,7 +10,7 @@ import { IconArrow } from "@/components/ui/Icons";
 
 export const revalidate = 300;
 export const metadata: Metadata = {
-  title: "Lookbook León Coronado — camisetas, sudaderas y láminas",
+  title: "Lookbook León Coronado: camisetas, sudaderas y láminas",
   description: "El león coronado de ROJO Y GUALDA: camisetas, sudaderas, láminas, tazas y más con la corona real y los trazos de la bandera. Fabricado bajo pedido en Europa, en todos los colores.",
   alternates: { canonical: "/lookbook" },
   openGraph: { images: ["/catalog/art/lion-crowned.png"] },
@@ -57,7 +57,7 @@ export default async function LookbookPage() {
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-[#f5f1e8]/75">
               {en
-                ? "Courage, nobility and the colours of the flag. The line from our film, made to order in Europe in every colour the workshop can produce — and editable in our designer."
+                ? "Courage, nobility and the colours of the flag. The line from our film, made to order in Europe in every colour the workshop can produce, and editable in our designer."
                 : "Valor, nobleza y los colores de la bandera. La línea de nuestra película, fabricada bajo pedido en Europa en todos los colores que el taller puede producir, y editable en nuestro diseñador."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -80,7 +80,7 @@ export default async function LookbookPage() {
       <div id="coleccion" className="scroll-mt-28">
         {groups.length === 0 ? (
           <Container>
-            <p className="py-24 text-center text-muted">{en ? "The line is being produced — back in a few minutes." : "La línea se está fabricando: vuelve en unos minutos."}</p>
+            <p className="py-24 text-center text-muted">{en ? "The line is being produced: back in a few minutes." : "La línea se está fabricando: vuelve en unos minutos."}</p>
           </Container>
         ) : (
           groups.map((g) => (

@@ -145,8 +145,7 @@ export default async function Home() {
           <Container>
             <div className="grid gap-10 rounded-[2rem] bg-surface-2 p-8 sm:p-12 lg:grid-cols-[1fr_1.4fr]">
               <div>
-                <p className="kicker text-accent">{t("home.community.eyebrow")}</p>
-                <h2 className="headline mt-3 text-4xl sm:text-5xl">{t("home.community.title")}</h2>
+                <h2 className="headline text-4xl sm:text-5xl">{t("home.community.title")}</h2>
                 <p className="mt-4 max-w-md text-lg text-muted">{t("home.community.body")}</p>
               </div>
               <PollCard post={{ id: poll.id, title: poll.title, body: poll.body, options: pollOptions }} />

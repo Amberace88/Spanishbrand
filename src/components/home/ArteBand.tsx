@@ -18,11 +18,7 @@ export function ArteBand({ arts, looks = [], products, en, labels }: { arts: { k
           <div className="relative overflow-hidden rounded-[2rem] bg-[#f3ead7] text-[#1c1a17]">
             <div className="relative grid gap-6 p-7 sm:p-12 lg:grid-cols-12 lg:items-end lg:p-16">
               <div className="lg:col-span-7">
-                <div className="flex items-center gap-3">
-                  <span className="flag-stripe h-3.5 w-5 rounded-[3px]" aria-hidden />
-                  <p className="kicker text-[#a3162b]">{en ? `Author illustration · ${arts.length} pieces` : `Ilustración de autor · ${arts.length} obras`}</p>
-                </div>
-                <h2 className="mt-5 font-[family-name:var(--font-logo)] text-[11vw] font-bold leading-[0.95] sm:text-6xl lg:text-[4vw] 2xl:text-7xl">
+                <h2 className="font-[family-name:var(--font-logo)] text-[11vw] font-bold leading-[0.95] sm:text-6xl lg:text-[4vw] 2xl:text-7xl">
                   {en ? "WEARABLE" : "ARTE QUE"}
                   <span className="block text-[#a3162b]">{en ? "ART" : "SE LLEVA"}</span>
                 </h2>
@@ -30,7 +26,7 @@ export function ArteBand({ arts, looks = [], products, en, labels }: { arts: { k
               <div className="lg:col-span-5">
                 <p className="max-w-md text-[17px] leading-relaxed text-[#1c1a17]/75">
                   {en
-                    ? "Engraved, painterly scenes of Spain printed as large as the garment allows — or placed by you, on any piece, in our designer."
+                    ? "Engraved, painterly scenes of Spain printed as large as the garment allows, or placed by you, on any piece, in our designer."
                     : "Escenas de España grabadas y pintadas, impresas tan grandes como permite la prenda, o colocadas por ti en cualquier pieza con nuestro diseñador."}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -62,7 +58,7 @@ export function ArteBand({ arts, looks = [], products, en, labels }: { arts: { k
                       <Link key={`${a.key}-${i}`} href={`/disena?arte=${a.key}`} aria-hidden={i >= row.length} tabIndex={i >= row.length ? -1 : 0} className="group relative block h-40 w-40 shrink-0 overflow-hidden rounded-2xl bg-[#ebe0c8] sm:h-52 sm:w-52">
                         {/* through the image CDN: the source illustrations are 1600 px PNGs in storage, shown at ≤ 208 px */}
                         <Image src={a.src} alt={a.name} fill sizes="(min-width:640px) 208px, 160px" className="object-contain p-3 transition-transform duration-500 group-hover:scale-110" />
-                        <span className="absolute inset-x-2 bottom-2 translate-y-2 rounded-full bg-[#1c1a17]/85 px-3 py-1 text-center text-[11px] font-semibold text-[#f3ead7] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">{a.name}</span>
+                        <span className="absolute inset-x-2 bottom-2 translate-y-2 rounded-full bg-[#1c1a17]/85 px-3 py-1 text-center text-[11px] font-semibold text-[#f3ead7] opacity-0 transition-[transform,opacity] duration-200 ease-out group-hover:translate-y-0 group-hover:opacity-100">{a.name}</span>
                       </Link>
                     ))}
                   </div>

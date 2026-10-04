@@ -34,7 +34,7 @@ export function ProductCard({ p, labels, priority = false }: { p: PublicProduct;
           {onSale && <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-white">−{Math.round((1 - min / p.compareAt!) * 100)}%</span>}
           {p.limited && <span className="rounded-full bg-fg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-bg">{labels.limited}</span>}
         </div>
-        <span className="absolute inset-x-2.5 bottom-2.5 translate-y-3 rounded-full bg-fg py-2.5 text-center text-[12px] font-semibold uppercase tracking-wider text-bg opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+        <span className="absolute inset-x-2.5 bottom-2.5 translate-y-3 rounded-full bg-fg py-2.5 text-center text-[12px] font-semibold uppercase tracking-wider text-bg opacity-0 transition-[transform,opacity] duration-200 ease-out group-hover:translate-y-0 group-hover:opacity-100">
           {labels.madeToOrder}
         </span>
       </div>

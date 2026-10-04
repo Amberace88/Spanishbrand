@@ -78,7 +78,7 @@ export const CATEGORY_LOOKS: Record<string, ThemeLook> = {
   BAGS: { tone: "oliva", texture: "grid", word: "BOLSA", campaign: "bolsas", site: "cat-bolsas" },
   WALL_ART: { tone: "hueso", texture: "hatch", word: "LÁMINA", campaign: "laminas" },
   HOME_LIVING: { tone: "arena", texture: "tiles", word: "HOGAR", campaign: "hogar" },
-  EMB: { tone: "tinta", texture: "dots", word: "BORDADO" },
+  EMB: { tone: "tinta", texture: "dots", word: "BORDADO", campaign: "bordados" },
   TECH_ACCESSORIES: { tone: "mar", texture: "grid", word: "FUNDA" },
   STATIONERY: { tone: "hueso", texture: "grid", word: "PAPEL" },
   PETS: { tone: "terracota", texture: "dots", word: "MASCOTA" },

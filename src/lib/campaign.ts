@@ -11,9 +11,19 @@
  * Category keys: camisetas, sudaderas, gorras, tazas, bolsas, laminas, hogar
  * (add new keys to CAMPAIGN_KEYS in next.config.ts).
  */
-const PRESENT = new Set((process.env.CAMPAIGN_PHOTOS ?? "").split(",").filter(Boolean));
+const PRESENT = new Map<string, string>(
+  (process.env.CAMPAIGN_PHOTOS ?? "")
+    .split(",")
+    .filter(Boolean)
+    .map((e): [string, string] => {
+      const [k, v = ""] = e.split(":");
+      return [k, v];
+    }),
+);
 
 /** URL of the campaign photo for a slot, or null when no file was shipped with this build. */
 export function campaignPhoto(key: string): string | null {
-  return PRESENT.has(key) ? `/campaign/${key}.webp` : null;
+  if (!PRESENT.has(key)) return null;
+  const v = PRESENT.get(key);
+  return v ? `/campaign/${key}.webp?v=${v}` : `/campaign/${key}.webp`;
 }

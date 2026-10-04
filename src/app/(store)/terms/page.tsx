@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Términos", alternates: { canonical:
 export default async function TermsPage() {
   const brand = await getBrand();
   return (
-    <ProsePage eyebrow="Legal" title="Términos y condiciones" notice="Borrador — completar datos del titular y validar con asesoría legal antes del lanzamiento.">
+    <ProsePage eyebrow="Legal" title="Términos y condiciones" notice="Borrador: completar datos del titular y validar con asesoría legal antes del lanzamiento.">
       <h2>Titular</h2>
       <p>{brand.name} — [Razón social, NIF, domicilio, email].</p>
       <h2>Productos</h2>

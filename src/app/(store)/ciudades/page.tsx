@@ -18,7 +18,7 @@ export default async function CitiesPage() {
   const cards = cityCards(all).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "es"));
   return (
     <>
-      <PageHero eyebrow={en ? "Cities" : "Ciudades"} title={en ? "Your city" : "Tu ciudad"} sub={en ? "Choose a city and see everything we make for it — tees, hoodies, mugs, totes, posters, postcards and more." : "Elige tu ciudad y descubre todo lo que tenemos de ella: camisetas, sudaderas, tazas, bolsas, pósters, postales y más."} />
+      <PageHero eyebrow={en ? "Cities" : "Ciudades"} title={en ? "Your city" : "Tu ciudad"} sub={en ? "Choose a city and see everything we make for it, tees, hoodies, mugs, totes, posters, postcards and more." : "Elige tu ciudad y descubre todo lo que tenemos de ella: camisetas, sudaderas, tazas, bolsas, pósters, postales y más."} />
       <section className="bg-bg pb-24 pt-6">
         <Container>
           <CityFinder cities={cards} />

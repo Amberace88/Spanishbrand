@@ -1,4 +1,5 @@
 "use client";
+import { IconCheck } from "@/components/ui/Icons";
 import { useMemo, useState } from "react";
 import { CATEGORIES, KINDS, type DesignCategory } from "@/lib/personalization/kinds";
 import { formatMoney } from "@/lib/format";
@@ -64,7 +65,7 @@ export function ProductPicker({ products, selected, onSelect }: { products: Pick
           const spec = KINDS[p.kind];
           const on = p.slug === selected;
           return (
-            <button key={p.slug} onClick={() => onSelect(p.slug)} aria-pressed={on} className={`group relative w-36 shrink-0 snap-start overflow-hidden rounded-2xl border text-left transition-all lg:w-auto ${on ? "border-accent ring-2 ring-accent/40" : "border-line hover:-translate-y-0.5 hover:border-fg/40"}`}>
+            <button key={p.slug} onClick={() => onSelect(p.slug)} aria-pressed={on} className={`group relative w-36 shrink-0 snap-start overflow-hidden rounded-2xl border text-left transition-[transform,border-color,box-shadow] duration-200 ease-out lg:w-auto ${on ? "border-accent ring-2 ring-accent/40" : "border-line hover:-translate-y-0.5 hover:border-fg/40"}`}>
               <span className="relative block aspect-square bg-surface-2">
                 {p.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -75,7 +76,7 @@ export function ProductPicker({ products, selected, onSelect }: { products: Pick
                 {(p.twoSided || p.embroidery) && (
                   <span className="absolute left-2 top-2 rounded-full bg-bg/85 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-fg backdrop-blur">{p.embroidery ? t("designer.pick.emb") : t("designer.pick.both")}</span>
                 )}
-                {on && <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-accent text-[12px] font-bold text-white">✓</span>}
+                {on && <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-accent text-[12px] font-bold text-white"><IconCheck className="h-3.5 w-3.5" /></span>}
               </span>
               <span className="block p-2.5">
                 <span className="block truncate text-[13px] font-semibold">{spec?.label ?? p.name}</span>

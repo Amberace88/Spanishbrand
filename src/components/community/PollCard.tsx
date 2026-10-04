@@ -37,7 +37,7 @@ export function PollCard({ post, dark = false }: { post: { id: string; title: st
               onClick={() => setSelected(o.key)}
               className={`relative overflow-hidden border p-5 text-left transition-colors ${selected === o.key ? (dark ? "border-bone" : "border-fg") : dark ? "border-bone/20 hover:border-bone/50" : "border-line hover:border-ink/40"}`}
             >
-              {pct !== null && <span className="absolute inset-y-0 left-0 bg-accent/20 transition-all duration-700" style={{ width: `${pct}%` }} />}
+              {pct !== null && <span className="absolute inset-0 origin-left bg-accent/20 transition-transform duration-500 ease-out" style={{ transform: `scaleX(${pct / 100})` }} />}
               <span className="relative flex items-center justify-between gap-3">
                 <span className="text-xl font-bold">{o.label}</span>
                 {pct !== null && <span className="text-sm tabular-nums">{pct}%</span>}

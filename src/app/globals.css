@@ -58,6 +58,9 @@
   --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* UI motion (Emil Kowalski): strong ease-out for responses, in-out for on-screen movement */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --animate-marquee: marquee 38s linear infinite;
   --animate-marquee-rev: marquee-rev 44s linear infinite;
   --animate-spin-slow: spin 60s linear infinite;
@@ -311,6 +314,23 @@ body {
 .btn-light { background: #fff; color: #0d0d0d; }
 .btn-light:hover { transform: translateY(-1px); }
 .btn:disabled { opacity: 0.45; pointer-events: none; }
+
+/* Press feedback for small controls (chips, swatches, icon buttons) */
+.press { transition-property: transform, background-color, border-color, color, box-shadow; transition-duration: 160ms; transition-timing-function: var(--ease-out); }
+.press:active { transform: scale(0.95); }
+/* Dark mode: the bright accent reads well as text on black, but white text on a filled accent needs ≥ 4.5:1 */
+.dark:not(.force-light) .bg-accent.text-white { background-color: #d01530; }
+
+/* State changes that would otherwise teleport: cart count, button labels */
+@keyframes count-bump { from { transform: scale(1.4); opacity: 0.4; } }
+@keyframes label-swap { from { transform: translateY(4px); opacity: 0; } }
+@keyframes fade-only { from { opacity: 0; } }
+.count-bump { display: inline-block; animation: count-bump 280ms var(--ease-out); }
+.label-swap { animation: label-swap 180ms var(--ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  .count-bump, .label-swap { animation: fade-only 160ms ease; }
+  .mf-word { opacity: 1 !important; }
+}
 
 /* Underline link */
 .link-u {

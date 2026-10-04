@@ -131,7 +131,7 @@ function PolicyEs({ seller, addr }: { seller: string; addr: string | null }) {
       <p>Como cada pieza se fabrica al recibir el pedido, solo podemos cancelar sin coste mientras no haya entrado en producción (normalmente las primeras horas). Escríbenos cuanto antes desde <Link href="/contact">Contacto</Link>.</p>
 
       <h2>7. Modelo de formulario de desistimiento</h2>
-      <p className="text-sm text-muted">(Anexo B del TRLGDCU — solo debe cumplimentarlo y enviarlo si desea desistir del contrato. También puede usar nuestro formulario online.)</p>
+      <p className="text-sm text-muted">(Anexo B del TRLGDCU, solo debe cumplimentarlo y enviarlo si desea desistir del contrato. También puede usar nuestro formulario online.)</p>
       <div className="rounded-2xl border border-line bg-surface-2 p-5 font-mono text-[13px] leading-relaxed">
         <p>A la atención de: {seller || "ROJO Y GUALDA"}</p>
         <p>Por la presente le comunico que desisto de mi contrato de venta del siguiente bien:</p>
@@ -175,7 +175,7 @@ function PolicyEn({ seller, addr }: { seller: string; addr: string | null }) {
       <p>There is no right of withdrawal for goods made to the consumer’s specifications or clearly personalised (art. 103 c TRLGDCU): items with your name, number, text, photo or a design made in “Design your own” or “Personalise”. You confirm this explicitly before paying. Defects, damage or differences from your approved design are covered by section 3.</p>
       <h2>3. Defects, damage or wrong item</h2>
       <ul>
-        <li>Print/manufacturing defect, damage in transit, wrong size/colour or a missing item: we fix it <strong>at no cost to you</strong> — replacement or refund.</li>
+        <li>Print/manufacturing defect, damage in transit, wrong size/colour or a missing item: we fix it <strong>at no cost to you</strong>, replacement or refund.</li>
         <li>Tell us as soon as possible and, for fast handling, within {PROVIDER_CLAIM_DAYS} days of delivery, with <strong>photos</strong> of the whole item, the issue and the label (and the parcel if damaged). Usually you won’t need to send anything back.</li>
         <li>Keep the item until the request is resolved.</li>
       </ul>

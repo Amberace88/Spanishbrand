@@ -1,4 +1,5 @@
 "use client";
+import { IconCheck } from "@/components/ui/Icons";
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
@@ -261,7 +262,7 @@ async function compress(file: File): Promise<Blob> {
 
 const Step = ({ n, active, done, label }: { n: number; active: boolean; done: boolean; label: string }) => (
   <li className="flex min-w-0 items-center gap-2">
-    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] font-bold transition-colors ${active ? "bg-accent text-white" : done ? "bg-fg text-bg" : "border border-line text-muted"}`}>{done ? "✓" : n}</span>
+    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] font-bold transition-colors ${active ? "bg-accent text-white" : done ? "bg-fg text-bg" : "border border-line text-muted"}`}>{done ? <IconCheck className="h-3.5 w-3.5" /> : n}</span>
     <span className={`hidden truncate text-[12px] font-semibold uppercase tracking-[0.08em] md:block ${active ? "text-fg" : "text-muted"}`}>{label}</span>
   </li>
 );
@@ -554,7 +555,7 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
                 const has = photosDone.some((p) => p.kind === k);
                 return (
                   <span key={k} className={`rounded-full px-3 py-1 text-xs font-semibold ${has ? "bg-emerald-600/15 text-emerald-700 dark:text-emerald-400" : "border border-line"}`}>
-                    {has ? "✓ " : ""}
+                    {has ? <IconCheck className="mr-1 inline h-3.5 w-3.5 align-[-2px]" /> : null}
                     {PHOTO_KINDS[k][L]}
                   </span>
                 );
@@ -710,7 +711,7 @@ export function ReturnWizard({ initialOrder, initialEmail }: { initialOrder?: st
 
       {step === 6 && done && order && (
         <div className="mx-auto max-w-2xl text-center">
-          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-600 text-3xl text-white">✓</span>
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-600 text-3xl text-white"><IconCheck className="h-8 w-8" /></span>
           <h2 className="headline mt-6 text-3xl sm:text-4xl">{T.doneTitle}</h2>
           <p className="mt-2 text-muted">{T.doneSub}</p>
           <p className="mt-6 inline-block rounded-2xl border border-line px-5 py-3">
@@ -761,13 +762,13 @@ function ChoiceCard({ active, disabled, onClick, title, sub, icon, accent, badge
       disabled={disabled}
       onClick={onClick}
       aria-pressed={active}
-      className={`group relative flex h-full flex-col rounded-[22px] border-2 p-5 text-left transition-all sm:p-6 ${active ? "border-accent bg-accent/[0.04] shadow-[0_18px_40px_-24px_var(--accent)]" : "border-line bg-surface-2 hover:border-fg/40"} ${disabled ? "cursor-not-allowed opacity-45" : ""}`}
+      className={`group relative flex h-full flex-col rounded-[22px] border-2 p-5 text-left transition-[border-color,background-color,box-shadow] duration-150 sm:p-6 ${active ? "border-accent bg-accent/[0.04] shadow-[0_18px_40px_-24px_var(--accent)]" : "border-line bg-surface-2 hover:border-fg/40"} ${disabled ? "cursor-not-allowed opacity-45" : ""}`}
     >
       {badge && <span className="absolute right-4 top-4 rounded-full bg-gold/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold">{badge}</span>}
       {icon && <span className={`mb-4 grid h-10 w-10 place-items-center rounded-full text-lg font-bold ${accent ? "bg-accent text-white" : "bg-fg text-bg"}`}>{icon}</span>}
       <span className="pr-16 text-lg font-bold leading-tight">{title}</span>
       <span className="mt-2 text-sm leading-relaxed text-muted">{sub}</span>
-      <span className={`absolute bottom-5 right-5 grid h-6 w-6 place-items-center rounded-full border-2 text-[11px] ${active ? "border-accent bg-accent text-white" : "border-line"}`}>{active ? "✓" : ""}</span>
+      <span className={`absolute bottom-5 right-5 grid h-6 w-6 place-items-center rounded-full border-2 text-[11px] ${active ? "border-accent bg-accent text-white" : "border-line"}`}>{active ? <IconCheck className="h-3.5 w-3.5" /> : null}</span>
     </button>
   );
 }

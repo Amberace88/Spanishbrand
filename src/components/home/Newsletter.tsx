@@ -35,9 +35,9 @@ export function Newsletter({ dark = false, source = "site" }: { dark?: boolean; 
         </button>
       </div>
       <label className={`flex cursor-pointer items-start gap-3 text-xs leading-relaxed ${dark ? "text-white/70" : "text-muted"}`}>
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-[var(--accent)]" required />
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[var(--accent)]" required />
         <span>
-          {t("newsletter.consent")} <a href="/privacy" className="underline">Privacidad</a>
+          {t("newsletter.consent")} <a href="/privacy" className="inline-block py-1 underline">Privacidad</a>
         </span>
       </label>
       {state === "error" && <p className="text-xs text-accent">{t("newsletter.error")}</p>}

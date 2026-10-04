@@ -12,7 +12,7 @@ import { AopShirt } from "@/components/futbol/AopShirt";
 import { IconArrow } from "@/components/ui/Icons";
 
 export const metadata: Metadata = {
-  title: "Fútbol — Campeones del mundo, colores de tu ciudad y grada",
+  title: "Fútbol: Campeones del mundo, colores de tu ciudad y grada",
   description: "Camisetas y sudaderas de fútbol con estampados enormes: CAMPEONES 2010 · 2026, los colores de tu ciudad, grada y retro 90. Diseños originales de afición, fabricados bajo pedido en Europa.",
   alternates: { canonical: "/futbol" },
 };

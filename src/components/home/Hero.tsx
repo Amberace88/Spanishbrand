@@ -174,31 +174,26 @@ export function BigMarquee({ words, reverse = false }: { words: string[]; revers
 function Word({ children, progress, range }: { children: ReactNode; progress: MotionValue<number>; range: [number, number] }) {
   const opacity = useTransform(progress, range, [0.15, 1]);
   return (
-    <m.span style={{ opacity }} className="mr-[0.25em] inline-block">
+    <m.span style={{ opacity }} className="mf-word mr-[0.25em] inline-block">
       {children}
     </m.span>
   );
 }
 
 /** Statement that lights up word by word while scrolling. */
-export function Manifesto({ kicker, text, highlight }: { kicker: string; text: string; highlight: string[] }) {
+export function Manifesto({ text, highlight }: { kicker?: string; text: string; highlight: string[] }) {
   const ref = useRef<HTMLParagraphElement>(null);
-  const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "end 45%"] });
   const words = text.split(" ");
   return (
     <section className="bg-bg py-24 sm:py-36">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8">
-        <p className="kicker text-accent">{kicker}</p>
-        <p ref={ref} className="headline mt-6 max-w-6xl text-[2.3rem] leading-[1.02] sm:text-6xl lg:text-[5.2rem]">
+        <p ref={ref} className="headline max-w-6xl text-[2.3rem] leading-[1.02] sm:text-6xl lg:text-[5.2rem]">
           {words.map((w, i) => {
             const hl = highlight.some((h) => w.toLowerCase().startsWith(h));
             const inner = <span className={hl ? "text-accent" : undefined}>{w}</span>;
-            return reduce ? (
-              <span key={i} className="mr-[0.25em] inline-block">
-                {inner}
-              </span>
-            ) : (
+            // one tree for everyone (no hydration branch); reduced motion shows every word lit via CSS
+            return (
               <Word key={i} progress={scrollYProgress} range={[i / words.length, Math.min(1, (i + 1.5) / words.length)]}>
                 {inner}
               </Word>

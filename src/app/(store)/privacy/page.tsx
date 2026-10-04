@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Privacidad", alternates: { canonical
 export default async function PrivacyPage() {
   const brand = await getBrand();
   return (
-    <ProsePage eyebrow="Legal" title="Privacidad" notice="Borrador — completar datos del responsable y validar con asesoría legal antes del lanzamiento.">
+    <ProsePage eyebrow="Legal" title="Privacidad" notice="Borrador: completar datos del responsable y validar con asesoría legal antes del lanzamiento.">
       <h2>Responsable</h2>
       <p>{brand.name} — [Razón social, NIF, dirección, email de contacto].</p>
       <h2>Datos que tratamos</h2>

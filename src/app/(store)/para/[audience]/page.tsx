@@ -122,7 +122,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   };
   const chip = (active: boolean) => `shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${active ? "border-fg bg-fg text-bg" : "border-line bg-surface hover:border-fg/40"}`;
   const ring = `${t(`audience.${a}`)} · ROJO Y GUALDA · `;
-  const jsonLd = { "@context": "https://schema.org", "@type": "CollectionPage", name: `${t(`audience.${a}.title`)} — ROJO Y GUALDA`, description: cfg.seoDesc, numberOfItems: own.length };
+  const jsonLd = { "@context": "https://schema.org", "@type": "CollectionPage", name: `${t(`audience.${a}.title`)}: ROJO Y GUALDA`, description: cfg.seoDesc, numberOfItems: own.length };
 
   return (
     <>

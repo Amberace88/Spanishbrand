@@ -241,7 +241,7 @@
 @keyframes au-env { from { opacity: 0; transform: translateY(18px) scale(0.92); } }
 @keyframes au-letter { from { transform: translateY(26px); } to { transform: translateY(0); } }
 @keyframes au-flap { from { transform: scaleY(-1); } to { transform: scaleY(1); } }
-@keyframes au-pop { from { opacity: 0; transform: scale(0); } }
+@keyframes au-pop { from { opacity: 0; transform: scale(0.6); } }
 @keyframes au-trail { 0% { opacity: 0; stroke-dashoffset: 40; } 30% { opacity: 0.8; } 100% { opacity: 0.5; stroke-dashoffset: 0; } }
 
 /* ---------- Visual panel ---------- */

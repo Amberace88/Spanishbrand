@@ -11,7 +11,7 @@ import { IconArrow } from "@/components/ui/Icons";
 
 export const revalidate = 300;
 export const metadata: Metadata = {
-  title: "Refranero y sabiduría — camisetas con refranes y frases españolas",
+  title: "Refranero y sabiduría: camisetas con refranes y frases españolas",
   description: "Al mal tiempo, buena cara. Contigo, pan y cebolla. Come, que estás muy delgado. Refranes de siempre, frases de abuela y humor español en camisetas, sudaderas, tazas, delantales, cojines y láminas. Fabricado bajo pedido en Europa.",
   alternates: { canonical: "/sabiduria" },
 };

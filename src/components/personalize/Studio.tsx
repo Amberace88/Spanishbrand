@@ -75,7 +75,7 @@ export function Studio({ products, initial = "jersey", initialValues }: { produc
           <p className="kicker text-muted">1 · {t("perso.choose")}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {TEMPLATES.map((k) => (
-              <button key={k} onClick={() => (setTemplate(k), setValues({}), setMsg(null))} className={`rounded-2xl border p-4 text-left transition-all ${template === k ? "border-fg bg-surface-2" : "border-line hover:border-fg/40"}`}>
+              <button key={k} onClick={() => (setTemplate(k), setValues({}), setMsg(null))} className={`rounded-2xl border p-4 text-left transition-[border-color,background-color] duration-150 ${template === k ? "border-fg bg-surface-2" : "border-line hover:border-fg/40"}`}>
                 <span className="headline block text-lg">{TEMPLATE_INFO[k].title}</span>
                 <span className="mt-1 block text-[13px] leading-snug text-muted">{TEMPLATE_INFO[k].desc}</span>
               </button>

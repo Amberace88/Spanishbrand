@@ -183,7 +183,7 @@ export function CartTrust({ t, freeShipping }: { t: T; freeShipping?: string | n
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {items.map(({ Icon, title, body, href }) => (
             <li key={title}>
-              <Link href={href} className="group flex h-full items-start gap-4 rounded-3xl bg-surface p-5 ring-1 ring-line transition-all hover:-translate-y-0.5 hover:ring-[color-mix(in_srgb,var(--gold)_55%,transparent)] sm:p-6">
+              <Link href={href} className="group flex h-full items-start gap-4 rounded-3xl bg-surface p-5 ring-1 ring-line transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:ring-[color-mix(in_srgb,var(--gold)_55%,transparent)] sm:p-6">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#070606] text-[#e0b84a] ring-1 ring-[#c9a227]/40 transition-transform group-hover:scale-105">
                   <Icon className="h-5 w-5" />
                 </span>

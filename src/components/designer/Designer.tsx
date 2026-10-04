@@ -687,7 +687,7 @@ export function Designer({ products, styles = [], arts = [], initial = {} }: { p
               {tab === "text" && (
                 <div className="space-y-4">
                   <div className="flex gap-2">
-                    <input value={draft} maxLength={emb ? EMB_MAX_CHARS : 40} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addText()} placeholder={t("designer.textPh")} className="field flex-1" />
+                    <input value={draft} maxLength={emb ? EMB_MAX_CHARS : 40} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addText()} placeholder={t("designer.textPh")} aria-label={t("designer.textPh")} className="field flex-1" />
                     <button onClick={() => addText()} className="btn btn-ink shrink-0">
                       {t("designer.add")}
                     </button>

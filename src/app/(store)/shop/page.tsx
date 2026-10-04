@@ -175,7 +175,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
     return (
       <>
-        <ShopHero eyebrow={t("shop.count", { n: all.length })} title={t("shop.title")} sub={en ? "Choose a line, a category or who it is for — everything is made to order in Europe." : "Elige una línea, una categoría o para quién: todo se fabrica bajo pedido en Europa."} />
+        <ShopHero eyebrow={t("shop.count", { n: all.length })} title={t("shop.title")} sub={en ? "Choose a line, a category or who it is for, everything is made to order in Europe." : "Elige una línea, una categoría o para quién: todo se fabrica bajo pedido en Europa."} />
         <section className="bg-bg pb-24">
           <StickyBar>{categoryChips}</StickyBar>
           <Container className="pt-10 sm:pt-14">

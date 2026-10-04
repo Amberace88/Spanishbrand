@@ -10,7 +10,7 @@ import { FONT_LABEL, type AnyFontKey, type Layer } from "@/lib/personalization/t
 import { KINDS } from "@/lib/personalization/kinds";
 import { Silhouette } from "@/components/designer/Silhouette";
 import { TEMPLATES, paletteFor, stackLayers } from "@/components/designer/templates";
-import { fitPrintBox, usePrintBox, type PrintBox } from "./teeGeometry";
+import { fitPrintBox, type PrintBox } from "./teeGeometry";
 
 /* Homepage hero side tiles: a quick, live edit right in the tile; the full editor is one click away. */
 
@@ -25,7 +25,7 @@ function Head({ href, badge, badgeCls, ring }: { href: string; badge: string; ba
   return (
     <div className="relative z-10 flex items-start justify-between">
       <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${badgeCls}`}>{badge}</span>
-      <Link href={href} aria-label={badge} className={`grid h-10 w-10 place-items-center rounded-full border transition-all duration-300 hover:rotate-[-45deg] ${ring}`}>
+      <Link href={href} aria-label={badge} className={`grid h-10 w-10 place-items-center rounded-full border transition-[transform,background-color,color] duration-200 ease-out hover:rotate-[-45deg] ${ring}`}>
         <IconArrow className="h-4 w-4" />
       </Link>
     </div>
@@ -101,9 +101,6 @@ const TILE_TPLS: { key: string; label: string }[] = [
   { key: "pena", label: "Peña" },
   { key: "fecha", label: "Fecha" },
 ];
-/** Used while a photo cannot be measured: chest box of a centred folded tee. */
-// measured on the campaign photo (folded tee): centred on the chest, just under the ribbed collar
-const FALLBACK_BOX: PrintBox = { left: 39.5, top: 32, width: 25, height: 30 };
 /** Jersey back lettering (name + number), % of the cover square. */
 const JERSEY_LETTERING: PrintBox = { left: 30, top: 41.5, width: 40, height: 19.5 };
 /** Never shrink the print area below this share of the measured chest box. */
@@ -154,27 +151,29 @@ function useBoxFit(box: PrintBox | null, foldRow = 0) {
   return { setTileEl, setCtrlEl, ctrlH, fit, compact };
 }
 
-export function DesignTile({ photo, badge, title, labels }: { photo: string | null; badge: string; title: string; labels: { text: string; go: string; font?: string; tpl?: string } }) {
+/** Tile height below which the template row folds into a toggle (the stage keeps its share). */
+const DESIGN_COMPACT_H = 430;
+
+export function DesignTile({ badge, title, labels }: { photo?: string | null; badge: string; title: string; labels: { text: string; go: string; font?: string; tpl?: string } }) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [ink, setInk] = useState(INKS[0].hex);
   const [font, setFont] = useState<AnyFontKey>("serif");
   const [tpl, setTpl] = useState<string | null>(null);
-  const detected = usePrintBox(photo);
-  void detected; // automatic detection mis-read the collar on the real photo: use the measured box
-  const measured = photo ? FALLBACK_BOX : null;
+  const [toolTab, setToolTab] = useState<"style" | "tpl">("style");
   const template = tpl ? TEMPLATES.find((x) => x.key === tpl) ?? null : null;
   const [ref, bw] = useWidth<HTMLDivElement>();
+  const [tileEl, setTileEl] = useState<HTMLDivElement | null>(null);
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    if (!tileEl) return;
+    const ro = new ResizeObserver(([e]) => setCompact(e.contentRect.height < DESIGN_COMPACT_H));
+    ro.observe(tileEl);
+    return () => ro.disconnect();
+  }, [tileEl]);
 
-  // geometry: the photo moves by transform only (no layout shift); one control row folds away on short tiles
-  const { setTileEl, setCtrlEl, ctrlH, fit, compact } = useBoxFit(measured, 34);
-  const [toolTab, setToolTab] = useState<"style" | "tpl">("style");
-
-  const box = measured
-    ? { left: measured.left + (measured.width * (1 - fit.scale)) / 2, top: measured.top, width: measured.width * fit.scale, height: measured.height * fit.scale }
-    : null;
-  const aspect = box ? box.height / box.width : 4 / 3;
-
+  const spec = KINDS.tee;
+  const aspect = spec.aspect;
   const layers = useMemo<Layer[]>(() => {
     const pal = { ...paletteFor(false), ink, accent: ink === "#111111" ? "#a3162b" : ink };
     if (template) return stackLayers(template.build(text.trim() || template.sample), aspect, pal, { top: true });
@@ -191,32 +190,20 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
     router.push(`/disena?${q.toString()}`);
   };
 
-  const print = (
-    <div ref={ref} className="absolute" style={box ? { left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%` } : undefined}>
-      <div className="absolute -inset-[3%] rounded-[4px] border-2 border-dashed border-[#c8102e]/60" />
-      {bw > 0 && (
-        <div className="absolute inset-0" style={{ mixBlendMode: photo ? "multiply" : undefined }}>
-          <Artwork value={{ mode: "designer", placement: "front", layers }} width={bw} height={bw * aspect} fonts={BROWSER_FONTS} />
-        </div>
-      )}
-    </div>
-  );
-  const spec = KINDS.tee;
-  const chip = (on: boolean) => `shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${on ? "border-white bg-white text-[#c8102e]" : "border-white/30 bg-black/20 backdrop-blur hover:border-white/70"}`;
-
+  const chip = (on: boolean) => `shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${on ? "border-white bg-white text-[#a50d24]" : "border-white/25 hover:border-white/60"}`;
   const fonts = (
     <div className="flex shrink-0 gap-1" role="group" aria-label={labels.font ?? "Tipografía"}>
       {TILE_FONTS.map((f) => (
-        <button key={f} type="button" onClick={() => (setFont(f), setTpl(null))} aria-pressed={!tpl && font === f} title={FONT_LABEL[f]} className={`grid h-8 ${compact ? "w-8" : "w-9"} place-items-center rounded-lg border text-[15px] leading-none transition ${!tpl && font === f ? "border-white bg-white text-[#c8102e]" : "border-white/30 bg-black/20 backdrop-blur hover:border-white/70"}`} style={{ fontFamily: BROWSER_FONTS[f], fontWeight: FONT_WEIGHT[f] }}>
+        <button key={f} type="button" onClick={() => (setFont(f), setTpl(null))} aria-pressed={!tpl && font === f} title={FONT_LABEL[f]} className={`press grid h-8 w-8 place-items-center rounded-lg border text-[15px] leading-none transition-colors ${!tpl && font === f ? "border-white bg-white text-[#a50d24]" : "border-white/25 hover:border-white/60"}`} style={{ fontFamily: BROWSER_FONTS[f], fontWeight: FONT_WEIGHT[f] }}>
           Aa
         </button>
       ))}
     </div>
   );
   const inks = (
-    <div className="flex shrink-0 gap-1">
+    <div className="flex shrink-0 gap-1.5">
       {INKS.map((c) => (
-        <button key={c.hex} type="button" aria-label={c.label} aria-pressed={ink === c.hex} onClick={() => setInk(c.hex)} className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${ink === c.hex ? "border-white" : "border-white/30"}`} style={{ background: c.hex }} />
+        <button key={c.hex} type="button" aria-label={c.label} aria-pressed={ink === c.hex} onClick={() => setInk(c.hex)} className={`press h-6 w-6 rounded-full ring-2 ring-offset-2 ring-offset-[#8f0b20] transition-shadow ${ink === c.hex ? "ring-white" : "ring-transparent hover:ring-white/40"}`} style={{ background: c.hex, boxShadow: "inset 0 0 0 1px rgba(255,255,255,.25)" }} />
       ))}
     </div>
   );
@@ -231,46 +218,49 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
   );
 
   return (
-    <div ref={setTileEl} data-tile="design" className={`${photo ? `${tileShell} min-h-[400px] lg:min-h-0` : tileBase} bg-[#c8102e] text-white`}>
-      {photo ? (
-        <div className={coverBox}>
-          <div className="absolute left-1/2 top-1/2" style={{ ...coverStyle, transform: `translate(-50%, calc(-50% + ${fit.dy}px))` }}>
-            <Image src={photo} alt="" fill sizes="(min-width:1024px) 34vw, 100vw" className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
-            {/* print area measured on the photo: centred on the chest, under the collar; shrinks to fit short tiles */}
-            {box && <div className="absolute inset-0">{print}</div>}
-            <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/30 to-transparent" />
-          </div>
-          {/* legibility wash sized to the controls block, not to the photo */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#7d0a1d] from-35% via-[#7d0a1d]/70 via-70% to-transparent" style={{ height: ctrlH ? `calc(${ctrlH}px + 3.5rem)` : "55%" }} />
+    <div
+      ref={setTileEl}
+      data-tile="design"
+      className="@container group relative flex h-full min-h-[480px] flex-col overflow-hidden rounded-[28px] p-4 text-white sm:p-5 lg:min-h-0"
+      style={{ background: "radial-gradient(90% 75% at 72% 32%, #d3132f 0%, #ad0e27 48%, #7a0a1c 100%)" }}
+    >
+      {/* top: the garment on its own stage (never under the tools); wide tiles put the copy beside it */}
+      <span className="absolute left-4 top-4 z-10 whitespace-nowrap rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#a50d24] sm:left-5 sm:top-5">{badge}</span>
+      <div className="relative flex min-h-0 flex-1 flex-col-reverse gap-2 pt-8 @[355px]:flex-row @[355px]:gap-3 @[355px]:pt-0">
+        <div className="relative z-10 flex shrink-0 items-end @[355px]:w-[42%]">
+          <Link href="/disena" className="group/t headline text-[1.6rem] uppercase leading-[0.98] sm:text-[1.85rem]">
+            {title}
+            <IconArrow className="ml-2 inline h-4 w-4 align-[0.1em] transition-transform duration-200 ease-out group-hover/t:translate-x-1" />
+          </Link>
         </div>
-      ) : (
-        <div className="pointer-events-none absolute inset-x-0 top-12 bottom-[11.5rem] flex items-center justify-center">
-          <div className="relative aspect-square h-full max-w-full">
-            <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full drop-shadow-[0_18px_24px_rgba(0,0,0,0.3)]">
-              <Silhouette spec={spec} color="#f7f4ee" />
-            </svg>
-            <div className="absolute" style={{ left: `${spec.zone.left}%`, top: `${spec.zone.top}%`, width: `${spec.zone.width}%`, aspectRatio: `1 / ${spec.aspect}` }}>
-              <div ref={ref} className="absolute inset-0">
-                {bw > 0 && <Artwork value={{ mode: "designer", placement: "front", layers }} width={bw} height={bw * spec.aspect} fonts={BROWSER_FONTS} />}
+        <div className="pointer-events-none relative min-h-0 flex-1" aria-hidden>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative aspect-square h-full max-w-full">
+              <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full drop-shadow-[0_16px_22px_rgba(50,0,8,0.4)]">
+                <Silhouette spec={spec} color="#f7f4ee" />
+              </svg>
+              <div className="absolute" style={{ left: `${spec.zone.left}%`, top: `${spec.zone.top}%`, width: `${spec.zone.width}%`, aspectRatio: `1 / ${aspect}` }}>
+                <div ref={ref} className="absolute inset-0">
+                  {bw > 0 && <Artwork value={{ mode: "designer", placement: "front", layers }} width={bw} height={bw * aspect} fonts={BROWSER_FONTS} />}
+                </div>
+                <div className="absolute -inset-[4%] rounded-[3px] border border-dashed border-[#a50d24]/45" />
               </div>
-              <div className="absolute -inset-[3%] rounded-[4px] border-2 border-dashed border-[#c8102e]/50" />
             </div>
           </div>
         </div>
-      )}
-      <Head href="/disena" badge={badge} badgeCls="bg-white text-[#c8102e]" ring="border-white/40 bg-black/10 backdrop-blur hover:bg-white hover:text-[#c8102e]" />
-      <div ref={setCtrlEl} className="relative z-10">
-        <p className={`headline uppercase leading-[1.05] ${compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"}`}>{title}</p>
+      </div>
+
+      {/* tools on their own panel: no wash over imagery, always legible */}
+      <div className="relative z-10 mt-3 rounded-[20px] bg-black/20 p-2.5 ring-1 ring-inset ring-white/10">
         {compact ? (
-          /* short tiles: one tool row, switched between style (font + ink) and templates */
-          <div className="mt-2 flex h-8 items-center gap-1">
+          <div className="flex h-8 items-center gap-1.5">
             <button
               type="button"
               onClick={() => setToolTab(toolTab === "style" ? "tpl" : "style")}
               aria-pressed={toolTab === "tpl"}
               aria-label={labels.tpl ?? "Plantillas"}
               title={labels.tpl ?? "Plantillas"}
-              className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border backdrop-blur transition ${toolTab === "tpl" ? "border-white bg-white text-[#c8102e]" : "border-white/30 bg-black/25 hover:border-white/70"}`}
+              className={`press grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-colors ${toolTab === "tpl" ? "border-white bg-white text-[#a50d24]" : "border-white/25 hover:border-white/60"}`}
             >
               <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
                 <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.2" fill="currentColor" />
@@ -279,11 +269,11 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
                 <rect x="9" y="9" width="5.5" height="5.5" rx="1.2" fill="currentColor" />
               </svg>
             </button>
-            <span className="mx-0.5 h-5 w-px shrink-0 bg-white/30" aria-hidden />
+            <span className="h-5 w-px shrink-0 bg-white/20" aria-hidden />
             {toolTab === "style" ? (
-              <div className="no-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto">
+              <div className="no-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto">
                 {fonts}
-                <span className="h-5 w-px shrink-0 bg-white/30" aria-hidden />
+                <span className="h-5 w-px shrink-0 bg-white/20" aria-hidden />
                 {inks}
               </div>
             ) : (
@@ -292,23 +282,23 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
           </div>
         ) : (
           <>
-            <div className="mt-2.5 flex items-center gap-1.5">
+            <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
               {fonts}
-              <span className="mx-1 h-5 w-px bg-white/30" aria-hidden />
+              <span className="h-5 w-px shrink-0 bg-white/20" aria-hidden />
               {inks}
             </div>
             <div className="mt-2">{tpls}</div>
           </>
         )}
         <form
-          className={`${compact ? "mt-2" : "mt-2.5"} flex items-center gap-2`}
+          className="mt-2 flex items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             go();
           }}
         >
-          <input value={text} onChange={(e) => setText(e.target.value.slice(0, 24))} placeholder={template ? template.field : labels.text} aria-label={labels.text} className="min-w-0 flex-1 rounded-full border border-white/30 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-white/70 backdrop-blur focus:border-white focus:outline-none" />
-          <button aria-label={labels.go} className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-full bg-white text-[#c8102e] transition hover:scale-105">
+          <input value={text} onChange={(e) => setText(e.target.value.slice(0, 24))} placeholder={template ? template.field : labels.text} aria-label={labels.text} className="min-w-0 flex-1 rounded-full border border-white/20 bg-black/25 px-4 py-2.5 text-sm text-white placeholder:text-white/65 focus:border-white/80 focus:outline-none" />
+          <button aria-label={labels.go} className="press grid h-[42px] w-[42px] shrink-0 place-items-center rounded-full bg-white text-[#a50d24]">
             <IconArrow className="h-4 w-4" />
           </button>
         </form>

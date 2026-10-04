@@ -196,7 +196,7 @@ export function Gallery({ images, name, overlay, initialIndex = 0, onIndexChange
                       preload={i === 0 && start === 0}
                       loading={i === 0 && start === 0 ? undefined : "eager"}
                       draggable={false}
-                      className={`select-none object-contain transition-transform duration-700 ease-out ${active && zooming ? "lg:scale-[1.02]" : ""}`}
+                      className={`select-none object-contain transition-transform duration-300 ease-out ${active && zooming ? "lg:scale-[1.02]" : ""}`}
                     />
                   )}
                 </div>
@@ -253,13 +253,13 @@ export function Gallery({ images, name, overlay, initialIndex = 0, onIndexChange
               <div className="flex items-center">
                 {images.map((img, i) => (
                   <button key={img.url + i} type="button" onClick={() => go(i)} aria-label={t("gallery.show", { n: i + 1 })} aria-current={i === index ? "true" : undefined} className="grid h-6 place-items-center px-1">
-                    <span className={`block h-1.5 rounded-full transition-all duration-300 ${i === index ? "w-6 bg-fg" : "w-1.5 bg-fg/25"}`} />
+                    <span className={`block h-1.5 rounded-full transition-[width,background-color] duration-200 ease-out ${i === index ? "w-6 bg-fg" : "w-1.5 bg-fg/25"}`} />
                   </button>
                 ))}
               </div>
             ) : (
               <div className="h-[3px] w-40 overflow-hidden rounded-full bg-fg/15" aria-hidden>
-                <div className="h-full rounded-full bg-fg transition-all duration-300" style={{ width: `${((index + 1) / n) * 100}%` }} />
+                <div className="h-full origin-left rounded-full bg-fg transition-transform duration-300 ease-out" style={{ transform: `scaleX(${(index + 1) / n})` }} />
               </div>
             )}
           </div>

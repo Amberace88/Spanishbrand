@@ -47,7 +47,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${c.label} — ROJO Y GUALDA`,
+    name: `${c.label}: ROJO Y GUALDA`,
     about: { "@type": "City", name: c.label, geo: { "@type": "GeoCoordinates", latitude: c.lat, longitude: c.lon } },
   };
 

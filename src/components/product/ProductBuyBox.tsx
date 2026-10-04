@@ -5,6 +5,7 @@ import type { PublicVariant, SizeGuide } from "@/lib/products/queries";
 import { addToCartAction } from "@/app/actions/cart";
 import { useT } from "@/components/providers/I18nProvider";
 import { formatMoney } from "@/lib/format";
+import { IconCheck } from "@/components/ui/Icons";
 import { SizeGuideDialog } from "./SizeGuideDialog";
 
 /**
@@ -78,7 +79,7 @@ export function ProductBuyBox({
   const price = selected?.price ?? Math.min(...variants.map((v) => v.price));
   const compareAt = selected?.compareAt && selected.compareAt > selected.price ? selected.compareAt : null;
   const unavailable = selected ? !selected.available : false;
-  const label = pending ? t("product.adding") : state === "added" ? `✓ ${t("product.added")}` : !selected ? t("product.selectVariant") : unavailable ? t("product.unavailable") : t("product.addToCart");
+  const label = pending ? t("product.adding") : state === "added" ? t("product.added") : !selected ? t("product.selectVariant") : unavailable ? t("product.unavailable") : t("product.addToCart");
   const choice = [color, selected?.size ?? size].filter(Boolean).join(" · ");
 
   return (
@@ -167,7 +168,7 @@ export function ProductBuyBox({
 
       <div>
         <button ref={ctaRef} onClick={add} disabled={unavailable || pending} className="btn btn-primary w-full justify-between px-6 py-5 text-[0.8rem]">
-          <span>{label}</span>
+          <span key={label} className="label-swap inline-flex items-center gap-2">{state === "added" && <IconCheck className="h-4 w-4" />}{label}</span>
           {!unavailable && <span className="tabular-nums opacity-90">{formatMoney(price, currency)}</span>}
         </button>
         {state === "error" && <p className="mt-2 text-sm text-accent">{t("common.error")}</p>}
@@ -197,7 +198,7 @@ export function ProductBuyBox({
             </p>
           </div>
           <button onClick={add} disabled={unavailable || pending} tabIndex={barOn ? 0 : -1} className="btn btn-primary shrink-0 px-5 py-3.5 text-[0.75rem]">
-            {label}
+            <span key={label} className="label-swap inline-flex items-center gap-1.5">{state === "added" && <IconCheck className="h-3.5 w-3.5" />}{label}</span>
           </button>
         </div>
       </div>

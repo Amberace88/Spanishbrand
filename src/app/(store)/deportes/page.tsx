@@ -13,7 +13,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { IconArrow } from "@/components/ui/Icons";
 
 export const metadata: Metadata = {
-  title: "Deportes — fútbol, pádel, ciclismo y motor",
+  title: "Deportes: fútbol, pádel, ciclismo y motor",
   description: "Camisetas de afición, pádel, ciclismo y motor con diseño español. Personaliza tu camiseta con nombre y dorsal.",
   alternates: { canonical: "/deportes" },
 };

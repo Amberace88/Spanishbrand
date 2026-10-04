@@ -55,7 +55,7 @@ export function LanguageMenu({ align = "right", className = "" }: { align?: "lef
       <div
         role="listbox"
         aria-label="Idioma / Language"
-        className={`absolute ${align === "left" ? "left-0 origin-top-left" : "right-0 origin-top-right"} top-[calc(100%+10px)] z-[80] w-[min(300px,calc(100vw-24px))] overflow-hidden rounded-2xl border border-line bg-bg p-1.5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] transition-all duration-200 ${open ? "visible translate-y-0 scale-100 opacity-100" : "invisible -translate-y-1 scale-[0.98] opacity-0"}`}
+        className={`absolute ${align === "left" ? "left-0 origin-top-left" : "right-0 origin-top-right"} top-[calc(100%+10px)] z-[80] w-[min(300px,calc(100vw-24px))] overflow-hidden rounded-2xl border border-line bg-bg p-1.5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] transition-[opacity,transform,visibility] duration-150 ease-out ${open ? "visible translate-y-0 scale-100 opacity-100" : "invisible -translate-y-1 scale-[0.98] opacity-0"}`}
       >
         <p className="px-3 pb-1.5 pt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted">Idioma · Language</p>
         {LANGUAGES.map((l) => {

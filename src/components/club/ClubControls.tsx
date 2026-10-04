@@ -17,7 +17,7 @@ export function RedeemButton({ label, pendingLabel, disabled, hint }: { label: s
       onClick={(e) => {
         if (off) e.preventDefault();
       }}
-      className={`rg-focus inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full px-6 py-3 text-[15px] font-semibold transition-all duration-300 ${
+      className={`rg-focus inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full px-6 py-3 text-[15px] font-semibold transition-[transform,background-color,color,box-shadow] duration-200 ease-out active:scale-[0.97] ${
         disabled
           ? "cursor-not-allowed bg-surface-2 text-muted ring-1 ring-line"
           : "bg-[linear-gradient(135deg,#f7e08a,#d9a93a_45%,#a37a22)] text-[#1a1206] shadow-[0_12px_30px_-12px_rgba(201,162,39,0.8),inset_0_1px_0_rgba(255,255,255,0.5)] hover:-translate-y-px hover:shadow-[0_18px_40px_-14px_rgba(201,162,39,0.9),inset_0_1px_0_rgba(255,255,255,0.5)]"

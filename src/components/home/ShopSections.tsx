@@ -10,7 +10,7 @@ import { Mockup, type MockupKind } from "@/components/art/Mockup";
 import { JerseyBack } from "@/components/art/Jersey";
 import { Reveal } from "@/components/ui/Reveal";
 import { Container, SectionHead } from "@/components/ui/Section";
-import { IconArrow, IconLeaf, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
+import { IconArrow, IconChat, IconLeaf, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { Newsletter } from "@/components/home/Newsletter";
 import { listSiteImages } from "@/lib/site-images";
 import { BrandLogo } from "@/components/brand/Wordmark";
@@ -157,8 +157,7 @@ export async function FiestasCalendar() {
     <section className="bg-bg pb-16 sm:pb-24">
       <Container>
         <Reveal>
-          <p className="kicker text-accent">{t("fiestas.kicker")}</p>
-          <h2 className="headline mt-3 text-[2.1rem] sm:text-5xl">{t("fiestas.title")}</h2>
+          <h2 className="headline text-[2.1rem] sm:text-5xl">{t("fiestas.title")}</h2>
         </Reveal>
         <div className="no-scrollbar -mx-4 mt-8 flex snap-x gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4">
           {list.map((f, i) => (
@@ -193,8 +192,7 @@ export async function PersonalizeTeaser() {
         <Reveal>
           <div className="relative grid overflow-hidden rounded-[2rem] bg-fg text-bg lg:grid-cols-2">
             <div className="relative z-10 flex flex-col justify-center p-8 sm:p-14">
-              <p className="kicker text-gold">{t("perso.kicker")}</p>
-              <h2 className="mega mt-4 text-6xl sm:text-8xl">{t("perso.title")}</h2>
+              <h2 className="mega text-6xl sm:text-8xl">{t("perso.title")}</h2>
               <p className="mt-5 max-w-md text-lg leading-relaxed text-bg/75">{t("perso.body")}</p>
               <div className="mt-8 flex flex-wrap gap-2">
                 {[t("perso.opt.jersey"), t("perso.opt.pueblo"), t("perso.opt.city"), t("perso.opt.year")].map((o) => (
@@ -274,8 +272,7 @@ export async function ClubTeaser({ brandName }: { brandName: string }) {
       <Container>
         <div className="grid items-center gap-10 rounded-[2rem] border border-line p-8 sm:p-14 lg:grid-cols-2">
           <Reveal>
-            <p className="kicker text-accent">{t("club.kicker")}</p>
-            <h2 className="headline mt-3 text-[2.4rem] sm:text-6xl">{t("club.title")}</h2>
+            <h2 className="headline text-[2.4rem] sm:text-6xl">{t("club.title")}</h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">{t("club.body")}</p>
             <ul className="mt-6 grid gap-2 text-[15px]">
               {[t("club.b1"), t("club.b2"), t("club.b3"), t("club.b4")].map((b) => (
@@ -391,8 +388,7 @@ export async function BrandPromise() {
       <Container>
         <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
           <Reveal>
-            <p className="kicker text-accent">{t("promise.eyebrow")}</p>
-            <h2 className="headline mt-3 text-[2.4rem] sm:text-6xl">{t("promise.title")}</h2>
+            <h2 className="headline text-[2.4rem] sm:text-6xl">{t("promise.title")}</h2>
             <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">{t("promise.body")}</p>
             <Link href="/about" className="btn btn-ghost mt-8">
               {t("home.story.cta")} <IconArrow className="h-4 w-4" />
@@ -401,8 +397,10 @@ export async function BrandPromise() {
           <div className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3">
             {items.map(([title, body], i) => (
               <Reveal key={title} delay={i * 0.06} className="bg-bg p-7">
-                <p className="mega text-7xl text-accent">{String(i + 1).padStart(2, "0")}</p>
-                <p className="headline mt-6 text-xl">{title}</p>
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-accent/10 text-accent" aria-hidden>
+                  {i === 0 ? <span className="flag-stripe h-3.5 w-5 rounded-[3px]" /> : i === 1 ? <IconLeaf className="h-5 w-5" /> : <IconChat className="h-5 w-5" />}
+                </span>
+                <p className="headline mt-5 text-xl">{title}</p>
                 <p className="mt-2 text-[15px] leading-relaxed text-muted">{body}</p>
               </Reveal>
             ))}

@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "La marca", alternates: { canonical: 
 
 const VALUES = [
   ["Identidad, no souvenir", "Diseñamos piezas que se llevan a diario: sin clichés, sin exceso de banderas, con respeto por la historia y la cultura."],
-  ["Colecciones con historia", "Cada colección nace de una idea — una ciudad, una carretera, un mar, un oficio — y se expresa en ropa, hogar, arte y accesorios."],
+  ["Colecciones con historia", "Cada colección nace de una idea, una ciudad, una carretera, un mar, un oficio, y se expresa en ropa, hogar, arte y accesorios."],
   ["Bajo pedido, sin stock", "Cada artículo se produce cuando lo pides, a través de socios de producción conectados. Sin almacenes llenos ni excedentes."],
   ["Comunidad", "Votas diseños y colecciones. Los resultados deciden qué producimos después."],
 ];

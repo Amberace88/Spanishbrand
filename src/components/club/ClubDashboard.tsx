@@ -342,7 +342,7 @@ export function ClubDashboard({ locale, email, member, flags, ledger, orders, jo
 
 function ActionCard({ href, icon, title, meta, children }: { href: string; icon: React.ReactNode; title: string; meta?: string; children: React.ReactNode }) {
   return (
-    <Link href={href} className="rg-focus group relative flex min-h-[168px] flex-col overflow-hidden rounded-[22px] bg-surface p-6 ring-1 ring-line transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-30px_rgba(0,0,0,0.45)] hover:ring-[#c9a227]/60">
+    <Link href={href} className="rg-focus group relative flex min-h-[168px] flex-col overflow-hidden rounded-[22px] bg-surface p-6 ring-1 ring-line transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-30px_rgba(0,0,0,0.45)] hover:ring-[#c9a227]/60">
       <span className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(201,162,39,0.18),transparent_70%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
       <div className="flex items-start justify-between">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-fg text-bg transition-colors duration-300 group-hover:bg-[#a3162b] group-hover:text-white">{icon}</span>

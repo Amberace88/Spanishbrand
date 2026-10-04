@@ -7,7 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
 
 export const metadata: Metadata = {
-  title: "Camisetas de tu tierra — regiones y provincias de España",
+  title: "Camisetas de tu tierra: regiones y provincias de España",
   description: "Camisetas, sudaderas y regalos de cada comunidad autónoma y provincia de España. Personaliza con el nombre de tu pueblo.",
   alternates: { canonical: "/regiones" },
 };

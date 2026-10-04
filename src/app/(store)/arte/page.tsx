@@ -11,7 +11,7 @@ import { IconArrow } from "@/components/ui/Icons";
 
 export const revalidate = 300;
 export const metadata: Metadata = {
-  title: "Arte de autor — ilustraciones de España a gran tamaño",
+  title: "Arte de autor: ilustraciones de España a gran tamaño",
   description: "Toro bravo, flamenca, Quijote, Alhambra, faro, paella, castellers… Ilustraciones de autor impresas a gran tamaño en camisetas, sudaderas, láminas y lienzos. Fabricado bajo pedido en Europa.",
   alternates: { canonical: "/arte" },
   openGraph: { images: ["/catalog/art/art-toro.png"] },
@@ -56,7 +56,7 @@ export default async function ArtePage() {
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-[#1c1a17]/75">
               {en
-                ? "Engraved, painterly illustrations of Spain printed as large as the garment allows — on their own, or with a saying worth remembering. Made to order in Europe."
+                ? "Engraved, painterly illustrations of Spain printed as large as the garment allows, on their own, or with a saying worth remembering. Made to order in Europe."
                 : "Ilustraciones grabadas y pintadas de España, impresas tan grandes como permite la prenda: solas, o con un refrán que merece recordarse. Fabricado bajo pedido en Europa."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
