@@ -10,7 +10,7 @@ import { createMockupTask, getMockupTask, getPrintfiles } from "@/lib/fulfillmen
 import { isProviderError } from "@/lib/fulfillment/errors";
 import { uploadObject } from "@/lib/personalization/storage";
 import { mockupPending, type PendingImage, type TaskMockup } from "@/lib/fulfillment/catalog-builder";
-import { isKidsBlueprint, pickOptionGroups } from "@/lib/fulfillment/mockup-styles";
+import { isKidsBlueprint, KIDS_BLUEPRINTS, pickOptionGroups } from "@/lib/fulfillment/mockup-styles";
 import { createHash } from "node:crypto";
 
 /**
@@ -58,8 +58,9 @@ export interface RefreshResult {
 
 /** Published kids' products built by the catalog builder (refresh candidates) with their refresh status. */
 export async function listKidsRefresh() {
+  // kids' keys only: an unfiltered "p:%" read stops at PostgREST's 1000-row page and missed most kids products
   const sel = () => db().from("catalog_jobs").select("key, phase, product_id, error, updated_at").eq("brand_id", env.brandId());
-  const [{ data: products }, { data: refreshes }] = await Promise.all([sel().like("key", "p:%").eq("phase", "done"), sel().like("key", "img:p:%")]);
+  const [{ data: products }, { data: refreshes }] = await Promise.all([sel().or(KIDS_BLUEPRINTS.map((b) => `key.like.p:%:${b}`).join(",")).eq("phase", "done"), sel().like("key", "img:p:%")]);
   const rows = [...(products ?? []), ...(refreshes ?? [])];
   const status = new Map(rows.filter((r) => r.key.startsWith("img:")).map((r) => [r.key.slice(4), r]));
   return rows
