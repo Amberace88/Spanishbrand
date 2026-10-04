@@ -30,7 +30,7 @@ export const CH = 3200;
 /** Bump when the renderer's placement logic changes in a way that changes print files. */
 export const RENDER_REV = 1;
 /** Bump to rebuild every kids' product (kids safe zones + varied mockup photos: girls, boys, flat lays). */
-export const KIDS_REV = 2;
+export const KIDS_REV = 3;
 
 export const INK = INK_JSON as unknown as Record<string, [number, number, number, number, string]>;
 
@@ -66,7 +66,9 @@ export const ZONE_COVER: Zone = { l: 0.12, t: 0.12, r: 0.12, b: 0.1, label: "pan
 
 /** Kids' garments: the print area is wide for a small body; big prints ran into the sleeves on child models. */
 export const ZONE_KIDS_FRONT: Zone = { l: 0.12, t: 0.05, r: 0.12, b: 0.08, label: "frontal infantil" };
-export const ZONE_KIDS_BACK: Zone = { l: 0.17, t: 0.06, r: 0.17, b: 0.1, label: "espalda infantil" };
+// kids' backs: Printful's youth back print area reaches almost to the side seams of a small tee, so names and
+// numbers stay in the middle 56 % (they looked cut at the sides at 66 %)
+export const ZONE_KIDS_BACK: Zone = { l: 0.22, t: 0.08, r: 0.22, b: 0.12, label: "espalda infantil" };
 export const ZONE_KIDS_HOOD_FRONT: Zone = { l: 0.14, t: 0.05, r: 0.14, b: 0.3, label: "frontal sudadera infantil (bolsillo)" };
 export const ZONE_KIDS_HOOD_BACK: Zone = { l: 0.17, t: 0.12, r: 0.17, b: 0.1, label: "espalda sudadera infantil (capucha)" };
 

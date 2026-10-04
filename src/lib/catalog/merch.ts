@@ -121,31 +121,16 @@ export function hoverFor(p: PublicProduct, hero: HeroOption): Img | null {
 /** The product with its images reordered: [hero, hover, …rest] (ProductCard shows images[0] and images[1]). */
 const isKids = (p: PublicProduct) => p.categoryCode === "KIDS" || /infantil|-peque\b|-de-peque|bebe|toddler/.test(p.slug);
 
-/** FNV-1a: a stable per-product number (the same product always leads with the same photo). */
-function stable(s: string) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
-  return h >>> 0;
-}
-
 /**
- * Kids' garments: Printful's default youth mockup is the same single boy model on every product, so a kids
- * grid looked like one child over and over. Lead with one of the product's model photos instead (girls,
- * boys and pairs, rotated per product) and keep the plain garment mockup as the hover.
+ * Kids' garments and sports jerseys: the catalog builder already chose which photo leads (girls, boys, flat lay
+ * and ghost take turns per design, see fulfillment/mockup-styles.ts) and stored it first. The listing keeps that
+ * order instead of jumping to the default model photo of the best colour, which was the same boy on every card.
  */
-export function kidsLead(p: PublicProduct): Img | null {
-  if (!isKids(p)) return null;
-  const models = p.images.filter((im) => im.kind === "LIFESTYLE");
-  return models.length ? models[stable(p.slug) % models.length] : null;
-}
+export const keepsBuiltOrder = (p: PublicProduct) => isKids(p) || p.tags.includes("jersey");
 
 export function withHero(p: PublicProduct, hero: HeroOption | undefined = heroOptions(p)[0]): PublicProduct {
   if (!hero) return p;
-  const kid = kidsLead(p);
-  if (kid) {
-    const garment = p.images.find((im) => im.url === hero.url) ?? { url: hero.url, alt: null, color: hero.colourName, kind: "MOCKUP" };
-    return { ...p, images: [kid, garment, ...p.images.filter((im) => im.url !== kid.url && im.url !== garment.url)] };
-  }
+  if (keepsBuiltOrder(p)) return p;
   const lead: Img = p.images.find((im) => im.url === hero.url) ?? { url: hero.url, alt: null, color: hero.colourName, kind: "MOCKUP" };
   const hover = hoverFor(p, hero);
   const rest = p.images.filter((im) => im.url !== lead.url && im.url !== hover?.url);

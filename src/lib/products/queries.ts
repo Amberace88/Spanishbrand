@@ -188,12 +188,7 @@ let inflight: Promise<PublicProduct[]> | null = null;
 
 /** One entry per colour (and per distinct price) for the first 6 colours, plus the price extremes: all a card uses. */
 function compactVariants(p: PublicProduct): PublicProduct {
-  // kids' garments keep every model photo (girls, boys, pairs): the listing rotates which one leads (merch.kidsLead)
-  const kids = p.categoryCode === "KIDS" || /infantil|-peque\b|-de-peque|bebe|toddler/.test(p.slug);
-  let shown = 0;
-  const images = p.images
-    .filter((im, i) => i < 2 || (im.kind === "LIFESTYLE" && (kids ? ++shown <= 6 : p.images.findIndex((x) => x.kind === "LIFESTYLE") === i)))
-    .map((im) => ({ ...im, alt: null }));
+  const images = p.images.filter((im, i) => i < 2 || (im.kind === "LIFESTYLE" && p.images.findIndex((x) => x.kind === "LIFESTYLE") === i)).map((im) => ({ ...im, alt: null }));
   // personalisable bases feed the designer / Personaliza, which need every size variant
   if (p.personalization) return { ...p, images, description: null, story: null, sizeGuide: null };
   const seen = new Set<string>();

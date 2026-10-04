@@ -1074,7 +1074,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   const { width, height } = res.printfile;
   // kids' garments: ask for several photo styles (flat lay, ghost, girl/boy models…) so the grid is not one photo repeated
   let optionGroups: string[] | undefined;
-  if (isKidsBlueprint(bp.key)) {
+  if (variedPhotos(bp.key)) {
     optionGroups = pickOptionGroups((await getPrintfiles(res.externalId).catch(() => null))?.option_groups);
     if (!optionGroups.length) optionGroups = undefined;
   }
@@ -1097,13 +1097,17 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
   }
 }
 
+/** Garments whose photos rotate styles (women/girls, men/boys, flat, ghost): kids' wear and the sports jersey,
+ *  whose default photo was the same model on every product. */
+const variedPhotos = (bp: string) => isKidsBlueprint(bp) || bp === "jersey";
+
 export type PendingImage = { url: string; color: string; kind: "MOCKUP" | "LIFESTYLE"; title: string; style?: MockupStyle };
 export type TaskMockup = { placement: string; variant_ids: number[]; mockup_url: string; extra?: { title?: string; url: string; option?: string; option_group?: string }[] };
 
 /** Printful mockup task result → images to copy, in gallery order. Kids' garments get varied, rotated lead styles. */
 export function mockupPending(mockups: TaskMockup[], perColor: Record<string, string>, key: string): PendingImage[] {
   const [, slug = "", bpKey = ""] = key.split(":");
-  const kids = isKidsBlueprint(bpKey);
+  const kids = variedPhotos(bpKey);
   const colorOf = new Map(Object.entries(perColor).map(([c, ext]) => [Number(ext), c]));
   const pending: PendingImage[] = [];
   for (const [i, m] of mockups.entries()) {
