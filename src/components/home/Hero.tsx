@@ -135,12 +135,12 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
 
         {/* Side tiles: quick live edit (name + number / text), full editors one click away */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-4 lg:row-span-2 lg:min-h-0 lg:grid-cols-1 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
-          <m.div {...tile(0.12)} className="h-full">
+          <div className="hero-rise h-full" style={{ animationDelay: "0.12s" }}>
             <JerseyTile photo={persoPhoto ?? null} badge={t("nav.personalize")} title={t("hero3.perso")} labels={{ name: t("hero3.tile.name"), number: t("hero3.tile.number"), go: t("hero3.tile.go") }} />
-          </m.div>
-          <m.div {...tile(0.22)} className="h-full">
+          </div>
+          <div className="hero-rise h-full" style={{ animationDelay: "0.22s" }}>
             <DesignTile photo={designPhoto ?? null} badge={t("hero3.designBadge")} title={t("hero3.design")} labels={{ text: t("hero3.tile.text"), go: t("hero3.tile.go"), font: t("hero3.tile.font"), tpl: t("hero3.tile.tpl") }} />
-          </m.div>
+          </div>
         </div>
       </div>
     </section>
