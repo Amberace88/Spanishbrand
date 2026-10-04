@@ -10,9 +10,10 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { useLocale, useT } from "@/components/providers/I18nProvider";
-import { IconArrow, IconBag, IconClose, IconMenu, IconSearch, IconUser } from "@/components/ui/Icons";
+import { IconArrow, IconBag, IconClose, IconMenu, IconSearch } from "@/components/ui/Icons";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { SoundToggle } from "@/components/layout/SoundToggle";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -176,9 +177,7 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
               </button>
               <SoundToggle />
               <ThemeToggle />
-              <Link href="/account" className="hidden h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06] sm:grid" aria-label={t("nav.account")}>
-                <IconUser className="h-[21px] w-[21px]" />
-              </Link>
+              <AccountMenu />
               <Link href="/cart" className="relative ml-1 flex h-10 items-center gap-2 rounded-full bg-fg px-4 text-[13px] font-semibold text-bg transition-transform hover:-translate-y-px" aria-label={t("nav.cart")}>
                 <IconBag className="h-[18px] w-[18px]" />
                 <span className="tabular-nums">{cartCount}</span>
