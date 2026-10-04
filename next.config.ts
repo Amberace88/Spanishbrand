@@ -5,7 +5,7 @@ import path from "node:path";
 // Club hero film: detected at build time so a missing file never triggers a 404 request.
 const clubMedia = (f: string) => (existsSync(path.join(process.cwd(), "public/club", f)) ? "1" : "");
 // Campaign photos for theme / category tiles (public/campaign/<key>.webp): the keys present at build time.
-const CAMPAIGN_KEYS = ["fiestas", "playa", "tapas", "heritage", "futbol", "leon", "mujer", "hombre", "sabiduria", "mediterraneo", "profesiones", "arte", "ninos", "camisetas", "sudaderas", "gorras", "tazas", "bolsas", "laminas", "hogar"];
+const CAMPAIGN_KEYS = ["fiestas", "playa", "tapas", "heritage", "futbol", "leon", "mujer", "hombre", "sabiduria", "mediterraneo", "profesiones", "arte", "ninos", "camisetas", "sudaderas", "gorras", "tazas", "bolsas", "laminas", "hogar", "bordados", "familia", "ciudades", "statement"];
 const campaignPhotos = CAMPAIGN_KEYS.filter((k) => existsSync(path.join(process.cwd(), "public/campaign", `${k}.webp`))).join(",");
 
 const supabaseHost = (() => {
