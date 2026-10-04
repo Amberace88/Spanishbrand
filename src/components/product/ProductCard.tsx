@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { PublicProduct } from "@/lib/products/queries";
 import { formatMoney } from "@/lib/format";
 import { CollectionArt } from "@/components/art/CollectionArt";
+import { kidsLead } from "@/lib/catalog/merch";
 
 const SIZES = "(min-width:1440px) 340px, (min-width:1024px) 24vw, 48vw";
 
@@ -12,7 +13,9 @@ const SIZES = "(min-width:1440px) 340px, (min-width:1024px) 24vw, 48vw";
  * of the same colour (back print / angle) next.
  */
 export function ProductCard({ p, labels, priority = false }: { p: PublicProduct; labels: { madeToOrder: string; from: string; limited: string }; priority?: boolean }) {
-  const [a, b] = p.images;
+  // kids' garments lead with a model photo (rotated per product) on every listing, merchandised or not
+  const kid = kidsLead(p);
+  const [a, b] = kid && p.images[0]?.url !== kid.url ? [kid, p.images[0]] : p.images;
   const prices = p.variants.map((v) => v.price);
   const min = prices.length ? Math.min(...prices) : p.price;
   const varies = prices.length > 1 && Math.max(...prices) !== min;

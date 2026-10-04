@@ -1,13 +1,13 @@
 import type { NextConfig } from "next";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 
 // Club hero film: detected at build time so a missing file never triggers a 404 request.
 const clubMedia = (f: string) => (existsSync(path.join(process.cwd(), "public/club", f)) ? "1" : "");
 // Campaign photos for theme / category tiles (public/campaign/<key>.webp): the keys present at build time.
-const CAMPAIGN_KEYS = ["fiestas", "playa", "tapas", "heritage", "futbol", "leon", "mujer", "hombre", "sabiduria", "mediterraneo", "profesiones", "arte", "ninos", "camisetas", "sudaderas", "gorras", "tazas", "bolsas", "laminas", "hogar", "bordados", "familia", "ciudades", "statement"];
-// "key:hash" so a replaced photo gets a new URL (the image CDN caches originals for 31 days)
+// every photo in public/campaign is a slot: <key>.webp
+const CAMPAIGN_KEYS = existsSync(path.join(process.cwd(), "public/campaign")) ? readdirSync(path.join(process.cwd(), "public/campaign")).filter((f) => f.endsWith(".webp")).map((f) => f.slice(0, -5)) : [];
 const campaignPhotos = CAMPAIGN_KEYS.flatMap((k) => {
   const f = path.join(process.cwd(), "public/campaign", `${k}.webp`);
   return existsSync(f) ? [`${k}:${createHash("sha1").update(readFileSync(f)).digest("hex").slice(0, 8)}`] : [];

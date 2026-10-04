@@ -54,8 +54,11 @@ export interface Zone {
 export const ZONE_FRONT: Zone = { l: 0.05, t: 0.04, r: 0.05, b: 0.04, label: "frontal" };
 /** Hoodie front: the kangaroo pocket covers the bottom ≈ 30 % of the print area. */
 export const ZONE_HOOD_FRONT: Zone = { l: 0.06, t: 0.04, r: 0.06, b: 0.28, label: "frontal sudadera (bolsillo)" };
-/** Garment back: the yoke seam and shoulder blades — big back prints read best with generous margins. */
-export const ZONE_BACK: Zone = { l: 0.08, t: 0.05, r: 0.08, b: 0.05, label: "espalda" };
+/**
+ * Garment back: the yoke seam and shoulder blades. Big back numbers at 8 % margins reached the side seams on
+ * model photos (smaller sizes), so tees and sweatshirts keep 14 % each side (hoodies have their own zone).
+ */
+export const ZONE_BACK: Zone = { l: 0.14, t: 0.05, r: 0.14, b: 0.05, label: "espalda" };
 /** Hoodie back: the hood falls over the top of the back print area. */
 export const ZONE_HOOD_BACK: Zone = { l: 0.08, t: 0.1, r: 0.08, b: 0.05, label: "espalda sudadera (capucha)" };
 /** All-over panels: the panel is cover-cropped to the provider's shape and sewn — keep marks well inside. */
@@ -67,13 +70,20 @@ export const ZONE_KIDS_BACK: Zone = { l: 0.17, t: 0.06, r: 0.17, b: 0.1, label: 
 export const ZONE_KIDS_HOOD_FRONT: Zone = { l: 0.14, t: 0.05, r: 0.14, b: 0.3, label: "frontal sudadera infantil (bolsillo)" };
 export const ZONE_KIDS_HOOD_BACK: Zone = { l: 0.17, t: 0.12, r: 0.17, b: 0.1, label: "espalda sudadera infantil (capucha)" };
 
+/**
+ * All-over sports jersey: the sublimated panel is much wider than the back you actually see (it wraps round the
+ * sides and under the arms) and the collar eats its top, so names and numbers keep well inside the centre.
+ */
+export const ZONE_JERSEY_BACK: Zone = { l: 0.31, t: 0.24, r: 0.31, b: 0.16, label: "espalda camiseta deportiva (panel envolvente)" };
+export const ZONE_JERSEY_FRONT: Zone = { l: 0.24, t: 0.18, r: 0.24, b: 0.14, label: "frontal camiseta deportiva (panel envolvente)" };
+
 export const HOODIES = new Set<BlueprintKey>(["hoodie", "kidshoodie", "hoodieoversize"]);
 export const KIDS = new Set<BlueprintKey>(["kids", "kidshoodie", "toddler", "baby"]);
 
 /** Safe zone of a blueprint side, or null when the render mode crops to the content anyway (mugs, posters…). */
 export function zoneFor(bp: BlueprintKey, side: "front" | "back" = "front"): Zone | null {
   const mode = BLUEPRINTS[bp]?.renderMode;
-  if (mode === "cover") return ZONE_COVER;
+  if (mode === "cover") return bp === "jersey" ? (side === "back" ? ZONE_JERSEY_BACK : ZONE_JERSEY_FRONT) : ZONE_COVER;
   if (mode !== "print") return null;
   if (bp === "kidshoodie") return side === "back" ? ZONE_KIDS_HOOD_BACK : ZONE_KIDS_HOOD_FRONT;
   if (KIDS.has(bp)) return side === "back" ? ZONE_KIDS_BACK : ZONE_KIDS_FRONT;

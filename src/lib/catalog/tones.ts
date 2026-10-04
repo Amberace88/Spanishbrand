@@ -57,12 +57,12 @@ export const THEME_LOOKS: Record<string, ThemeLook> = {
   oficios: { tone: "arena", texture: "grid", word: "OFICIO", campaign: "profesiones" },
   familia: { tone: "terracota", texture: "dots", word: "FAMILIA", campaign: "familia", site: "look-barca-nino" },
   ciudades: { tone: "mar", texture: "grid", word: "CIUDAD", campaign: "ciudades" },
-  motor: { tone: "tinta", texture: "stripes", word: "MOTOR" },
-  padel: { tone: "oliva", texture: "grid", word: "PÁDEL" },
-  ciclismo: { tone: "terracota", texture: "stripes", word: "PUERTO" },
-  "mi-pueblo": { tone: "arena", texture: "tiles", word: "PUEBLO" },
-  camino: { tone: "azafran", texture: "dots", word: "CAMINO" },
-  militar: { tone: "oliva", texture: "hatch", word: "SERVICIO" },
+  motor: { tone: "tinta", texture: "stripes", word: "MOTOR", campaign: "motor" },
+  padel: { tone: "oliva", texture: "grid", word: "PÁDEL", campaign: "padel" },
+  ciclismo: { tone: "terracota", texture: "stripes", word: "PUERTO", campaign: "ciclismo" },
+  "mi-pueblo": { tone: "arena", texture: "tiles", word: "PUEBLO", campaign: "pueblo" },
+  camino: { tone: "azafran", texture: "dots", word: "CAMINO", campaign: "camino" },
+  militar: { tone: "oliva", texture: "hatch", word: "SERVICIO", campaign: "servicio" },
 };
 
 export const lookFor = (key: string): ThemeLook => THEME_LOOKS[key] ?? { tone: "hueso", texture: "dots", word: key.toUpperCase() };
@@ -79,7 +79,7 @@ export const CATEGORY_LOOKS: Record<string, ThemeLook> = {
   WALL_ART: { tone: "hueso", texture: "hatch", word: "LÁMINA", campaign: "laminas" },
   HOME_LIVING: { tone: "arena", texture: "tiles", word: "HOGAR", campaign: "hogar" },
   EMB: { tone: "tinta", texture: "dots", word: "BORDADO", campaign: "bordados" },
-  TECH_ACCESSORIES: { tone: "mar", texture: "grid", word: "FUNDA" },
-  STATIONERY: { tone: "hueso", texture: "grid", word: "PAPEL" },
-  PETS: { tone: "terracota", texture: "dots", word: "MASCOTA" },
+  TECH_ACCESSORIES: { tone: "mar", texture: "grid", word: "FUNDA", campaign: "tech" },
+  STATIONERY: { tone: "hueso", texture: "grid", word: "PAPEL", campaign: "papeleria" },
+  PETS: { tone: "terracota", texture: "dots", word: "MASCOTA", campaign: "mascotas" },
 };

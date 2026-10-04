@@ -1280,7 +1280,9 @@ export const REBUILD: Record<string, string> = Object.fromEntries(
 );
 
 /** At most this many replacements in flight; a new one starts only when a run has a free slot (1 per run). */
-const MAX_REBUILDS_IN_FLIGHT = 2;
+const MAX_REBUILDS_IN_FLIGHT = 4;
+/** New replacements started per run (the runner fires every 10 min, see netlify/functions/catalog-runner.mts). */
+const REBUILDS_PER_RUN = 2;
 const BASELINE = VERSION_BASELINE as Record<string, string>;
 const versionMemo = new Map<string, string>();
 function currentVersion(design: Design, bp: BlueprintKey) {
@@ -1313,9 +1315,15 @@ export function rebuildCandidates(jobs: { key: string; phase: string; design_ver
     if (tag && j.rebuild_tag !== tag) out.push({ key: j.key, reason: "forced" });
     else if (was && was !== currentVersion(design, bp)) out.push({ key: j.key, reason: "changed" });
   }
-  // forced first, then the garments people browse first
-  const core = (k: string) => (["tee", "hoodie", "sweat", "jersey", "womtee", "kids"].includes(k.split(":")[2]) ? 0 : 1);
-  return out.sort((a, b) => (a.reason === b.reason ? 0 : a.reason === "forced" ? -1 : 1) || core(a.key) - core(b.key) || a.key.localeCompare(b.key));
+  // number shirts and kids' garments (the visibly mis-printed ones) first, then forced, then by garment;
+  // what shoppers see most (and what was visibly mis-printed) first: sports jersey, kids, then the core garments
+  const ORDER = ["jersey", "kids", "tee", "hoodie", "sweat", "womtee", "toddler", "kidshoodie", "baby"];
+  const core = (k: string) => {
+    const i = ORDER.indexOf(k.split(":")[2]);
+    return i < 0 ? ORDER.length : i;
+  };
+  const urgent = (k: string) => (core(k) < 2 ? 0 : 1);
+  return out.sort((a, b) => urgent(a.key) - urgent(b.key) || (a.reason === b.reason ? 0 : a.reason === "forced" ? -1 : 1) || core(a.key) - core(b.key) || a.key.localeCompare(b.key));
 }
 
 /** Rebuild switch (brand_settings.settings.catalogRebuild): off until an admin starts it on /admin/catalogo. */
@@ -1388,13 +1396,15 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
     .sort((a, b) => prio(a.key) - prio(b.key));
   // rebuilds of changed designs (admin switch): at most one new replacement per run, few in flight, so new
   // products keep progressing; the live product stays on sale until its replacement publishes
-  let rebuildKey: string | null = null;
+  const rebuildKeys: string[] = [];
   if (await rebuildEnabled().catch(() => false)) {
     const inFlight = jobs.filter((j) => j.replaces && open(j.key)).length;
-    if (inFlight < MAX_REBUILDS_IN_FLIGHT) rebuildKey = rebuildCandidates(jobs).find((c) => free(c.key))?.key ?? null;
+    const slots = Math.max(0, Math.min(REBUILDS_PER_RUN, MAX_REBUILDS_IN_FLIGHT - inFlight));
+    if (slots) rebuildKeys.push(...rebuildCandidates(jobs).filter((c) => free(c.key)).slice(0, slots).map((c) => c.key));
   }
+  const rebuildKey = rebuildKeys[0] ?? null;
   // one resolve per run (they can be slow: catalogue lookups) so product work is never starved by them
-  const queue = [...resolves.slice(0, 1).map((p) => p.key), ...(rebuildKey ? [rebuildKey] : []), ...[...inProgress, ...fresh].map((p) => p.key)];
+  const queue = [...resolves.slice(0, 1).map((p) => p.key), ...rebuildKeys, ...[...inProgress, ...fresh].map((p) => p.key)];
   const remaining = queue.length;
   const results: { key: string; phase: string; error?: string }[] = [];
   const worker = async () => {
@@ -1402,7 +1412,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
       const key = queue.shift()!;
       // keep stepping the same job while time allows (mockup polling etc.)
       for (let i = 0; i < 12 && Date.now() - started < budget; i++) {
-        const r = await runStep(key, staff, i === 0 && key === rebuildKey ? { rebuild: true } : {});
+        const r = await runStep(key, staff, i === 0 && rebuildKeys.includes(key) ? { rebuild: true } : {});
         if (r.done || r.waitMs) {
           results.push({ key, phase: r.phase, error: r.error });
           break;
