@@ -698,6 +698,9 @@ async function uniqueSlug(base: string) {
 
 const FEATURED = new Set(["p:firma-leon:tee", "p:espana-bandas:tee", "p:leon-coronado:tee", "p:arte-toro:tee", "p:arte-chiringuito:tee", "p:firma-leon:hoodie", "p:arte-vermut:mug", "p:arte-quijote:poster"]);
 
+/** Thrown when a step should stop and continue in the next call (time budget). */
+class ResumeLater extends Error {}
+
 async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult> {
   const sb = db();
   const spec = specFor(job.key);
@@ -729,27 +732,50 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     // stable public domain: Gelato downloads the PDF when the order is produced (deploy-specific URLs can disappear)
     files.push({ type: "default", url: `${env.siteUrl()}/catalog/calendars/${design.slug}.pdf` });
   } else if (spec.kind === "design") {
-    // safe zones (lib/catalog/print-safety.ts): the design is kept clear of seams, hood and pocket of this garment
-    const png = await renderDesign({ ...design, layers: effectiveLayers(design, bp.key, "front") }, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
-    // content-addressed path: Printful caches files by URL, so a changed print needs a new URL — but identical
-    // renders (retries, rebuilds without artwork changes) reuse the same object instead of adding a new copy
-    const ver = printHash(png);
-    const url = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}.png`, png, "image/png", { immutable: true });
-    files.push({ type: res.placement ?? bp.placement, url });
-    // two-sided designs: second print file on the back (Printful garments that offer a back placement)
-    if (design.back?.length && res.provider === "printful" && bp.renderMode === "print" && res.placements.includes("back")) {
-      const backPng = await renderDesign({ ...design, layers: effectiveLayers(design, bp.key, "back") }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
-      const backHash = printHash(backPng);
-      const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${backHash}-back.png`, backPng, "image/png", { immutable: true });
-      files.push({ type: "back", url: backUrl });
-    }
-    // all-over garments: back panel = the design's back (or its pattern), sleeves = the pattern alone
-    if (res.panels && bp.renderMode === "cover") {
-      for (const [pl, size] of Object.entries(res.panels)) {
-        const layers = pl === "back" && design.back?.length ? effectiveLayers(design, bp.key, "back") : design.layers.slice(0, 1);
-        const panelPng = await renderDesign({ ...design, layers }, { ...size, mode: "cover" });
-        files.push({ type: pl, url: await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}-${pl}.png`, panelPng, "image/png") });
+    // Print files are rendered one per call when needed: an all-over jersey (front + back + sleeve panels at
+    // full print resolution) took longer than the function limit, timed out on every attempt and never got
+    // past "new". Each finished file is kept in the job state, so the next call carries on from there.
+    const started = Date.now();
+    const cache = { ...((job.state.printFiles as Record<string, string> | undefined) ?? {}) };
+    const keep = async (type: string, make: () => Promise<string>) => {
+      if (cache[type]) return cache[type];
+      if (Date.now() - started > 9_000) throw new ResumeLater(type);
+      cache[type] = await make();
+      await save(job, { state: { ...job.state, printFiles: cache } });
+      return cache[type];
+    };
+    try {
+      // safe zones (lib/catalog/print-safety.ts): the design is kept clear of seams, hood and pocket of this garment
+      const front = await keep("front", async () => {
+        const png = await renderDesign({ ...design, layers: effectiveLayers(design, bp.key, "front") }, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
+        // content-addressed path: Printful caches files by URL, so a changed print needs a new URL — but identical
+        // renders (retries, rebuilds without artwork changes) reuse the same object instead of adding a new copy
+        cache._ver = printHash(png);
+        return uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${cache._ver}.png`, png, "image/png", { immutable: true });
+      });
+      files.push({ type: res.placement ?? bp.placement, url: front });
+      // two-sided designs: second print file on the back (Printful garments that offer a back placement)
+      if (design.back?.length && res.provider === "printful" && bp.renderMode === "print" && res.placements.includes("back")) {
+        const backUrl = await keep("back", async () => {
+          const backPng = await renderDesign({ ...design, layers: effectiveLayers(design, bp.key, "back") }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
+          return uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${printHash(backPng)}-back.png`, backPng, "image/png", { immutable: true });
+        });
+        files.push({ type: "back", url: backUrl });
       }
+      // all-over garments: back panel = the design's back (or its pattern), sleeves = the pattern alone
+      if (res.panels && bp.renderMode === "cover") {
+        for (const [pl, size] of Object.entries(res.panels)) {
+          const url = await keep(`panel:${pl}`, async () => {
+            const layers = pl === "back" && design.back?.length ? effectiveLayers(design, bp.key, "back") : design.layers.slice(0, 1);
+            const panelPng = await renderDesign({ ...design, layers }, { ...size, mode: "cover" });
+            return uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${cache._ver ?? printHash(panelPng)}-${pl}.png`, panelPng, "image/png");
+          });
+          files.push({ type: pl, url });
+        }
+      }
+    } catch (e) {
+      if (e instanceof ResumeLater) return { key: job.key, phase: "new", done: false, waitMs: 500, message: `archivos de impresión: sigue con ${e.message}` };
+      throw e;
     }
   }
   const twoSided = !bp.aopPanels && files.some((f) => f.type === "back");
@@ -1346,7 +1372,8 @@ export async function rebuildStatus() {
   const [jobs, enabled] = await Promise.all([listJobs(), rebuildEnabled()]);
   const open = (p: string) => p !== "done" && p !== "failed";
   const pending = rebuildCandidates(jobs);
-  const inFlight = jobs.filter((j) => j.replaces && open(j.phase)).map((j) => ({ key: j.key, phase: j.phase }));
+  const planKeys = new Set(buildPlan().map((p) => p.key));
+  const inFlight = jobs.filter((j) => j.replaces && open(j.phase) && planKeys.has(j.key)).map((j) => ({ key: j.key, phase: j.phase }));
   const failed = jobs.filter((j) => j.replaces && j.phase === "failed").map((j) => ({ key: j.key, error: j.error }));
   return { enabled, pending: pending.length, forced: pending.filter((c) => c.reason === "forced").length, next: pending.slice(0, 12), inFlight, failed: failed.slice(0, 12) };
 }
@@ -1401,10 +1428,13 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   const rebuildKeys: string[] = [];
   if (await rebuildEnabled().catch(() => false)) {
     const urgentBp = (k: string) => ["jersey", "kids"].includes(k.split(":")[2] ?? "");
-    const inFlight = jobs.filter((j) => j.replaces && open(j.key)).length;
+    // only replacements still in the plan count: orphaned ones (design/garment since dropped) never run and
+    // used to fill every slot, so no re-print was started at all
+    const planKeys = new Set(plan.map((p) => p.key));
+    const inFlight = jobs.filter((j) => j.replaces && open(j.key) && planKeys.has(j.key)).length;
     // number shirts and kids' tees (visibly mis-printed) have their own small lane, so a backlog of other
     // re-prints never holds them back
-    const urgentInFlight = jobs.filter((j) => j.replaces && open(j.key) && urgentBp(j.key)).length;
+    const urgentInFlight = jobs.filter((j) => j.replaces && open(j.key) && planKeys.has(j.key) && urgentBp(j.key)).length;
     const cands = rebuildCandidates(jobs).filter((c) => free(c.key));
     const urgentSlots = Math.max(0, Math.min(REBUILDS_PER_RUN, MAX_URGENT_REBUILDS_IN_FLIGHT - urgentInFlight));
     rebuildKeys.push(...cands.filter((c) => urgentBp(c.key)).slice(0, urgentSlots).map((c) => c.key));
