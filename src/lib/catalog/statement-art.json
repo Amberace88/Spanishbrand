@@ -1,0 +1,416 @@
+{
+ "st-brocha-abanico": {
+  "aspect": 1.0564,
+  "x": 0.5,
+  "y": 0.5194,
+  "w": 0.9167
+ },
+ "st-brocha-espana-dia": {
+  "aspect": 0.9981,
+  "x": 0.5,
+  "y": 0.4401,
+  "w": 1
+ },
+ "st-brocha-espana-noche": {
+  "aspect": 0.9981,
+  "x": 0.5,
+  "y": 0.4401,
+  "w": 1
+ },
+ "st-brocha-hecho": {
+  "aspect": 0.8957,
+  "x": 0.5297,
+  "y": 0.402,
+  "w": 0.9406
+ },
+ "st-brocha-leon-dia": {
+  "aspect": 0.9953,
+  "x": 0.5,
+  "y": 0.4466,
+  "w": 1
+ },
+ "st-brocha-leon-noche": {
+  "aspect": 0.9953,
+  "x": 0.5,
+  "y": 0.4466,
+  "w": 1
+ },
+ "st-brocha-roja": {
+  "aspect": 1.1989,
+  "x": 0.5,
+  "y": 0.5181,
+  "w": 1
+ },
+ "st-brocha-rojo-gualda": {
+  "aspect": 0.7975,
+  "x": 0.5,
+  "y": 0.4301,
+  "w": 1
+ },
+ "st-brocha-sol": {
+  "aspect": 1.2918,
+  "x": 0.4965,
+  "y": 0.4708,
+  "w": 0.9719
+ },
+ "st-brocha-toro-dia": {
+  "aspect": 1.1033,
+  "x": 0.5,
+  "y": 0.5012,
+  "w": 1
+ },
+ "st-brocha-toro-noche": {
+  "aspect": 1.1033,
+  "x": 0.5,
+  "y": 0.5012,
+  "w": 1
+ },
+ "st-collage-alhambra": {
+  "aspect": 1.2446,
+  "x": 0.5201,
+  "y": 0.4927,
+  "w": 0.9597
+ },
+ "st-collage-flamenca": {
+  "aspect": 1.2477,
+  "x": 0.5239,
+  "y": 0.4924,
+  "w": 0.9522
+ },
+ "st-collage-galeon": {
+  "aspect": 1.2299,
+  "x": 0.5239,
+  "y": 0.4917,
+  "w": 0.9522
+ },
+ "st-collage-leon": {
+  "aspect": 1.227,
+  "x": 0.519,
+  "y": 0.488,
+  "w": 0.9619
+ },
+ "st-collage-papel-1": {
+  "aspect": 1.0804,
+  "x": 0.4926,
+  "y": 0.3785,
+  "w": 0.7842
+ },
+ "st-collage-papel-2": {
+  "aspect": 1.0716,
+  "x": 0.4949,
+  "y": 0.379,
+  "w": 0.7881
+ },
+ "st-collage-quijote": {
+  "aspect": 1.1985,
+  "x": 0.5221,
+  "y": 0.5023,
+  "w": 0.9558
+ },
+ "st-collage-toro": {
+  "aspect": 1.2375,
+  "x": 0.5239,
+  "y": 0.4979,
+  "w": 0.9522
+ },
+ "st-emb-coordenadas": {
+  "aspect": 0.3445,
+  "x": 0.7131,
+  "y": 0.1406,
+  "w": 0.2155
+ },
+ "st-emb-desde-siempre": {
+  "aspect": 0.3503,
+  "x": 0.7211,
+  "y": 0.1446,
+  "w": 0.2319
+ },
+ "st-emb-espana": {
+  "aspect": 0.5343,
+  "x": 0.7208,
+  "y": 0.1416,
+  "w": 0.1917
+ },
+ "st-emb-ryg": {
+  "aspect": 0.9428,
+  "x": 0.7208,
+  "y": 0.1283,
+  "w": 0.1583
+ },
+ "st-emb-sol": {
+  "aspect": 1,
+  "x": 0.7208,
+  "y": 0.1406,
+  "w": 0.1903
+ },
+ "st-espalda-34": {
+  "aspect": 1.01,
+  "x": 0.5153,
+  "y": 0.5082,
+  "w": 0.9694
+ },
+ "st-espalda-34-pecho": {
+  "aspect": 0.8032,
+  "x": 0.7208,
+  "y": 0.1474,
+  "w": 0.125
+ },
+ "st-espalda-abanico": {
+  "aspect": 0.9857,
+  "x": 0.4974,
+  "y": 0.5085,
+  "w": 0.9531
+ },
+ "st-espalda-abanico-pecho": {
+  "aspect": 0.5665,
+  "x": 0.7208,
+  "y": 0.1282,
+  "w": 0.1852
+ },
+ "st-espalda-alhambra": {
+  "aspect": 1.2029,
+  "x": 0.5,
+  "y": 0.4884,
+  "w": 0.875
+ },
+ "st-espalda-alhambra-pecho": {
+  "aspect": 1.4712,
+  "x": 0.7208,
+  "y": 0.1408,
+  "w": 0.125
+ },
+ "st-espalda-corona": {
+  "aspect": 0.9707,
+  "x": 0.4993,
+  "y": 0.4749,
+  "w": 0.8719
+ },
+ "st-espalda-corona-pecho": {
+  "aspect": 1.5346,
+  "x": 0.7208,
+  "y": 0.1478,
+  "w": 0.095
+ },
+ "st-espalda-galeon": {
+  "aspect": 1.0401,
+  "x": 0.4992,
+  "y": 0.4883,
+  "w": 0.9983
+ },
+ "st-espalda-galeon-pecho": {
+  "aspect": 0.7646,
+  "x": 0.7258,
+  "y": 0.1299,
+  "w": 0.146
+ },
+ "st-espalda-leon": {
+  "aspect": 1.3373,
+  "x": 0.5,
+  "y": 0.502,
+  "w": 0.9
+ },
+ "st-espalda-leon-pecho": {
+  "aspect": 1.1865,
+  "x": 0.7209,
+  "y": 0.1406,
+  "w": 0.1313
+ },
+ "st-espalda-mediterraneo": {
+  "aspect": 0.8473,
+  "x": 0.4971,
+  "y": 0.4846,
+  "w": 0.9842
+ },
+ "st-espalda-mediterraneo-pecho": {
+  "aspect": 0.5333,
+  "x": 0.7208,
+  "y": 0.137,
+  "w": 0.2165
+ },
+ "st-espalda-sol": {
+  "aspect": 1.2658,
+  "x": 0.5,
+  "y": 0.5038,
+  "w": 0.9594
+ },
+ "st-espalda-sol-pecho": {
+  "aspect": 1.37,
+  "x": 0.7209,
+  "y": 0.1506,
+  "w": 0.1401
+ },
+ "st-espalda-toro": {
+  "aspect": 1.2886,
+  "x": 0.5003,
+  "y": 0.5145,
+  "w": 0.875
+ },
+ "st-espalda-toro-pecho": {
+  "aspect": 0.9454,
+  "x": 0.7208,
+  "y": 0.136,
+  "w": 0.1582
+ },
+ "st-espalda-varsity": {
+  "aspect": 1.097,
+  "x": 0.5,
+  "y": 0.4365,
+  "w": 0.8878
+ },
+ "st-espalda-varsity-pecho": {
+  "aspect": 0.4499,
+  "x": 0.7208,
+  "y": 0.1406,
+  "w": 0.1573
+ },
+ "st-grafiti-ryg": {
+  "aspect": 0.9575,
+  "x": 0.506,
+  "y": 0.4037,
+  "w": 0.9881
+ },
+ "st-min-coordenadas-dia": {
+  "aspect": 0.7082,
+  "x": 0.7208,
+  "y": 0.1403,
+  "w": 0.175
+ },
+ "st-min-coordenadas-noche": {
+  "aspect": 0.7082,
+  "x": 0.7208,
+  "y": 0.1403,
+  "w": 0.175
+ },
+ "st-min-desde-siempre": {
+  "aspect": 0.4193,
+  "x": 0.7212,
+  "y": 0.1493,
+  "w": 0.2154
+ },
+ "st-min-leon-sello": {
+  "aspect": 0.9997,
+  "x": 0.7208,
+  "y": 0.1406,
+  "w": 0.2067
+ },
+ "st-min-monograma-dia": {
+  "aspect": 1.2639,
+  "x": 0.7208,
+  "y": 0.1458,
+  "w": 0.1417
+ },
+ "st-min-monograma-noche": {
+  "aspect": 1.2639,
+  "x": 0.7208,
+  "y": 0.1458,
+  "w": 0.1417
+ },
+ "st-postal-canarias": {
+  "aspect": 1.0599,
+  "x": 0.4986,
+  "y": 0.4879,
+  "w": 0.9367
+ },
+ "st-postal-costa-blanca": {
+  "aspect": 1.0708,
+  "x": 0.4989,
+  "y": 0.492,
+  "w": 0.9372
+ },
+ "st-postal-costa-del-sol": {
+  "aspect": 1.0762,
+  "x": 0.499,
+  "y": 0.4935,
+  "w": 0.9364
+ },
+ "st-postal-espana": {
+  "aspect": 1.1356,
+  "x": 0.5,
+  "y": 0.4258,
+  "w": 1
+ },
+ "st-postal-galicia": {
+  "aspect": 1.1951,
+  "x": 0.5151,
+  "y": 0.4346,
+  "w": 0.9697
+ },
+ "st-postal-ibiza": {
+  "aspect": 1.1475,
+  "x": 0.5,
+  "y": 0.4303,
+  "w": 1
+ },
+ "st-postal-madrid": {
+  "aspect": 1.1383,
+  "x": 0.5,
+  "y": 0.4269,
+  "w": 1
+ },
+ "st-postal-sevilla": {
+  "aspect": 1.1467,
+  "x": 0.5,
+  "y": 0.43,
+  "w": 1
+ },
+ "st-salpicado": {
+  "aspect": 1.0944,
+  "x": 0.5,
+  "y": 0.4104,
+  "w": 1
+ },
+ "st-spray-26": {
+  "aspect": 1.1005,
+  "x": 0.5079,
+  "y": 0.4099,
+  "w": 0.8903
+ },
+ "st-spray-corona": {
+  "aspect": 1.2696,
+  "x": 0.5001,
+  "y": 0.4969,
+  "w": 0.7964
+ },
+ "st-spray-espana": {
+  "aspect": 0.7577,
+  "x": 0.5047,
+  "y": 0.4148,
+  "w": 0.9906
+ },
+ "st-spray-muro": {
+  "aspect": 1.0378,
+  "x": 0.4994,
+  "y": 0.4486,
+  "w": 0.9328
+ },
+ "st-spray-toro": {
+  "aspect": 1.5544,
+  "x": 0.5001,
+  "y": 0.5316,
+  "w": 0.8036
+ },
+ "st-stencil-leon-dia": {
+  "aspect": 1.2659,
+  "x": 0.4992,
+  "y": 0.4696,
+  "w": 0.89
+ },
+ "st-stencil-leon-noche": {
+  "aspect": 1.2659,
+  "x": 0.4992,
+  "y": 0.4696,
+  "w": 0.89
+ },
+ "st-tags-espalda": {
+  "aspect": 1.334,
+  "x": 0.5018,
+  "y": 0.5016,
+  "w": 0.9964
+ },
+ "st-tags-pecho": {
+  "aspect": 0.8887,
+  "x": 0.7193,
+  "y": 0.1372,
+  "w": 0.228
+ }
+}

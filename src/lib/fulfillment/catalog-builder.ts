@@ -316,7 +316,7 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   const pfId = firstVariant?.placements[place];
   const pf = pfs.printfiles.find((x) => x.printfile_id === pfId) ?? pfs.printfiles[0];
   let sizeGuide: unknown;
-  if (["tee", "hoodie", "sweat", "kids", "jersey"].includes(bp.key) || AUDIENCE_BLUEPRINTS.includes(bp.key)) {
+  if (["tee", "hoodie", "sweat", "kids", "jersey", "teeoversize", "hoodieoversize"].includes(bp.key) || AUDIENCE_BLUEPRINTS.includes(bp.key)) {
     try {
       sizeGuide = await getSizeGuide(p.externalId);
     } catch {
@@ -537,7 +537,7 @@ function specFor(key: string): Spec {
   return { kind: "template", bp: BLUEPRINTS[template.bp], tones: [template.tone], design: PLACEHOLDER, template };
 }
 
-const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines", womtee: "camiseta de mujer", womcrop: "sudadera corta de mujer", womsweat: "sudadera de mujer", kidshoodie: "sudadera infantil", toddler: "camiseta de peque", baby: "body de bebé", jersey: "camiseta deportiva" };
+const TYPE_ES: Record<BlueprintKey, string> = { tee: "camiseta", hoodie: "sudadera con capucha", sweat: "sudadera", mug: "taza", tote: "bolsa tote", poster: "póster", sticker: "pegatina", kids: "camiseta infantil", framed: "lámina enmarcada", canvas: "lienzo", towel: "toalla de playa", apron: "delantal", pillow: "cojín", bandana: "bandana", phonecase: "funda", puzzle: "puzle", doormat: "felpudo", blanket: "manta", cap: "gorra", beanie: "gorro", embtee: "camiseta bordada", embhoodie: "sudadera bordada", patch: "parche", glass: "vaso", coaster: "posavasos", tumbler: "vaso térmico", flag: "bandera", postcard: "postal", calendar: "calendario", dadhat: "gorra clásica", trucker: "gorra trucker", bucket: "gorro pescador", truckerprint: "gorra trucker", bucketprint: "gorro pescador", bottle: "botella", socks: "calcetines", womtee: "camiseta de mujer", womcrop: "sudadera corta de mujer", womsweat: "sudadera de mujer", kidshoodie: "sudadera infantil", toddler: "camiseta de peque", baby: "body de bebé", jersey: "camiseta deportiva", teeoversize: "camiseta oversize", hoodieoversize: "sudadera oversize" };
 
 function copyFor(spec: Spec, res: Resolved) {
   const { bp, design } = spec;
@@ -607,6 +607,9 @@ function pickVariants(spec: Spec, variants: { id: string; external_id: string; s
     colors = pref.filter((c) => live.some((v) => (v.color ?? "").toLowerCase() === c.toLowerCase()));
     if (bp.allColors) colors = [...colors, ...toneColors(live, spec.tones).filter((c) => !colors.some((p) => (p ?? "").toLowerCase() === c.toLowerCase()))];
     colors = colors.slice(0, max);
+    // designs drawn for specific garment colours (lib/catalog/statement.ts): offer exactly those when the product has them
+    const own = spec.kind === "design" ? (spec.design.colors ?? []).filter((c) => live.some((v) => (v.color ?? "").toLowerCase() === c.toLowerCase())) : [];
+    if (own.length) colors = own.slice(0, 6);
     if (!colors.length) {
       // fall back to whatever exists (first colours by name)
       colors = [...new Set(live.map((v) => v.color))].slice(0, 1);
@@ -1246,7 +1249,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
     // family / audience garments (Para quién: abuelos, niños, bebés, mujer) right after León — /para/bebes was empty.
     // Ahead of the other prio-0 lines too: ~140 of those were queued first, so a plain 0 would not move them.
     if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || AUDIENCE_BLUEPRINTS.includes(key.split(":")[2] as BlueprintKey))) return -0.5;
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria") || d.tags?.includes("futbol-pro"))) return 0;
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria") || d.tags?.includes("futbol-pro") || d.tags?.includes("statement"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };

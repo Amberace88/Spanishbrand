@@ -1,2 +1,2 @@
-Fonts in this folder are licensed under the SIL Open Font License 1.1 (Anton, Big Shoulders Display, Graduate, Bungee, Yellowtail, Inter — Google Fonts, via @fontsource; WOFF converted to TTF).
-Used only by scripts/futbol-art.mjs to draw the Fútbol PRO print art; fonts.conf points fontconfig at this folder.
+Fonts in this folder are licensed under the SIL Open Font License 1.1 — Anton, Big Shoulders Display, Graduate, Bungee, Yellowtail, Inter (Google Fonts via @fontsource; WOFF converted to TTF), plus Sedgwick Ave Display, DM Serif Display, Abril Fatface, Shrikhand, Bebas Neue, Caveat Brush, Rubik Spray Paint and Cinzel (Google Fonts repository) — except Permanent Marker, licensed under the Apache License 2.0.
+Used only by the art scripts (scripts/futbol-art.mjs, scripts/statement-art.mjs) to draw print art; fonts.conf points fontconfig at this folder.

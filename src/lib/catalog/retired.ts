@@ -57,6 +57,7 @@ export function seriesOf(d: Pick<Design, "slug" | "collection" | "tags">): strin
   if (t.includes("serie-leon")) return "leon";
   if (t.includes("lookbook")) return "lookbook";
   if (t.includes("futbol-pro")) return "futbol-pro";
+  if (t.includes("statement")) return "statement";
   if (t.includes("sabiduria")) return "sabiduria";
   if (t.includes("refranero")) return "refranero";
   if (t.includes("serie-arte")) return "arte";
@@ -69,7 +70,8 @@ export function seriesOf(d: Pick<Design, "slug" | "collection" | "tags">): strin
 }
 
 /** Curated series kept whole (owner's choice): their pieces are big by construction. */
-const CURATED = new Set(["leon", "lookbook", "futbol-pro", "sabiduria", "refranero", "arte", "oficios-arte", "familia"]);
+// statement: full-area prints by construction; its "Mínimo de lujo" chest marks are small on purpose (owner brief)
+const CURATED = new Set(["statement", "leon", "lookbook", "futbol-pro", "sabiduria", "refranero", "arte", "oficios-arte", "familia"]);
 
 export function auditDesign(d: Pick<Design, "slug" | "collection" | "tags" | "layers">): Audit {
   const series = seriesOf(d);
