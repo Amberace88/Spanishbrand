@@ -1,13 +1,19 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/supabase/server";
-import { Container } from "@/components/ui/Section";
 import Image from "next/image";
 import { AuthForm } from "@/components/account/AuthForm";
 import { AuthVisual, type AuthVisualCopy } from "@/components/account/AuthVisual";
 import { listSiteImages } from "@/lib/site-images";
-import { POINTS_PER_EURO, REDEEM_POINTS, REDEEM_VALUE, SIGNUP_POINTS } from "@/lib/club";
+import { POINTS_PER_EURO, REDEEM_POINTS, REDEEM_VALUE, SIGNUP_POINTS, tierFor } from "@/lib/club";
+import { getCurrentCustomer } from "@/lib/account";
+import { getClubLedger } from "@/lib/account-data";
+import { greetingName, initials } from "@/lib/account-panel";
+import { getStaffSession } from "@/lib/auth/rbac";
+import { tierName } from "@/components/club/ClubSections";
+import { AccountShell } from "@/components/account/panel/AccountShell";
+import type { AccountNavItem } from "@/components/account/panel/AccountNav";
 import { signOutAction } from "@/app/actions/account";
 
 export const dynamic = "force-dynamic";
@@ -60,28 +66,38 @@ export default async function AccountLayout({ children }: { children: ReactNode 
       </section>
     );
   }
+  return <SignedInShell>{children}</SignedInShell>;
+}
+
+/** Signed-in shell: member identity, navigation and (for staff) the admin entry. */
+async function SignedInShell({ children }: { children: ReactNode }) {
+  const [t, locale, { user, customer }, staff] = await Promise.all([getT(), getLocale(), getCurrentCustomer(), getStaffSession().catch(() => null)]);
+  const email = user?.email ?? "";
+  const rawName = ((customer?.name as string | null) ?? "").trim();
+  const isMember = Boolean(customer?.member_number);
+  const balance = Number(customer?.points ?? 0);
+  const { lifetime } = isMember ? await getClubLedger(customer!.id as string, balance) : { lifetime: 0 };
+  const tier = tierFor(lifetime);
+  const number = isMember ? String(customer!.member_number).padStart(6, "0") : "";
+  const items: AccountNavItem[] = [
+    { href: "/account", label: t("acct.nav.overview"), icon: "overview" },
+    { href: "/account/orders", label: t("acct.nav.orders"), icon: "orders" },
+    { href: "/account/club", label: t("acct.nav.club"), icon: "club" },
+    { href: "/account/returns", label: t("acct.nav.returns"), icon: "returns" },
+    { href: "/account/profile", label: t("acct.nav.profile"), icon: "profile" },
+  ];
   return (
-    <section className="min-h-[80svh] bg-bg pb-24 pt-10 sm:pt-14">
-      <Container>
-        <div className="flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow text-accent">{user.email}</p>
-            <h1 className="headline mt-2 text-4xl sm:text-5xl">{t("account.title")}</h1>
-          </div>
-          <nav className="flex items-center gap-6">
-            <Link href="/account/orders" className="eyebrow link-u">
-              {t("account.orders")}
-            </Link>
-            <Link href="/account/profile" className="eyebrow link-u">
-              {t("account.profile")}
-            </Link>
-            <form action={signOutAction}>
-              <button className="eyebrow link-u text-muted">{t("account.signout")}</button>
-            </form>
-          </nav>
-        </div>
-        <div className="pt-10">{children}</div>
-      </Container>
-    </section>
+    <AccountShell
+      name={rawName || greetingName(null, email)}
+      email={email}
+      initials={initials(rawName, email)}
+      member={isMember ? { number, points: balance, tier: tier.id, tierLabel: tierName(locale, tier.id) } : null}
+      items={items}
+      admin={staff ? { label: t("acct.nav.admin"), sub: t("acct.nav.adminSub") } : null}
+      signOut={{ label: t("acct.nav.signout"), action: signOutAction }}
+      labels={{ nav: t("acct.nav.label"), memberNo: t("acct.member.no", { n: number }), pts: t("acct.member.pts", { n: balance.toLocaleString("es-ES") }), guest: t("acct.member.guest"), join: t("acct.member.join") }}
+    >
+      {children}
+    </AccountShell>
   );
 }

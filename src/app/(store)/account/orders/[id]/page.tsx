@@ -1,124 +1,52 @@
-import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCurrentCustomer } from "@/lib/account";
+import { getOrderEvents } from "@/lib/account-data";
+import { canRequestReturn, isReorderable, orderStepDates, ORDER_STEPS } from "@/lib/account-panel";
 import { db } from "@/lib/supabase/admin";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { formatDate, formatMoney } from "@/lib/format";
-import type { TKey } from "@/lib/i18n/dictionaries";
+import { reorderAction } from "@/app/actions/account";
+import { dateLocale } from "@/components/club/ClubSections";
+import { OrderDetailView, type OrderDetail } from "@/components/account/panel/views";
 
 export const metadata: Metadata = { title: "Pedido", robots: { index: false } };
 
-const STEPS = ["PAID", "IN_PRODUCTION", "SHIPPED", "DELIVERED"] as const;
-const RANK: Record<string, number> = { PAID: 0, PROCESSING: 0, SENT_TO_PROVIDER: 1, PROVIDER_ACCEPTED: 1, IN_PRODUCTION: 1, SHIPPED: 2, DELIVERED: 3 };
+type Item = { product_name: string; variant_name: string | null; quantity: number; total: number; image: string | null; personalization: unknown };
+type Ship = { carrier: string | null; tracking_number: string | null; tracking_url: string | null; estimated_delivery_max: string | null };
 
-export default async function OrderDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const [t, { customer }] = await Promise.all([getT(), getCurrentCustomer()]);
+export default async function OrderDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ reorder?: string }> }) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const [t, locale, { customer }] = await Promise.all([getT(), getLocale(), getCurrentCustomer()]);
   if (!customer || !/^[0-9a-f-]{36}$/i.test(id)) notFound();
   // Ownership enforced server-side: order must belong to the signed-in customer.
   const { data: o } = await db()
     .from("orders")
-    .select("id, order_number, status, total, subtotal, shipping, discount, tax, currency, created_at, shipping_address, order_items(product_name, variant_name, quantity, total, image), shipments(carrier, tracking_number, tracking_url, status, shipped_at, estimated_delivery_min, estimated_delivery_max)")
+    .select("id, order_number, status, total, subtotal, shipping, discount, tax, currency, created_at, paid_at, shipping_address, tracking_number, tracking_url, carrier, order_items(product_name, variant_name, quantity, total, image, personalization), shipments(carrier, tracking_number, tracking_url, status, shipped_at, estimated_delivery_min, estimated_delivery_max)")
     .eq("id", id)
     .eq("customer_id", customer.id)
     .maybeSingle();
   if (!o) notFound();
-  const rank = RANK[o.status] ?? -1;
-  const addr = o.shipping_address as { name?: string; line1?: string; line2?: string; city?: string; postal_code?: string; country?: string } | null;
+  const dl = dateLocale(locale);
+  const money = (v: unknown) => formatMoney(Number(v ?? 0), o.currency, dl);
+  const raw = orderStepDates(await getOrderEvents(o.id), o);
+  const items = (o.order_items ?? []) as Item[];
+  let shipments = ((o.shipments ?? []) as Ship[]).map((s) => ({ carrier: s.carrier, number: s.tracking_number, url: s.tracking_url, eta: s.estimated_delivery_max ? formatDate(s.estimated_delivery_max, dl) : null }));
+  // single-provider orders may carry tracking on the order itself
+  if (!shipments.length && (o.tracking_number || o.tracking_url)) shipments = [{ carrier: o.carrier, number: o.tracking_number, url: o.tracking_url, eta: null }];
 
-  return (
-    <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr]">
-      <div>
-        <Link href="/account/orders" className="eyebrow link-u text-[0.62rem] text-muted">
-          ← {t("account.orders")}
-        </Link>
-        <h2 className="headline mt-3 text-4xl">#{o.order_number}</h2>
-        <p className="mt-2 text-sm text-muted">
-          {formatDate(o.created_at)} · <span className="eyebrow text-[0.62rem] text-fg">{t(`status.${o.status}` as TKey)}</span>
-        </p>
-        {["SHIPPED", "DELIVERED", "PROVIDER_ACCEPTED", "IN_PRODUCTION", "SENT_TO_PROVIDER"].includes(o.status) && (
-          <Link href={`/returns/new?order=${o.order_number}&email=${encodeURIComponent(customer.email ?? "")}`} className="btn btn-ghost mt-4 px-5 py-2.5 text-[0.7rem]">
-            ↩ {t("returns.cta")}
-          </Link>
-        )}
-
-        {rank >= 0 && (
-          <ol className="mt-10 grid grid-cols-4 gap-2">
-            {STEPS.map((s, i) => (
-              <li key={s}>
-                <div className={`h-1 ${i <= rank ? "bg-accent" : "bg-fg/10"}`} />
-                <p className={`eyebrow mt-3 text-[0.58rem] ${i <= rank ? "text-fg" : "text-muted"}`}>{t(`status.${s}` as TKey)}</p>
-              </li>
-            ))}
-          </ol>
-        )}
-
-        {(o.shipments ?? []).length > 0 && (
-          <div className="mt-10 space-y-3">
-            <p className="eyebrow text-muted">{t("account.tracking")}</p>
-            {(o.shipments as { carrier: string | null; tracking_number: string | null; tracking_url: string | null; estimated_delivery_max: string | null }[]).map((s, i) => (
-              <div key={i} className="flex flex-wrap items-center justify-between gap-3 border border-line bg-surface-2 p-4 text-sm">
-                <span>
-                  {s.carrier ?? "—"} · <span className="tabular-nums">{s.tracking_number ?? "—"}</span>
-                  {s.estimated_delivery_max && <span className="text-muted"> · {formatDate(s.estimated_delivery_max)}</span>}
-                </span>
-                {s.tracking_url && (
-                  <a href={s.tracking_url} target="_blank" rel="noopener noreferrer" className="btn btn-ink py-2.5">
-                    {t("account.tracking")} →
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <ul className="mt-10 divide-y divide-line border-y border-line">
-          {(o.order_items as { product_name: string; variant_name: string | null; quantity: number; total: number; image: string | null }[]).map((i, k) => (
-            <li key={k} className="flex items-center gap-4 py-4">
-              <div className="relative aspect-[4/5] w-14 shrink-0 bg-surface-2">{i.image && <Image src={i.image} alt="" fill sizes="56px" className="object-cover" />}</div>
-              <div className="flex-1 text-sm">
-                <p className="font-medium">{i.product_name}</p>
-                <p className="text-muted">
-                  {i.variant_name} × {i.quantity}
-                </p>
-              </div>
-              <p className="text-sm tabular-nums">{formatMoney(Number(i.total), o.currency)}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <aside className="h-fit space-y-6 border border-line bg-surface-2 p-6">
-        <div className="space-y-2 text-sm">
-          {[
-            [t("cart.subtotal"), o.subtotal],
-            ["Descuento", -Number(o.discount)],
-            ["Envío", o.shipping],
-          ].map(([l, v]) => (
-            <div key={String(l)} className="flex justify-between">
-              <span className="text-muted">{l}</span>
-              <span className="tabular-nums">{formatMoney(Number(v), o.currency)}</span>
-            </div>
-          ))}
-          <div className="flex justify-between border-t border-line pt-3 text-base font-semibold">
-            <span>Total</span>
-            <span className="tabular-nums">{formatMoney(Number(o.total), o.currency)}</span>
-          </div>
-          <p className="text-xs text-muted">IVA incluido: {formatMoney(Number(o.tax), o.currency)}</p>
-        </div>
-        {addr && (
-          <div className="text-sm">
-            <p className="eyebrow mb-2 text-muted">Envío</p>
-            <p>{addr.name}</p>
-            <p>{addr.line1}</p>
-            {addr.line2 && <p>{addr.line2}</p>}
-            <p>
-              {addr.postal_code} {addr.city}, {addr.country}
-            </p>
-          </div>
-        )}
-      </aside>
-    </div>
-  );
+  const detail: OrderDetail = {
+    id: o.id,
+    number: o.order_number,
+    status: o.status,
+    date: formatDate(o.created_at, dl),
+    stepDates: Object.fromEntries(ORDER_STEPS.filter((s) => raw[s]).map((s) => [s, formatDate(raw[s], dl)])),
+    items: items.map((i) => ({ name: i.product_name, variant: i.variant_name, quantity: i.quantity, total: money(i.total), image: i.image })),
+    totals: { subtotal: money(o.subtotal), discount: Number(o.discount) > 0 ? money(o.discount) : null, shipping: money(o.shipping), total: money(o.total), tax: money(o.tax) },
+    address: o.shipping_address as OrderDetail["address"],
+    shipments,
+    returnHref: canRequestReturn(o.status) ? `/returns/new?order=${o.order_number}&email=${encodeURIComponent((customer.email as string) ?? "")}` : null,
+    reorderable: items.some(isReorderable),
+  };
+  return <OrderDetailView t={t} o={detail} reorderAction={reorderAction} reorderNone={sp.reorder === "none"} />;
 }

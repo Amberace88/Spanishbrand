@@ -38,7 +38,7 @@ export async function joinClubAction() {
     await sendEmail({ template: "CLUB_WELCOME", to: user.email, context: { memberNumber: String(n).padStart(6, "0") }, customerId, dedupeKey: `club-${customerId}` });
   }
   revalidatePath("/account");
-  redirect("/account?club=1");
+  redirect("/account/club?club=1");
 }
 
 
@@ -47,11 +47,11 @@ export async function redeemPointsAction() {
   if (!customer?.member_number) redirect("/club");
   const sb = db();
   const { data: ok } = await sb.rpc("redeem_points", { p_customer_id: customer.id, p_points: REDEEM_POINTS });
-  if (!ok) redirect("/account?redeem=insufficient");
+  if (!ok) redirect("/account/club?redeem=insufficient");
   const code = giftCode().replace("RYG-", "SOCIO-");
   await sb.from("discounts").insert({ brand_id: env.brandId(), code, type: "FIXED", value: REDEEM_VALUE, max_uses: 1, active: true });
   revalidatePath("/account");
-  redirect(`/account?redeem=${encodeURIComponent(code)}`);
+  redirect(`/account/club?redeem=${encodeURIComponent(code)}`);
 }
 
 /* ---------------- Gift cards ---------------- */
