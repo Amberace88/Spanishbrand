@@ -828,6 +828,58 @@ export const BLUEPRINTS: Record<BlueprintKey, Blueprint> = {
     details: "Camiseta deportiva de poliéster técnico, ligera y transpirable, estampada entera por sublimación: delantero, espalda y mangas en color de borde a borde, que ni se agrieta ni destiñe. Corte regular de camiseta de fútbol. Fabricada bajo pedido en Europa.",
     care: "Lavar del revés en frío. No usar suavizante ni lejía. Secar al aire. No planchar sobre el estampado.",
   },
+  /*
+   * Premium streetwear blanks for the STATEMENT line (lib/catalog/statement.ts): heavyweight / boxy /
+   * garment-dyed tee and oversized hoodie. Resolved at build time by title — no hardcoded ids — and
+   * ranked (`prefer`), so candidates without EU production are skipped. Same TSHIRT / HOODIE product
+   * types as the classics, so they show up under Camisetas / Sudaderas.
+   * Verify on the first build: which Printful product won (Stanley/Stella Freestyler or Blaster in the EU),
+   * its colour names (design colour lists use Printful names; unknown ones are skipped) and the back placement.
+   */
+  teeoversize: {
+    key: "teeoversize",
+    allColors: true,
+    provider: "printful",
+    productType: "TSHIRT",
+    category: "APPAREL",
+    label: "Camiseta oversize",
+    match: /Oversized?.*T-?Shirt|Heavyweight.*T-?Shirt|Freestyler|Blaster|Garment[- ]Dyed.*T-?Shirt|Boxy.*T-?Shirt|Faded.*T-?Shirt/i,
+    exclude: /Women|Kids|Youth|Toddler|Baby|Long Sleeve|Tank|All-Over|Crop|Polo|Pocket|Raglan|Jersey/i,
+    prefer: [/Freestyler|Blaster/i, /Oversized?/i, /Garment[- ]Dyed|Faded/i, /Heavyweight|Boxy/i],
+    placement: "front",
+    renderMode: "print",
+    technique: "DTG",
+    colors: { dark: ["Black", "Vintage Black", "Faded Black", "French Navy", "Navy"], light: ["Natural", "Off White", "Vintage White", "Desert Dust", "White"] },
+    maxColors: 2,
+    sizes: ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+    price: 39.95,
+    sizePremium: { "2XL": 2, "3XL": 4 },
+    details:
+      "Camiseta oversize de algodón grueso (heavyweight), corte amplio y cuadrado, hombros caídos y cuello de canalé reforzado: la camiseta de streetwear que mantiene la forma lavado tras lavado. Impresión directa sobre la prenda (DTG) con tintas al agua, por delante y, en los diseños de doble cara, también a la espalda. Fabricada bajo pedido en Europa.",
+    care: "Lavar del revés en frío con colores similares. No usar lejía. Secar al aire. Planchar del revés, sin tocar la impresión.",
+  },
+  hoodieoversize: {
+    key: "hoodieoversize",
+    allColors: true,
+    provider: "printful",
+    productType: "HOODIE",
+    category: "APPAREL",
+    label: "Sudadera oversize con capucha",
+    match: /Oversized?.*Hoodie|Heavyweight.*Hoodie|Cruiser|Drummer|Boxy.*Hoodie/i,
+    exclude: /Women|Kids|Youth|Toddler|Zip|All-Over|Crop|Windbreaker|Pullover Jacket/i,
+    prefer: [/Oversized?.*Hoodie/i, /Heavyweight.*Hoodie/i, /Cruiser|Drummer/i],
+    placement: "front",
+    renderMode: "print",
+    technique: "DTG",
+    colors: { dark: ["Black", "Vintage Black", "French Navy", "Navy"], light: ["Natural", "Off White", "Heather Grey", "White"] },
+    maxColors: 2,
+    sizes: ["XS", "S", "M", "L", "XL", "2XL"],
+    price: 64.95,
+    sizePremium: { "2XL": 3 },
+    details:
+      "Sudadera con capucha oversize de felpa gruesa: corte amplio, hombros caídos, capucha doble sin cordones a la vista y bolsillo canguro. Interior cepillado y caída pesada. Impresión directa (DTG) por delante y, en los diseños de doble cara, a la espalda. Fabricada bajo pedido en Europa.",
+    care: "Lavar del revés en frío con colores similares. No usar lejía. Secar a baja temperatura. No planchar sobre la impresión.",
+  },
 };
 
 /** Garments made for one audience (Para quién); the catalog builder also fetches their size guides. */
