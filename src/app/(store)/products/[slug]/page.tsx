@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { SizeFinder } from "@/components/product/SizeFinder";
 import { formatMoney } from "@/lib/format";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getProductBySlug, getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
@@ -15,7 +14,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { TrackView } from "@/components/analytics/TrackView";
-import { IconArrow, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
+import { IconArrow, IconCheck, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Section";
 import { dbOrNull } from "@/lib/supabase/admin";
 
@@ -36,12 +35,32 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+/** Approved reviews from verified purchases only: the rating summary and the latest written ones. */
 async function realRating(productId: string) {
   const sb = dbOrNull();
   if (!sb) return null;
-  const { data } = await sb.from("reviews").select("rating").eq("product_id", productId).eq("status", "APPROVED").eq("verified_purchase", true);
+  const { data } = await sb.from("reviews").select("rating, title, body, created_at").eq("product_id", productId).eq("status", "APPROVED").eq("verified_purchase", true).order("created_at", { ascending: false });
   if (!data?.length) return null;
-  return { count: data.length, avg: data.reduce((s, r) => s + r.rating, 0) / data.length };
+  const latest = data.filter((r) => r.body || r.title).slice(0, 3) as { rating: number; title: string | null; body: string | null; created_at: string }[];
+  return { count: data.length, avg: data.reduce((s, r) => s + r.rating, 0) / data.length, latest };
+}
+
+function Stars({ value, className = "" }: { value: number; className?: string }) {
+  return (
+    <span className={`inline-flex gap-0.5 ${className}`} aria-hidden>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} viewBox="0 0 20 20" className="h-[1em] w-[1em]">
+          <defs>
+            <linearGradient id={`st${i}-${Math.round(value * 10)}`}>
+              <stop offset={`${Math.max(0, Math.min(1, value - i + 1)) * 100}%`} stopColor="currentColor" />
+              <stop offset={`${Math.max(0, Math.min(1, value - i + 1)) * 100}%`} stopColor="currentColor" stopOpacity="0.22" />
+            </linearGradient>
+          </defs>
+          <path d="M10 1.5l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L10 15l-5.3 2.8 1.1-5.9L1.4 7.8l6-.8z" fill={`url(#st${i}-${Math.round(value * 10)})`} />
+        </svg>
+      ))}
+    </span>
+  );
 }
 
 /** Business-day estimate for Spain: 2–4 days production + 2–5 days delivery. */
@@ -156,9 +175,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       )}
       {rating && (
-        <p className="mt-3 text-sm">
-          <span className="text-[color:var(--gold)]">★</span> {rating.avg.toFixed(1)} · {rating.count} {t("product.reviews")}
-        </p>
+        <a href="#opiniones" className="mt-3 inline-flex items-center gap-2 text-sm hover:underline">
+          <Stars value={rating.avg} className="text-[color:var(--gold)]" />
+          <span className="font-semibold tabular-nums">{rating.avg.toFixed(1)}</span>
+          <span className="text-muted">
+            {rating.count} {t("product.reviews")}
+          </span>
+        </a>
       )}
       {p.limited && (
         <p className="mt-5 inline-block rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-white">
@@ -181,14 +204,48 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const footer = (
     <>
-      <div className="mt-5 flex items-start gap-3 rounded-2xl border border-line p-4 text-sm">
-        <IconTruck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-        <p>
-          <span className="font-semibold">{t("product.eta", { from: d1, to: d2 })}</span>
-          <span className="block text-xs text-muted">{t("product.etaNote")}</span>
-        </p>
-      </div>
-      {p.sizeGuide && <SizeFinder guide={p.sizeGuide} />}
+      {/* one service panel: when it arrives, then what protects the order (facts from the shop's own copy) */}
+      <section aria-label={t("product.service")} className="mt-7 overflow-hidden rounded-2xl border border-line">
+        <div className="flex items-start gap-3.5 bg-fg p-5 text-bg">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
+            <IconTruck className="h-5 w-5" />
+          </span>
+          <p className="text-sm">
+            <span className="block text-[15px] font-semibold">{t("product.eta", { from: d1, to: d2 })}</span>
+            <span className="mt-1 block text-xs leading-relaxed text-bg/65">{t("product.etaNote")}</span>
+          </p>
+        </div>
+        <ul className="divide-y divide-line text-sm">
+          {[
+            [IconTruck, t("trust.shipping.t"), t("trust.shipping.b"), "/shipping"],
+            [IconReturn, t("trust.returns.t"), t("product.returns.std"), "/returns"],
+            [IconLock, t("trust.secure.t"), t("trust.secure.b"), null],
+          ].map(([Icon, title, body, href]) => {
+            const I = Icon as typeof IconTruck;
+            const inner = (
+              <>
+                <I className="mt-0.5 h-[18px] w-[18px] shrink-0 text-accent" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{title as string}</span>
+                  <span className="block text-xs leading-relaxed text-muted">{body as string}</span>
+                </span>
+                {href && <IconArrow className="mt-1 h-3.5 w-3.5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />}
+              </>
+            );
+            return (
+              <li key={title as string}>
+                {href ? (
+                  <Link href={href as string} className="group flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-surface-2">
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className="flex items-start gap-3 px-5 py-3.5">{inner}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
       {design && (
         <Link href={`/disena?style=${design.slug}`} className="group mt-3 flex items-center gap-4 rounded-2xl border border-line p-3 pr-5 transition-colors hover:border-fg">
           <span className="w-16 shrink-0 overflow-hidden rounded-xl">
@@ -201,23 +258,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <IconArrow className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
         </Link>
       )}
-      <ul className="mt-5 grid gap-3 rounded-2xl bg-surface-2 p-5 text-sm">
-        {[
-          [IconTruck, t("trust.shipping.t"), t("trust.shipping.b")],
-          [IconReturn, t("trust.returns.t"), t("trust.returns.b")],
-          [IconLock, t("trust.secure.t"), t("trust.secure.b")],
-        ].map(([Icon, title, body]) => {
-          const I = Icon as typeof IconTruck;
-          return (
-            <li key={title as string} className="flex items-start gap-3">
-              <I className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-              <span>
-                <span className="font-semibold">{title as string}</span> <span className="text-muted">· {body as string}</span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
       <div className="mt-8 divide-y divide-line border-y border-line">
         <Acc title={t("product.details")} open>
           <p className="whitespace-pre-line">{details}</p>
@@ -313,9 +353,51 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           />
         </Container>
       </section>
+      <Reviews id="opiniones" title={t("product.reviews.title")} rating={rating} labels={{ reviews: t("product.reviews"), empty: t("product.reviews.empty"), verified: t("product.reviews.verified") }} />
       {sameDesign.length > 0 && <Rail title={t("product.sameDesign")} items={sameDesign} labels={cardLabels} tone="surface" />}
       {related.length > 0 && <Rail title={t("product.related")} items={related} labels={cardLabels} tone="bg" href={p.collection ? `/collections/${p.collection.slug}` : undefined} more={t("collections.explore")} />}
     </>
+  );
+}
+
+function Reviews({ id, title, rating, labels }: { id: string; title: string; rating: Awaited<ReturnType<typeof realRating>>; labels: { reviews: string; empty: string; verified: string } }) {
+  return (
+    <section id={id} className="scroll-mt-28 border-t border-line bg-bg py-14 sm:py-16">
+      <Container>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
+          <div>
+            <h2 className="headline text-3xl sm:text-4xl">{title}</h2>
+            {rating ? (
+              <div className="mt-5 flex items-end gap-4">
+                <p className="mega text-7xl leading-none tabular-nums">{rating.avg.toFixed(1)}</p>
+                <div className="pb-1.5">
+                  <Stars value={rating.avg} className="text-xl text-[color:var(--gold)]" />
+                  <p className="mt-1 text-sm text-muted">
+                    {rating.count} {labels.reviews}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">{labels.empty}</p>
+            )}
+          </div>
+          {rating && rating.latest.length > 0 && (
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {rating.latest.map((r) => (
+                <li key={r.created_at} className="flex flex-col rounded-2xl border border-line p-5">
+                  <Stars value={r.rating} className="text-[15px] text-[color:var(--gold)]" />
+                  {r.title && <p className="mt-3 font-semibold">{r.title}</p>}
+                  {r.body && <p className="mt-2 line-clamp-6 text-sm leading-relaxed text-muted">{r.body}</p>}
+                  <p className="mt-auto flex items-center gap-1.5 pt-4 text-xs font-semibold text-fg/70">
+                    <IconCheck className="h-3.5 w-3.5 text-accent" /> {labels.verified} · {new Date(r.created_at).toLocaleDateString("es-ES", { month: "short", year: "numeric" })}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Container>
+    </section>
   );
 }
 

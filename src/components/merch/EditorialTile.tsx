@@ -55,7 +55,7 @@ const LAYOUT: Record<TileSize, { pad: string; title: string; word: string; fan: 
     fan: "left-1/2 -translate-x-1/2 bottom-[8%] w-[80%]",
     fanPhoto: "right-[6%] bottom-[30%] w-[56%]",
     text: "absolute inset-x-0 top-0",
-    tagline: "text-base sm:text-lg",
+    tagline: "hidden sm:block text-lg",
     cards: 3,
     cta: true,
   },
@@ -148,6 +148,7 @@ export function EditorialTile({
   const T = TONES[tone];
   const L = LAYOUT[size];
   const compact = size !== "hero" && size !== "stage";
+  const textTop = L.text.includes("top-0");
   const shown = cards.slice(0, photo ? Math.min(2, L.cards) : L.cards);
   const fan = FAN[shown.length] ?? [];
   const tileSizes = sizes ?? (size === "hero" || size === "wide" || size === "banner" ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, 50vw");
@@ -159,8 +160,9 @@ export function EditorialTile({
       {/* photo layer */}
       {photo && (
         <div className="plx absolute -inset-4" style={{ "--d": "-10px" } as CSSProperties}>
-          <Image src={photo} alt="" fill loading={priority ? "eager" : undefined} fetchPriority={priority ? "high" : undefined} sizes={tileSizes} className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]" />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${T.deep} 4%, ${T.deep}d9 28%, ${T.deep}33 62%, transparent 85%)` }} />
+          <Image src={photo} alt="" fill loading={priority ? "eager" : undefined} fetchPriority={priority ? "high" : undefined} sizes={tileSizes} className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
+          {/* scrim follows the type: titles at the top get a top wash, titles at the bottom a bottom wash */}
+          <div className="absolute inset-0" style={{ background: textTop ? `linear-gradient(to bottom, ${T.deep} 0%, ${T.deep}e6 18%, ${T.deep}80 36%, transparent 58%), linear-gradient(to top, ${T.deep}99 0%, transparent 30%)` : `linear-gradient(to top, ${T.deep} 4%, ${T.deep}d9 28%, ${T.deep}33 62%, transparent 85%)` }} />
           <div className="absolute inset-0 mix-blend-multiply" style={{ background: `${T.bg}40` }} />
         </div>
       )}

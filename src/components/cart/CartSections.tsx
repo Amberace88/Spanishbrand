@@ -14,6 +14,7 @@ import { IconArrow, IconLeaf, IconLock, IconReturn, IconTruck } from "@/componen
 import { EmptyBagArt } from "./EmptyBagArt";
 import { Rail } from "./Rail";
 import { LineControls } from "./LineControls";
+import { CheckoutBar } from "./CheckoutBar";
 
 /** Translator as returned by getT(). */
 export type T = (key: TKey, vars?: Record<string, string | number>) => string;
@@ -316,7 +317,7 @@ export function CartHeader({ t, itemCount, cancelled }: { t: T; itemCount: numbe
 /** Order summary — checkout link and "fix cart" form unchanged; sticky on desktop. */
 export function CartSummary({ t, subtotal, currency, itemCount, needsFix, freeDone, fixAction }: { t: T; subtotal: number; currency: string; itemCount: number; needsFix: boolean; freeDone: boolean; fixAction: () => Promise<void> }) {
   return (
-    <aside className="h-fit lg:sticky lg:top-28" aria-labelledby="cart-summary">
+    <aside id="cart-summary-box" className="h-fit scroll-mt-28 lg:sticky lg:top-28" aria-labelledby="cart-summary">
       <div className="relative overflow-hidden rounded-[2rem] bg-surface p-6 ring-1 ring-line sm:p-8">
         <div className="flag-line absolute inset-x-0 top-0 h-[4px]" aria-hidden />
         <h2 id="cart-summary" className="headline text-2xl">
@@ -361,9 +362,7 @@ export function CartSummary({ t, subtotal, currency, itemCount, needsFix, freeDo
           </li>
         </ul>
       </div>
-      <Link href="/shop" className="eyebrow link-u mx-auto mt-5 block w-fit text-center text-[0.62rem] text-muted">
-        {t("cart.continue")}
-      </Link>
+      <CheckoutBar targetId="cart-summary-box" subtotal={formatMoney(subtotal, currency)} totalLabel={t("cart.subtotal")} label={t("cart.checkout")} href={needsFix ? null : "/checkout"} fixLabel={t("cart.fix")} />
     </aside>
   );
 }

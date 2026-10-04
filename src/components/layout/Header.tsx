@@ -157,11 +157,11 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
                   const active = l.href.includes("?") ? false : l.href === "/shop" ? pathname === "/shop" : pathname.startsWith(base);
                   return (
                     <li key={l.href} {...(l.href === "/shop" ? { onMouseEnter: megaOpen, onMouseLeave: megaClose, onFocus: megaOpen } : {})}>
-                      <Link href={l.href} aria-expanded={l.href === "/shop" ? mega : undefined} className={`group relative block px-3 py-2 transition-colors ${active ? "text-accent" : "text-fg/80 hover:text-fg"}`}>
+                      <Link href={l.href} aria-expanded={l.href === "/shop" ? mega : undefined} className={`group relative block whitespace-nowrap px-2 py-2 transition-colors 2xl:px-3 ${active ? "text-accent" : "text-fg/80 hover:text-fg"}`}>
                         {l.label}
                         {l.href === "/shop" && <span className={`ml-1 inline-block text-[9px] transition-transform ${mega ? "rotate-180" : ""}`} aria-hidden>▾</span>}
                         {l.badge && <span className="ml-1.5 rounded-full bg-accent px-1.5 py-0.5 align-middle text-[9px] font-bold text-white">NEW</span>}
-                        <span className={`absolute inset-x-3 -bottom-0.5 h-[2px] origin-left bg-accent transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
+                        <span className={`absolute inset-x-2 -bottom-0.5 2xl:inset-x-3 h-[2px] origin-left bg-accent transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
                       </Link>
                     </li>
                   );
@@ -175,7 +175,10 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
                 <IconSearch className="h-[21px] w-[21px]" />
               </button>
               <SoundToggle />
-              <ThemeToggle />
+              {/* phones: the theme switch lives in the menu drawer, so the cart never gets pushed off-screen */}
+              <div className="hidden sm:contents">
+                <ThemeToggle />
+              </div>
               <Link href="/account" className="hidden h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06] sm:grid" aria-label={t("nav.account")}>
                 <IconUser className="h-[21px] w-[21px]" />
               </Link>

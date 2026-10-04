@@ -60,7 +60,7 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
       <section className="min-h-[60svh] bg-bg pb-10 pt-8 sm:pb-16 sm:pt-12">
         <Container>
           <CartHeader t={t} itemCount={cart.itemCount} cancelled={Boolean(cancelled)} />
-          <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)] lg:gap-12">
+          <div className="mt-8 grid grid-cols-1 gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)] lg:gap-12">
             <div className="space-y-4">
               {promo && <FreeShippingMeter t={t} subtotal={cart.subtotal} freeOver={promo.freeOver} currency={cart.currency} />}
               <CartLines t={t} lines={cart.lines} currency={cart.currency} max={MAX_QTY} />

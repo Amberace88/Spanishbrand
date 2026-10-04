@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
-import { detectPrintBox } from "@/components/home/teeGeometry";
+import { detectPrintBox, fitPrintBox } from "@/components/home/teeGeometry";
 
 /** Synthetic flat-lay: folded white tee (collar at the top centre) on a wood-coloured ground. */
 function teeSvg(W: number, H: number, ox: number, oy: number, s: number) {
@@ -46,5 +46,34 @@ describe("homepage tile: print box measured on the tee photo", () => {
     expect(Math.abs(wide!.left + wide!.width / 2 - 58.9)).toBeLessThan(2);
     const none = detectPrintBox(await pixels(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#7a5a3c"/></svg>`), 256);
     expect(none).toBeNull();
+  });
+});
+
+describe("homepage tile: print box fitted above the controls", () => {
+  const BOX = { left: 39.5, top: 32, width: 25, height: 30 };
+  const frame = (W: number, H: number, ctrl: number) => {
+    const S = Math.max(W, H);
+    const r = fitPrintBox(W, H, ctrl, BOX);
+    const top = (H - S) / 2 + r.dy + (BOX.top / 100) * S;
+    return { r, top, bottom: top + (BOX.height / 100) * S * r.scale * 1.03 };
+  };
+
+  it("leaves a roomy tile untouched (centred crop, full size)", () => {
+    const r = fitPrintBox(400, 640, 150, BOX);
+    expect(r.dy).toBe(0);
+    expect(r.scale).toBe(1);
+  });
+
+  it("raises the photo, then shrinks the box, so it ends above the controls on a short wide tile (1366×768)", () => {
+    const { r, top, bottom } = frame(434, 334, 186);
+    expect(r.dy).toBeLessThan(0);
+    expect(r.scale).toBeLessThan(1);
+    expect(bottom).toBeLessThanOrEqual(334 - 186);
+    expect(top).toBeGreaterThan(0);
+  });
+
+  it("never moves the photo past its cover crop", () => {
+    const r = fitPrintBox(434, 300, 220, BOX);
+    expect(Math.abs(r.dy)).toBeLessThanOrEqual((434 - 300) / 2 + 0.001);
   });
 });

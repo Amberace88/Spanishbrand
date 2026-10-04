@@ -113,6 +113,30 @@ export function detectPrintBox(data: Uint8ClampedArray, N: number): PrintBox | n
   return { left: pct(cx - w / 2), top: pct(top), width: pct(w), height: pct(bh) };
 }
 
+/** Dashed frame drawn outside the print area (-inset-[3%] of the box). */
+const FRAME = 0.03;
+
+/**
+ * Fits the chest print box above the tile's controls, on any tile ratio:
+ * 1. raise the photo (within the cover crop) so the box ends above the controls,
+ * 2. if the band is still too short, shrink the box around the chest centre, top kept just under the collar.
+ * Pure: tile size and controls block height (from its top to the tile bottom), in px.
+ * Returns the photo's vertical shift from the centred crop (px) and the box scale (0–1).
+ */
+export function fitPrintBox(W: number, H: number, controls: number, box: PrintBox) {
+  const S = Math.max(W, H);
+  const gap = Math.max(10, H * 0.03);
+  const frame = (box.height / 100) * S * FRAME;
+  const top = (box.top / 100) * S - frame;
+  const fullH = (box.height / 100) * S + 2 * frame;
+  const floor = H - controls - gap; // the dashed frame must end above this line
+  const centre = (H - S) / 2;
+  // raise the photo just enough (never past the crop), never lower it below the centred crop
+  const dy = Math.max(H - S, Math.min(centre, floor - top - fullH));
+  const scale = Math.max(0, Math.min(1, (floor - (dy + top)) / fullH));
+  return { dy: dy - centre, scale };
+}
+
 const cache = new Map<string, PrintBox | null>();
 
 /** Detect the print box of a garment photo once (same-origin optimised copy → readable canvas). */
