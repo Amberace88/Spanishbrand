@@ -43,3 +43,27 @@ export function MaskLines({ lines, className, delay = 0 }: { lines: ReactNode[];
     </motion.span>
   );
 }
+
+const staggerItem: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+};
+
+/** Staggered reveal for grids/lists: wrap items in <Stagger.Item>. transform/opacity only. */
+export function Stagger({ children, className, gap = 0.06, as = "div" }: { children: ReactNode; className?: string; gap?: number; as?: "div" | "ul" }) {
+  const reduce = useReducedMotion();
+  const C = as === "ul" ? motion.ul : motion.div;
+  return (
+    <C className={className} initial={reduce ? false : "hidden"} whileInView="show" viewport={{ once: true, amount: 0.08 }} transition={{ staggerChildren: gap }}>
+      {children}
+    </C>
+  );
+}
+Stagger.Item = function StaggerItem({ children, className, as = "div" }: { children: ReactNode; className?: string; as?: "div" | "li" }) {
+  const C = as === "li" ? motion.li : motion.div;
+  return (
+    <C className={className} variants={staggerItem}>
+      {children}
+    </C>
+  );
+};
