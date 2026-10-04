@@ -54,12 +54,16 @@ export function stableHash(s: string) {
   return h >>> 0;
 }
 
-/** Lead-style rotation: girls, boys and flat lays take turns across designs. */
-const ROTATION: MockupStyle[] = ["girl", "flat", "boy", "ghost", "model"];
+/**
+ * Lead-style rotation across designs: girls, flat lays and ghost shots. Printful's youth "boy" photo is the
+ * same single model on every garment, so it never leads (it stays in the gallery); a design without any of
+ * these styles falls back to the default photo.
+ */
+const ROTATION: MockupStyle[] = ["girl", "flat", "girl", "ghost"];
 
 export function leadOrder(designSlug: string): MockupStyle[] {
   const k = stableHash(designSlug) % ROTATION.length;
-  return [...ROTATION.slice(k), ...ROTATION.slice(0, k), "other"];
+  return [...new Set([...ROTATION.slice(k), ...ROTATION.slice(0, k)]), "other", "model", "boy"];
 }
 
 export interface StyledImage {
