@@ -41,7 +41,7 @@ export function ProductCard({ p, labels, priority = false }: { p: PublicProduct;
       <div className="mt-3 flex items-start justify-between gap-3 px-0.5">
         <div className="min-w-0">
           {p.collection && <p className="kicker text-[10px] text-muted">{p.collection.name}</p>}
-          <h3 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug">{p.name}</h3>
+          <h3 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug">{p.name.replace(/ — /g, " · ")}</h3>
           {colors.length > 1 && (
             <div className="mt-2 flex items-center gap-1.5">
               {colors.map((c) => (

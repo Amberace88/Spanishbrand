@@ -244,7 +244,7 @@ body {
     .reveal {
       animation: reveal-in linear both;
       animation-timeline: view();
-      animation-range: entry var(--rv-start, 0%) entry calc(var(--rv-start, 0%) + 60%);
+      animation-range: entry var(--rv-start, 0%) entry calc(var(--rv-start, 0%) + 35%);
     }
   }
 }
