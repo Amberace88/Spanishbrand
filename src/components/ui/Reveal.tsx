@@ -1,8 +1,14 @@
 "use client";
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { MotionConfig, motion, useReducedMotion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+/*
+ * Reduced motion: the server cannot know the preference, so every reveal renders its hidden start state on both
+ * sides (identical markup, no hydration mismatch) and, when the user prefers reduced motion, is shown at once on
+ * mount (`animate`) instead of waiting for the viewport — transforms jump, nothing slides.
+ */
 
 /** Scroll-triggered editorial reveal. */
 export function Reveal({ children, delay = 0, y = 20, className }: { children: ReactNode; delay?: number; y?: number; className?: string }) {
@@ -10,10 +16,11 @@ export function Reveal({ children, delay = 0, y = 20, className }: { children: R
   return (
     <motion.div
       className={className}
-      initial={reduce ? false : { opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y }}
+      animate={reduce ? { opacity: 1, y: 0 } : undefined}
+      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.05 }}
-      transition={{ duration: 0.8, ease: EASE, delay }}
+      transition={reduce ? { duration: 0 } : { duration: 0.8, ease: EASE, delay }}
     >
       {children}
     </motion.div>
@@ -32,15 +39,17 @@ const line: Variants = {
 export function MaskLines({ lines, className, delay = 0 }: { lines: ReactNode[]; className?: string; delay?: number }) {
   const reduce = useReducedMotion();
   return (
-    <motion.span className={`block ${className ?? ""}`} initial={reduce ? false : "hidden"} whileInView="show" viewport={{ once: true, amount: 0.1 }} transition={{ delayChildren: delay }}>
-      {lines.map((l, i) => (
-        <span key={i} className="-mt-[0.2em] block overflow-hidden pb-[0.06em] pt-[0.2em]">
-          <motion.span className="block" variants={line} custom={i}>
-            {l}
-          </motion.span>
-        </span>
-      ))}
-    </motion.span>
+    <MotionConfig reducedMotion="user">
+      <motion.span className={`block ${className ?? ""}`} initial="hidden" animate={reduce ? "show" : undefined} whileInView={reduce ? undefined : "show"} viewport={{ once: true, amount: 0.1 }} transition={{ delayChildren: delay }}>
+        {lines.map((l, i) => (
+          <span key={i} className="-mt-[0.2em] block overflow-hidden pb-[0.06em] pt-[0.2em]">
+            <motion.span className="block" variants={line} custom={i}>
+              {l}
+            </motion.span>
+          </span>
+        ))}
+      </motion.span>
+    </MotionConfig>
   );
 }
 

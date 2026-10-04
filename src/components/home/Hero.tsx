@@ -15,7 +15,7 @@ const HERO_VIDEO: string | null = "/brand/hero-film";
 
 /**
  * Plays the hero film once over the poster still and holds the final close-up frame.
- * Skipped on reduced motion and data-saver; the still underneath stays the LCP image.
+ * Skipped on reduced motion and data-saver (checked after mount); the still underneath stays the LCP image.
  */
 function HeroFilm({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -24,7 +24,8 @@ function HeroFilm({ src }: { src: string }) {
   const [skip, setSkip] = useState(false);
   useEffect(() => {
     const c = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (c?.saveData) setSkip(true);
+    // decided after hydration (server and first client render match), so reduced motion never swaps the tree
+    if (c?.saveData || matchMedia("(prefers-reduced-motion: reduce)").matches) setSkip(true);
   }, []);
   if (skip) return null;
   return (
@@ -78,16 +79,17 @@ export function ClubBadge({ text, className = "", tone = "light" }: { text: stri
 export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string; jerseyImg?: string | null; blankImg?: string | null; persoPhoto?: string | null; designPhoto?: string | null }) {
   const t = useT();
   const reduce = useReducedMotion();
-  const tile = (d: number) => (reduce ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { delay: d, duration: 0.9, ease } });
+  // same start state on server and client (no hydration mismatch); reduced motion just skips the tween
+  const tile = (d: number) => ({ initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: reduce ? { duration: 0 } : { delay: d, duration: 0.9, ease } });
 
   return (
     <section className="bg-bg px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
       <div className="mx-auto grid max-w-[1600px] gap-3 lg:h-[clamp(680px,86vh,820px)] lg:grid-cols-12 lg:grid-rows-2">
         {/* Main tile — lookbook */}
         <motion.div {...tile(0)} className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
-          <motion.div initial={reduce ? false : { scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
+          <motion.div initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={reduce ? { duration: 0 } : { duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
             <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill preload sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
-            {HERO_VIDEO && !reduce && <HeroFilm src={HERO_VIDEO} />}
+            {HERO_VIDEO && <HeroFilm src={HERO_VIDEO} />}
             <div className="absolute -inset-px bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
           </motion.div>
           <div className="relative z-10 mt-auto flex flex-col p-6 sm:p-10 lg:mt-0 lg:h-full lg:max-w-[58%]">
@@ -95,10 +97,10 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
               <span className="flag-stripe h-3.5 w-5 rounded-[3px]" aria-hidden />
               <p className="kicker text-[#e0b84a]">{t("hero3.kicker")}</p>
             </div>
-            <h1 className="mt-5 font-[family-name:var(--font-logo)] text-[14vw] font-bold leading-[0.98] tracking-[0.01em] sm:text-[10.5vw] lg:text-[5.4vw] xl:text-[5.9rem]">
+            <h1 className="mt-5 font-[family-name:var(--font-logo)] text-[14vw] font-bold leading-[0.98] tracking-[0.01em] sm:text-[10.5vw] lg:text-[min(calc(7.8vw_-_22px),5.9rem)]">
               {[t("hero3.title.a"), t("hero3.title.b")].map((w, k) => (
                 <span key={k} className="-mt-[0.12em] block overflow-hidden pb-[0.06em] pt-[0.12em]">
-                  <motion.span className={`block ${k === 1 ? "text-gold-metal" : "text-red-metal"}`} initial={reduce ? false : { y: "105%" }} animate={{ y: "0%" }} transition={{ delay: 0.25 + k * 0.1, duration: 1.1, ease }}>
+                  <motion.span className={`block ${k === 1 ? "text-gold-metal" : "text-red-metal"}`} initial={{ y: "105%" }} animate={{ y: "0%" }} transition={reduce ? { duration: 0 } : { delay: 0.25 + k * 0.1, duration: 1.1, ease }}>
                     {w}
                   </motion.span>
                 </span>
@@ -173,7 +175,7 @@ export function Manifesto({ kicker, text, highlight }: { kicker: string; text: s
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "end 45%"] });
   const words = text.split(" ");
   return (
-    <section className="bg-bg py-24 sm:py-36">
+    <section className="bg-bg py-16 sm:py-24">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8">
         <p className="kicker text-accent">{kicker}</p>
         <p ref={ref} className="headline mt-6 max-w-6xl text-[2.3rem] leading-[1.02] sm:text-6xl lg:text-[5.2rem]">

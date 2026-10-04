@@ -88,16 +88,19 @@ export default async function ClubPage() {
         <Container>
           <p className="kicker text-accent">{c.how}</p>
           <h2 className="headline mt-3 max-w-2xl text-4xl sm:text-5xl">{c.howT}</h2>
-          <div className="relative mt-10">
-          <ol className="relative grid gap-4 md:grid-cols-3">
+          <div className="relative mt-8 sm:mt-10">
+          <ol className="relative grid gap-3 md:grid-cols-3 md:gap-4">
             {[[c.s1t, c.s1b], [c.s2t, c.s2b], [c.s3t, c.s3b]].map(([t, b], i) => (
               <li key={t} className="relative">
-                <Reveal delay={i * 0.08} className="h-full rounded-[24px] bg-surface p-7 ring-1 ring-line">
-                  <span className="relative flex h-[60px] w-[60px] items-center justify-center rounded-full bg-[#070606] font-[family-name:var(--font-logo)] text-2xl font-bold ring-1 ring-[#c9a227]/60">
+                {/* phones: numeral beside the text (a third of the height); md+: stacked cards */}
+                <Reveal delay={i * 0.08} className="flex h-full gap-5 rounded-[24px] bg-surface p-5 ring-1 ring-line sm:p-7 md:flex-col md:gap-0">
+                  <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#070606] font-[family-name:var(--font-logo)] text-xl font-bold ring-1 ring-[#c9a227]/60 md:h-[60px] md:w-[60px] md:text-2xl">
                     <span className="text-gold-metal">{["I", "II", "III"][i]}</span>
                   </span>
-                  <p className="headline mt-6 text-2xl">{t}</p>
-                  <p className="mt-2 leading-relaxed text-muted">{b}</p>
+                  <span className="min-w-0">
+                    <span className="headline block text-xl md:mt-6 md:text-2xl">{t}</span>
+                    <span className="mt-1.5 block leading-relaxed text-muted md:mt-2">{b}</span>
+                  </span>
                 </Reveal>
               </li>
             ))}
@@ -119,7 +122,7 @@ export default async function ClubPage() {
 
       {/* TIERS */}
       <section className="bg-bg py-16 sm:py-24">
-        <Container className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-center">
+        <Container className="grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:items-center lg:gap-10">
           <div>
             <p className="kicker text-accent">{c.tiers}</p>
             <h2 className="headline mt-3 text-4xl sm:text-5xl">{c.tiersT}</h2>

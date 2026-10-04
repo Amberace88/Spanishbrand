@@ -38,7 +38,7 @@ export function ProductView({ p, fallback, header, footer }: { p: PublicProduct;
       <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
         {header}
         <div className="mt-8">
-          <ProductBuyBox variants={p.variants} currency={p.currency} onColorChange={setColor} twoSided={twoSided} />
+          <ProductBuyBox variants={p.variants} currency={p.currency} onColorChange={setColor} twoSided={twoSided} name={p.name} sizeGuide={p.sizeGuide} />
         </div>
         {footer}
       </div>

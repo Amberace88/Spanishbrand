@@ -99,24 +99,42 @@ export function PerksGrid({ locale, tone = "theme" }: { locale: L; tone?: "theme
   );
 }
 
-/** Three tiers as a ladder; `current` highlights the member's tier. */
+/**
+ * Three tiers as a medal rail: medallions I–III on a gold line, the line filled up to `current`.
+ * Positions are ranks, not point distances, so the labels never collide on phones.
+ */
 export function TierLadder({ locale, current, tone = "theme" }: { locale: L; current?: TierId; tone?: "theme" | "dark" }) {
-  const c = pick(locale, { es: { from: "desde", pts: "pts acumulados", start: "Al unirte" }, en: { from: "from", pts: "lifetime pts", start: "When you join" }, de: { from: "ab", pts: "gesammelte Pkt.", start: "Beim Beitritt" } });
+  const c = pick(locale, { es: { from: "desde", pts: "pts acumulados", start: "Al unirte", you: "Tu nivel" }, en: { from: "from", pts: "lifetime pts", start: "When you join", you: "Your tier" }, de: { from: "ab", pts: "gesammelte Pkt.", start: "Beim Beitritt", you: "Deine Stufe" } });
   const dark = tone === "dark";
+  const at = current ? TIERS.findIndex((t) => t.id === current) : -1;
+  const fill = at <= 0 ? 0 : (at / (TIERS.length - 1)) * 100;
   return (
-    <ol className="grid gap-3 sm:grid-cols-3">
-      {TIERS.map((t, i) => {
-        const on = current === t.id;
-        return (
-          <li key={t.id} className={`relative overflow-hidden rounded-2xl p-5 ${on ? "bg-[linear-gradient(135deg,rgba(224,184,74,0.18),rgba(163,22,43,0.12))] ring-1 ring-[#e0b84a]/60" : dark ? "bg-white/[0.03] ring-1 ring-white/10" : "bg-surface ring-1 ring-line"}`}>
-            <p className="font-[family-name:var(--font-logo)] text-[2.2rem] font-bold leading-none text-gold-metal" aria-hidden>
-              {["I", "II", "III"][i]}
-            </p>
-            <p className="mt-3 font-semibold">{tierName(locale, t.id)}</p>
-            <p className={`mt-1 text-sm ${dark ? "text-white/60" : "text-muted"}`}>{t.min === 0 ? c.start : `${c.from} ${t.min.toLocaleString("es-ES")} ${c.pts}`}</p>
-          </li>
-        );
-      })}
-    </ol>
+    <div className={`relative rounded-[1.75rem] p-5 sm:p-8 ${dark ? "bg-white/[0.03] ring-1 ring-white/10" : "bg-surface ring-1 ring-line"}`}>
+      <ol className="relative grid grid-cols-3">
+        {/* rail between the first and last medallion centres */}
+        <span className={`absolute left-[16.66%] right-[16.66%] top-7 h-[2px] sm:top-9 ${dark ? "bg-white/15" : "bg-line"}`} aria-hidden>
+          <span className="absolute inset-y-0 left-0 bg-[linear-gradient(90deg,#c9962e,#f1d27a)]" style={{ width: `${fill}%` }} />
+        </span>
+        {TIERS.map((t, i) => {
+          const on = current === t.id;
+          const reached = at >= i;
+          return (
+            <li key={t.id} className="relative flex flex-col items-center text-center" aria-current={on ? "step" : undefined}>
+              <span
+                className={`relative grid h-14 w-14 place-items-center rounded-full font-[family-name:var(--font-logo)] text-xl font-bold sm:h-[72px] sm:w-[72px] sm:text-2xl ${
+                  reached ? "bg-[linear-gradient(135deg,#f7e08a,#c9962e_55%,#8f6a1f)] text-[#1a1206] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]" : "bg-[#070606] ring-1 ring-[#c9a227]/60"
+                } ${on ? "ring-4 ring-[#e0b84a]/30" : ""}`}
+                aria-hidden
+              >
+                <span className={reached ? "" : "text-gold-metal"}>{["I", "II", "III"][i]}</span>
+              </span>
+              <p className="mt-4 text-sm font-semibold leading-tight sm:text-base">{tierName(locale, t.id)}</p>
+              <p className={`mt-1 text-xs leading-snug sm:text-sm ${dark ? "text-white/60" : "text-muted"}`}>{t.min === 0 ? c.start : `${c.from} ${t.min.toLocaleString("es-ES")} ${c.pts}`}</p>
+              {on && <span className="mt-2 rounded-full bg-[#a3162b] px-2.5 py-0.5 text-[11px] font-semibold text-white">{c.you}</span>}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }

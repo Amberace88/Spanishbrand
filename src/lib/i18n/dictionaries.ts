@@ -657,6 +657,11 @@ const es = {
   "futbol.pieces": "{n} piezas",
   "futbol.backPrint": "Delante y detrás",
   "futbol.more": "Todo el fútbol",
+  "common.close": "Cerrar",
+  "product.reviews.title": "Opiniones",
+  "product.reviews.empty": "Esta pieza aún no tiene opiniones. Solo publicamos opiniones de compras verificadas.",
+  "product.reviews.verified": "Compra verificada",
+  "product.service": "Envío y garantías",
 };
 
 export type TKey = keyof typeof es;
@@ -1311,6 +1316,11 @@ const en: Dict = {
   "futbol.pieces": "{n} pieces",
   "futbol.backPrint": "Front and back",
   "futbol.more": "All football",
+  "common.close": "Close",
+  "product.reviews.title": "Reviews",
+  "product.reviews.empty": "No reviews for this piece yet. We only publish reviews from verified purchases.",
+  "product.reviews.verified": "Verified purchase",
+  "product.service": "Shipping and guarantees",
 };
 
 const de: Dict = {
@@ -1879,6 +1889,11 @@ const de: Dict = {
   "futbol.pieces": "{n} Stücke",
   "futbol.backPrint": "Vorne und hinten",
   "futbol.more": "Alles Fußball",
+  "common.close": "Schließen",
+  "product.reviews.title": "Bewertungen",
+  "product.reviews.empty": "Für dieses Stück gibt es noch keine Bewertungen. Wir veröffentlichen nur Bewertungen aus verifizierten Käufen.",
+  "product.reviews.verified": "Verifizierter Kauf",
+  "product.service": "Versand und Garantien",
 };
 
 export const DICTIONARIES: Record<Locale, Dict> = { es, en, fr: {}, de, it: {}, pt: {}, ca, eu, gl };

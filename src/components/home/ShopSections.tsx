@@ -188,7 +188,7 @@ export async function PersonalizeTeaser() {
   const photo = site["campaign-garcia"];
   const pueblo = show.byType.POSTER ?? null;
   return (
-    <section className="bg-bg pb-16 sm:pb-24">
+    <section className="bg-bg py-16 sm:py-24">
       <Container>
         <Reveal>
           <div className="relative grid overflow-hidden rounded-[2rem] bg-fg text-bg lg:grid-cols-2">
@@ -360,7 +360,7 @@ export async function CollectionsBento({ collections, counts }: { collections: P
                   </div>
                   <h3 className="mega relative z-10 mt-4 text-6xl sm:text-7xl">{c.name}</h3>
                   {c.tagline && <p className="relative z-10 mt-3 max-w-xs text-[15px] opacity-85">{c.tagline}</p>}
-                  <div className="pointer-events-none absolute -bottom-[8%] left-1/2 w-[78%] -translate-x-1/2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-3 group-hover:scale-105">
+                  <div className="pointer-events-none absolute -bottom-[10%] left-1/2 w-[70%] -translate-x-1/2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-2">
                     {c.heroImage || show.byCollection[c.slug]?.[0] ? (
                       <div className="relative aspect-square overflow-hidden rounded-[1.6rem] shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)]">
                         <Image src={(c.heroImage || show.byCollection[c.slug][0])!} alt={c.name} fill sizes="(min-width:1024px) 26vw, 80vw" className="object-cover" />
@@ -440,7 +440,7 @@ export async function BrandEssentials() {
           {tiles.map((x, i) => (
             <Reveal key={x.src} delay={i * 0.05} className={x.span}>
               <Link href="/collections/esenciales" className="group relative block h-full overflow-hidden rounded-3xl bg-[#0b0b0b]">
-                <Image src={x.src} alt={x.label} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
+                <Image src={x.src} alt={x.label} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 text-white sm:p-5">
                   <span className="headline text-lg uppercase sm:text-2xl">{x.label}</span>
