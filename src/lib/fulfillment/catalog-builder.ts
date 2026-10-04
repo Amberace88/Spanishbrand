@@ -202,9 +202,22 @@ async function save(job: JobRow, patch: Partial<JobRow>) {
   await db().from("catalog_jobs").update({ phase: job.phase, product_id: job.product_id, state: job.state, error: job.error, attempts: job.attempts }).eq("key", job.key);
 }
 
+/** All jobs, paged: PostgREST caps a single response at 1000 rows, and jobs beyond that looked "fresh" to the
+ *  batch runner, which then spent every run re-visiting finished jobs (the builder stalled at ~1000 jobs). */
 export async function listJobs() {
-  const { data } = await db().from("catalog_jobs").select("key, kind, phase, product_id, error, attempts, updated_at, locked_until, replaces:state->>replaces").eq("brand_id", env.brandId());
-  return data ?? [];
+  const out: { key: string; kind: string; phase: string; product_id: string | null; error: string | null; attempts: number; updated_at: string; locked_until: string | null; replaces: string | null }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db()
+      .from("catalog_jobs")
+      .select("key, kind, phase, product_id, error, attempts, updated_at, locked_until, replaces:state->>replaces")
+      .eq("brand_id", env.brandId())
+      .order("key")
+      .range(from, from + 999);
+    if (error) throw new Error(`catalog_jobs: ${error.message}`);
+    out.push(...((data ?? []) as typeof out));
+    if (!data || data.length < 1000) break;
+  }
+  return out;
 }
 
 /* ───────────────────────── resolve provider products ───────────────────────── */
