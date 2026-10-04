@@ -265,7 +265,21 @@ async function upsertVariants(rowId: string, provider: string, variants: { exter
   }
 }
 
-async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolved> {
+/** Printful's full catalogue is large and slow to fetch: keep it per server instance for 6 h. */
+let catalogCache: { at: number; list: Awaited<ReturnType<typeof listCatalogProducts>> } | null = null;
+async function cachedCatalog() {
+  if (!catalogCache || Date.now() - catalogCache.at > 6 * 3600_000) catalogCache = { at: Date.now(), list: await listCatalogProducts() };
+  return catalogCache.list;
+}
+
+/** Thrown when a resolve runs out of its time slice; the tried candidates are kept so the next run continues. */
+class ResolveContinue extends Error {
+  constructor(public tried: string[]) {
+    super("RESOLVE_CONTINUE");
+  }
+}
+
+async function resolvePrintful(bp: Blueprint, tone: Tone | null, ctx: { deadline: number; tried: string[] } = { deadline: Infinity, tried: [] }): Promise<Resolved> {
   const spec = (tone && bp.alt?.[tone]) || bp;
   const ok = (title: string) => spec.match.test(title) && !(spec.exclude?.test(title) ?? false);
   // Candidates: preferred IDs first, then catalog matches. A candidate must have a printable (non-embroidery)
@@ -274,11 +288,13 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   const wantsEmb = bp.technique === "EMBROIDERY";
   const printable = (pl: string) => (wantsEmb ? /embroider/i.test(pl) : !/embroider/i.test(pl));
   const tried = new Set<string>();
+  const skipped = new Set(ctx.tried); // rejected by an earlier time slice
   let found: Awaited<ReturnType<typeof getCatalogProduct>> | null = null;
   let pfiles: Awaited<ReturnType<typeof getPrintfiles>> | null = null;
   let place = "";
   const consider = async (cid: string) => {
-    if (tried.has(cid) || found) return;
+    if (tried.has(cid) || skipped.has(cid) || found) return;
+    if (Date.now() > ctx.deadline) throw new ResolveContinue([...skipped, ...tried]);
     tried.add(cid);
     try {
       const p = await getCatalogProduct(cid);
@@ -298,7 +314,7 @@ async function resolvePrintful(bp: Blueprint, tone: Tone | null): Promise<Resolv
   };
   for (const cid of spec.preferredIds ?? []) await consider(cid);
   if (!found) {
-    const all = await listCatalogProducts();
+    const all = await cachedCatalog();
     const rankOf = (title: string) => {
       const i = bp.prefer?.findIndex((re) => re.test(title)) ?? -1;
       return i < 0 ? 99 : i;
@@ -491,7 +507,17 @@ async function resolveProdigi(bp: Blueprint): Promise<Resolved> {
 async function stepResolve(job: JobRow): Promise<StepResult> {
   const [, bpKey, tone] = job.key.split(":") as [string, BlueprintKey, Tone | undefined];
   const bp = BLUEPRINTS[bpKey];
-  const r = bp.provider === "gelato" ? (bp.key === "calendar" ? await resolveGelatoCalendar(bp) : await resolveGelatoPoster(bp)) : bp.provider === "printify" ? await resolvePrintify(bp) : bp.provider === "prodigi" ? await resolveProdigi(bp) : await resolvePrintful(bp, tone ?? null);
+  let r: Resolved;
+  try {
+    const tried = ((job.state as { tried?: string[] }).tried ?? []) as string[];
+    r = bp.provider === "gelato" ? (bp.key === "calendar" ? await resolveGelatoCalendar(bp) : await resolveGelatoPoster(bp)) : bp.provider === "printify" ? await resolvePrintify(bp) : bp.provider === "prodigi" ? await resolveProdigi(bp) : await resolvePrintful(bp, tone ?? null, { deadline: Date.now() + 12_000, tried });
+  } catch (e) {
+    if (!(e instanceof ResolveContinue)) throw e;
+    // out of time: remember which candidates were rejected and continue on the next run (never blocks a whole batch)
+    if (job.attempts >= 10) throw new Error(`No se encontró producto base a tiempo (${e.tried.length} candidatos probados)`);
+    await save(job, { state: { tried: e.tried }, attempts: job.attempts + 1 });
+    return { key: job.key, phase: "new", done: false, waitMs: 1000, message: `buscando producto base (${e.tried.length} probados)` };
+  }
   await save(job, { phase: "done", state: { resolved: r }, error: null });
   return { key: job.key, phase: "done", done: true, message: `${r.title} (${r.externalId}) · ${r.printfile.width}×${r.printfile.height}` };
 }
@@ -1256,11 +1282,12 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   const fresh = plan
     .filter((p) => p.kind === "PRODUCT" && open(p.key) && (!state.has(p.key) || state.get(p.key)!.phase === "new") && free(p.key))
     .sort((a, b) => prio(a.key) - prio(b.key));
-  const queue = [...resolves, ...inProgress, ...fresh].map((p) => p.key);
+  // one resolve per run (they can be slow: catalogue lookups) so product work is never starved by them
+  const queue = [...resolves.slice(0, 1), ...inProgress, ...fresh].map((p) => p.key);
   const remaining = queue.length;
   const results: { key: string; phase: string; error?: string }[] = [];
   const worker = async () => {
-    while (queue.length && Date.now() - started < budget) {
+    while (queue.length && Date.now() - started < budget - 4_000) {
       const key = queue.shift()!;
       // keep stepping the same job while time allows (mockup polling etc.)
       for (let i = 0; i < 12 && Date.now() - started < budget; i++) {
