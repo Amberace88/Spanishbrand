@@ -3,6 +3,7 @@ import { isConfigured } from "@/lib/env";
 import { ACTIVE_DESIGNS } from "@/lib/catalog/designs";
 import { buildPlan } from "@/lib/fulfillment/catalog-builder";
 import { CatalogBuilder } from "@/components/admin/CatalogBuilder";
+import { ArchiveRetired } from "@/components/admin/ArchiveRetired";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function CatalogBuilderPage() {
           Printful: {isConfigured.printful() ? "✓" : "sin clave"} · Gelato: {isConfigured.gelato() ? "✓" : "sin clave"} · Printify: {isConfigured.printify() ? "✓" : "sin clave (PRINTIFY_API_TOKEN)"} · Prodigi: {isConfigured.prodigi() ? "✓" : "sin clave (PRODIGI_API_KEY)"} · {plan.length} trabajos
         </p>
       </div>
+      <ArchiveRetired />
       <CatalogBuilder plan={plan} />
     </div>
   );
