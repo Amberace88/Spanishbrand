@@ -1,97 +1,75 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
-import { getCart } from "@/lib/cart/cart";
+import { getCart, MAX_QTY } from "@/lib/cart/cart";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/format";
-import { refreshCartAction, updateLineAction } from "@/app/actions/cart";
+import { refreshCartAction } from "@/app/actions/cart";
+import { getBestsellers, getCollectionCounts, getCollectionsBySlugs, getPublishedProducts, getShippingPromo, type PublicProduct } from "@/lib/products/queries";
+import { merchandiseUnique, withHero } from "@/lib/catalog/merch";
+import { listSiteImages } from "@/lib/site-images";
 import { Container } from "@/components/ui/Section";
+import { CartEmptyHero, CartHeader, CartLines, CartSummary, CartTrust, CollectionTiles, FreeShippingMeter, ProductRail } from "@/components/cart/CartSections";
 
 export const metadata: Metadata = { title: "Carrito", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
+/** Collections offered on the empty cart, in editorial order (only those with something to buy). */
+const COLLECTION_PICKS = ["leon", "statement", "heritage", "sabiduria", "ciudades", "profesiones", "mediterraneo", "futbol"];
+
 export default async function CartPage({ searchParams }: { searchParams: Promise<{ cancelled?: string }> }) {
-  const [{ cancelled }, t, cart] = await Promise.all([searchParams, getT(), getCart()]);
+  const [{ cancelled }, t, cart, promo, catalog] = await Promise.all([
+    searchParams,
+    getT(),
+    getCart(),
+    getShippingPromo().catch(() => null),
+    getPublishedProducts({ limit: 5000 }).catch(() => [] as PublicProduct[]),
+  ]);
+  const freeLabel = promo ? formatMoney(promo.freeOver, "EUR").replace(/,00/, "") : null;
+
+  if (cart.lines.length === 0) {
+    const [bestsellers, picks, counts, site] = await Promise.all([
+      getBestsellers(8).catch(() => [] as PublicProduct[]),
+      getCollectionsBySlugs(COLLECTION_PICKS),
+      getCollectionCounts().catch(() => ({}) as Record<string, number>),
+      listSiteImages(),
+    ]);
+    // real bestsellers keep their sales order (each card leads with its best colour); otherwise the curated catalogue
+    const loved = bestsellers.length ? bestsellers.map((p) => withHero(p)) : merchandiseUnique(catalog, 8);
+    const collections = (catalog.length ? picks.filter((c) => counts[c.slug]) : picks).slice(0, 4);
+    return (
+      <>
+        <CartEmptyHero t={t} cancelled={Boolean(cancelled)} />
+        <ProductRail t={t} kicker={t("cart.loved.kicker")} title={bestsellers.length ? t("cart.loved") : t("home.newest.title")} products={loved} href={bestsellers.length ? "/shop" : "/shop?sort=new"} />
+        <CollectionTiles t={t} collections={collections} products={catalog} site={site} en={t.locale === "en"} />
+        <CartTrust t={t} freeShipping={freeLabel} />
+      </>
+    );
+  }
+
   const needsFix = cart.lines.some((l) => l.issue);
+  // "Te puede gustar": same collections as the cart first, then the rest of the catalogue — curated, one per design
+  const inCart = new Set(cart.lines.map((l) => l.productId));
+  const cartCols = new Set(catalog.filter((p) => inCart.has(p.id)).map((p) => p.collection?.slug).filter(Boolean));
+  const pool = catalog.filter((p) => !inCart.has(p.id));
+  const near = merchandiseUnique(pool.filter((p) => p.collection && cartCols.has(p.collection.slug)), 8);
+  const rest = near.length < 8 ? merchandiseUnique(pool.filter((p) => !near.some((n) => n.id === p.id)), 8 - near.length) : [];
+  const suggestions = [...near, ...rest];
+  const freeDone = promo ? cart.subtotal >= promo.freeOver : false;
 
   return (
-    <section className="min-h-[80svh] bg-bg pb-24 pt-10 sm:pt-14">
-      <Container>
-        <h1 className="headline text-4xl sm:text-5xl">{t("cart.title")}</h1>
-        {cancelled && <p className="mt-4 text-sm text-muted">El pago se ha cancelado. Tu carrito sigue aquí.</p>}
-
-        {cart.lines.length === 0 ? (
-          <div className="mt-12">
-            <p className="text-xl text-muted">{t("cart.empty")}</p>
-            <Link href="/shop" className="btn btn-ink mt-8">
-              {t("cart.continue")}
-            </Link>
+    <>
+      <section className="min-h-[60svh] bg-bg pb-10 pt-8 sm:pb-16 sm:pt-12">
+        <Container>
+          <CartHeader t={t} itemCount={cart.itemCount} cancelled={Boolean(cancelled)} />
+          <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)] lg:gap-12">
+            <div className="space-y-4">
+              {promo && <FreeShippingMeter t={t} subtotal={cart.subtotal} freeOver={promo.freeOver} currency={cart.currency} />}
+              <CartLines t={t} lines={cart.lines} currency={cart.currency} max={MAX_QTY} />
+            </div>
+            <CartSummary t={t} subtotal={cart.subtotal} currency={cart.currency} itemCount={cart.itemCount} needsFix={needsFix} freeDone={freeDone} fixAction={refreshCartAction} />
           </div>
-        ) : (
-          <div className="mt-12 grid gap-12 lg:grid-cols-[1.6fr_1fr]">
-            <ul className="divide-y divide-line border-y border-line">
-              {cart.lines.map((l) => (
-                <li key={l.id} className="flex gap-4 py-6 sm:gap-6">
-                  <Link href={`/products/${l.productSlug}`} className="relative aspect-[4/5] w-24 shrink-0 overflow-hidden bg-surface-2 sm:w-32">
-                    {l.image && <Image src={l.image} alt={l.productName} fill sizes="128px" className="object-cover" />}
-                  </Link>
-                  <div className="flex flex-1 flex-col justify-between gap-3">
-                    <div className="flex justify-between gap-4">
-                      <div>
-                        <Link href={`/products/${l.productSlug}`} className="font-medium hover:underline">
-                          {l.productName}
-                        </Link>
-                        <p className="mt-1 text-sm text-muted">{l.variantName}</p>
-                        {l.personalizationSummary && <p className="mt-1 inline-flex rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-semibold text-gold">✦ {l.personalizationSummary}</p>}
-                        {l.issue && <p className="mt-2 text-xs text-accent">{t(`cart.issue.${l.issue}` as "cart.issue.UNAVAILABLE")}</p>}
-                      </div>
-                      <p className="shrink-0 tabular-nums">{formatMoney(l.lineTotal, cart.currency)}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <form action={updateLineAction} className="flex items-center border border-line">
-                        <input type="hidden" name="lineId" value={l.id} />
-                        <button name="quantity" value={l.quantity - 1} className="px-3 py-2 hover:bg-surface-2" aria-label="-">
-                          −
-                        </button>
-                        <span className="w-8 text-center text-sm tabular-nums">{l.quantity}</span>
-                        <button name="quantity" value={l.quantity + 1} className="px-3 py-2 hover:bg-surface-2" aria-label="+" disabled={l.quantity >= 20}>
-                          +
-                        </button>
-                      </form>
-                      <form action={updateLineAction}>
-                        <input type="hidden" name="lineId" value={l.id} />
-                        <button name="quantity" value={0} className="eyebrow link-u text-[0.6rem] text-muted">
-                          {t("cart.remove")}
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <aside className="h-fit border border-line bg-surface-2 p-6 sm:p-8 lg:sticky lg:top-28">
-              <div className="flex justify-between text-lg">
-                <span>{t("cart.subtotal")}</span>
-                <span className="tabular-nums">{formatMoney(cart.subtotal, cart.currency)}</span>
-              </div>
-              <p className="mt-2 text-xs text-muted">{t("cart.shippingNote")}</p>
-              {needsFix ? (
-                <form action={refreshCartAction}>
-                  <button className="btn btn-ink mt-8 w-full">{t("cart.fix")}</button>
-                </form>
-              ) : (
-                <Link href="/checkout" className="btn btn-primary mt-8 w-full py-5">
-                  {t("cart.checkout")} →
-                </Link>
-              )}
-              <Link href="/shop" className="eyebrow link-u mt-5 block text-center text-[0.62rem] text-muted">
-                {t("cart.continue")}
-              </Link>
-            </aside>
-          </div>
-        )}
-      </Container>
-    </section>
+        </Container>
+      </section>
+      <ProductRail t={t} kicker={t("cart.like.kicker")} title={t("cart.like")} products={suggestions} />
+    </>
   );
 }

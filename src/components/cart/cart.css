@@ -1,0 +1,175 @@
+/* ROJO Y GUALDA · Cart — empty-state illustration, rails, line items. Scoped with the .ct- prefix. */
+
+/* ---------- Empty state stage ---------- */
+.ct-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 2rem;
+  background:
+    radial-gradient(60% 55% at 50% 45%, rgb(224 184 74 / 0.22), transparent 70%),
+    radial-gradient(70% 60% at 100% 0%, rgb(163 22 43 / 0.28), transparent 65%),
+    linear-gradient(160deg, #161214, #0a0909 60%, #120d0b);
+  box-shadow: inset 0 0 0 1px rgb(224 184 74 / 0.18), 0 40px 80px -50px rgb(0 0 0 / 0.7);
+}
+.ct-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--grain);
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.ct-art { position: absolute; inset: 0; }
+.ct-art > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* brush strokes draw in once */
+.ct-brush { stroke-dasharray: 900; stroke-dashoffset: 900; animation: ct-draw 1.6s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+.ct-brush-2 { animation-delay: 0.25s; }
+@keyframes ct-draw { to { stroke-dashoffset: 0; } }
+
+/* bag sways gently around its base */
+.ct-sway { transform-origin: 50% 88%; animation: ct-sway 7s ease-in-out infinite; }
+@keyframes ct-sway {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.2deg); }
+}
+
+/* the lion peeks over the rim, looks around, ducks back in */
+.ct-peek-clip { position: absolute; overflow: hidden; left: 30%; right: 30%; top: 8%; bottom: 16%; }
+.ct-peek {
+  position: absolute;
+  left: 50%;
+  width: 78%;
+  margin-left: -39%;
+  top: 30%;
+  transform-origin: 50% 100%;
+  animation: ct-peek 7.5s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 10px 14px rgb(0 0 0 / 0.55));
+}
+@keyframes ct-peek {
+  0%, 10% { transform: translateY(78%) rotate(0deg); }
+  20% { transform: translateY(44%) rotate(-3deg); }
+  27% { transform: translateY(44%) rotate(-3deg); }
+  36% { transform: translateY(2%) rotate(4deg); }
+  48% { transform: translateY(4%) rotate(-5deg); }
+  62% { transform: translateY(2%) rotate(3deg); }
+  72% { transform: translateY(5%) rotate(0deg); }
+  82%, 100% { transform: translateY(78%) rotate(0deg); }
+}
+
+/* hanging tag swings */
+.ct-tag { transform-origin: 60% 51.5%; transform-box: view-box; animation: ct-tag 3.8s ease-in-out infinite; }
+@keyframes ct-tag {
+  0%, 100% { transform: rotate(8deg); }
+  50% { transform: rotate(-6deg); }
+}
+
+/* sparkles twinkle */
+.ct-spark { transform-box: fill-box; transform-origin: center; animation: ct-spark 2.8s ease-in-out infinite; }
+.ct-spark:nth-of-type(2) { animation-delay: 0.9s; }
+.ct-spark:nth-of-type(3) { animation-delay: 1.7s; }
+@keyframes ct-spark {
+  0%, 100% { opacity: 0.15; transform: scale(0.6) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+.ct-shadow { transform-box: fill-box; transform-origin: center; animation: ct-shadow 7s ease-in-out infinite; }
+@keyframes ct-shadow { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.94); } }
+
+/* ---------- Rails ---------- */
+.ct-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 46%;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem;
+  padding-inline: 1rem;
+  margin-inline: -1rem;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+}
+.ct-rail::-webkit-scrollbar { display: none; }
+.ct-rail > * { scroll-snap-align: start; min-width: 0; }
+@media (min-width: 640px) { .ct-rail { grid-auto-columns: 31%; gap: 1rem; scroll-padding-inline: 2rem; padding-inline: 2rem; margin-inline: -2rem; } }
+@media (min-width: 1024px) { .ct-rail { grid-auto-columns: calc((100% - 3rem) / 4); padding-inline: 0; margin-inline: 0; scroll-padding-inline: 0; } }
+.ct-rail-compact { grid-auto-columns: 46%; }
+@media (min-width: 640px) { .ct-rail-compact { grid-auto-columns: 31%; } }
+@media (min-width: 1024px) { .ct-rail-compact { grid-auto-columns: calc((100% - 2rem) / 3); } }
+@media (min-width: 1280px) { .ct-rail-compact { grid-auto-columns: calc((100% - 3rem) / 4); } }
+.ct-arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  transition: border-color 0.2s, background-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+.ct-arrow:hover:not(:disabled) { border-color: var(--fg); transform: translateY(-1px); }
+.ct-arrow:disabled { opacity: 0.3; }
+.ct-arrow:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ---------- Free-shipping meter ---------- */
+.ct-meter { position: relative; height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--fg) 9%, transparent); overflow: hidden; }
+.ct-meter > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--p);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a3162b, #c8102e 45%, #f1bf00);
+  transform-origin: left;
+  animation: ct-fill 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+.ct-meter > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.45) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: ct-gleam 2.6s ease-in-out 1.4s infinite;
+}
+@keyframes ct-fill { from { transform: scaleX(0); } }
+@keyframes ct-gleam { 0% { background-position: 150% 0; } 60%, 100% { background-position: -50% 0; } }
+
+/* ---------- Line items ---------- */
+.ct-line { animation: ct-line-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes ct-line-in { from { opacity: 0; transform: translateY(8px); } }
+.ct-step {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.ct-step button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-size: 18px;
+  line-height: 1;
+  transition: background-color 0.2s, color 0.2s;
+}
+.ct-step button:hover:not(:disabled) { background: var(--surface-2); }
+.ct-step button:disabled { opacity: 0.35; }
+.ct-step button:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.ct-pending { opacity: 0.55; transition: opacity 0.2s; }
+.ct-dots { display: inline-flex; gap: 3px; }
+.ct-dots i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; animation: ct-dot 0.9s ease-in-out infinite; }
+.ct-dots i:nth-child(2) { animation-delay: 0.15s; }
+.ct-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes ct-dot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-brush { animation: none; stroke-dashoffset: 0; }
+  .ct-sway, .ct-tag, .ct-spark, .ct-shadow, .ct-line, .ct-meter > i, .ct-meter > i::after, .ct-dots i { animation: none; }
+  .ct-peek { animation: none; transform: translateY(4%); }
+  .ct-spark { opacity: 0.8; }
+}
