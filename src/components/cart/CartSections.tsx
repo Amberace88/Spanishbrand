@@ -10,7 +10,7 @@ import { tileCards, tileCount, tilePhoto } from "@/lib/catalog/tiles";
 import { EditorialTile } from "@/components/merch/EditorialTile";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Container } from "@/components/ui/Section";
-import { IconArrow, IconLeaf, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
+import { IconArrow, IconHeart, IconLeaf, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { EmptyBagArt } from "./EmptyBagArt";
 import { Rail } from "./Rail";
 import { LineControls } from "./LineControls";
@@ -315,7 +315,7 @@ export function CartHeader({ t, itemCount, cancelled }: { t: T; itemCount: numbe
 }
 
 /** Order summary — checkout link and "fix cart" form unchanged; sticky on desktop. */
-export function CartSummary({ t, subtotal, currency, itemCount, needsFix, freeDone, fixAction }: { t: T; subtotal: number; currency: string; itemCount: number; needsFix: boolean; freeDone: boolean; fixAction: () => Promise<void> }) {
+export function CartSummary({ t, subtotal, currency, itemCount, needsFix, freeDone, fixAction, donationPerItem = 0 }: { t: T; subtotal: number; currency: string; itemCount: number; needsFix: boolean; freeDone: boolean; fixAction: () => Promise<void>; donationPerItem?: number }) {
   return (
     <aside id="cart-summary-box" className="h-fit scroll-mt-28 lg:sticky lg:top-28" aria-labelledby="cart-summary">
       <div className="relative overflow-hidden rounded-[2rem] bg-surface p-6 ring-1 ring-line sm:p-8">
@@ -351,6 +351,18 @@ export function CartSummary({ t, subtotal, currency, itemCount, needsFix, freeDo
           <IconLock className="h-3.5 w-3.5 shrink-0" />
           {t("trust.secure.b")}
         </p>
+        {donationPerItem > 0 && (
+          <Link href="/causas" className="group mt-6 flex items-start gap-3 rounded-2xl bg-accent/[0.06] p-3.5 text-[13px] ring-1 ring-accent/15 transition-colors hover:bg-accent/[0.1]">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent/10 text-accent">
+              <IconHeart className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-fg">{t("causes.cart.t", { amount: formatMoney(Math.round(donationPerItem * itemCount * 100) / 100, currency).replace(/,00/, "") })}</span>
+              <span className="block leading-relaxed text-muted">{t("causes.cart.b")}</span>
+            </span>
+            <IconArrow className="mt-1 h-3.5 w-3.5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        )}
         <ul className="mt-6 space-y-2.5 border-t border-line pt-5 text-[13px] text-muted">
           <li className="flex items-start gap-2.5">
             <IconLeaf className="mt-0.5 h-4 w-4 shrink-0 text-gold" />

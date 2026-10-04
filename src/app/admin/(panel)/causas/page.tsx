@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 import { formatMoney } from "@/lib/format";
 import { getBrand } from "@/lib/brand";
 import { Badge, Card, Field, PageTitle, SubmitButton, inputCls } from "@/components/admin/ui";
-import { savePartnerAction, saveReportAction } from "../../actions/growth";
+import { saveDonationAction, savePartnerAction, saveReportAction } from "../../actions/growth";
 
 const CAUSES = ["VETERANOS", "MAYORES", "INFANCIA", "ANIMALES"];
 
@@ -12,7 +12,9 @@ export default async function CausesAdmin() {
   await requireStaff(["ADMIN"]);
   const sb = db();
   const brand = await getBrand();
-  const perItem = Number((brand.settings as { donation_per_item?: number }).donation_per_item ?? 1);
+  const st = brand.settings as { donation_per_item?: number; donations_enabled?: boolean };
+  const perItem = Number(st.donation_per_item ?? 1);
+  const enabled = st.donations_enabled !== false;
   const months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date();
     d.setUTCDate(1);
@@ -31,7 +33,16 @@ export default async function CausesAdmin() {
   ]);
   return (
     <>
-      <PageTitle title="Causas solidarias" sub={`Donación de la marca: ${formatMoney(perItem)} por artículo vendido (Ajustes → settings.donation_per_item). Los nombres solo se muestran públicamente con convenio firmado.`} />
+      <PageTitle title="Causas solidarias" sub="Donación de la marca por artículo vendido, de nuestro margen (el cliente no paga más). Los nombres de organizaciones solo se muestran con convenio firmado." />
+      <Card title="Compromiso solidario">
+        <form action={saveDonationAction} className="flex flex-wrap items-end gap-4">
+          <Field label="€ por artículo vendido (0–5)"><input name="donation_per_item" type="number" step="0.5" min="0" max="5" defaultValue={perItem} className={inputCls} /></Field>
+          <label className="flex items-center gap-2 pb-2 text-sm"><input type="checkbox" name="donations_enabled" defaultChecked={enabled} /> Mostrar en la tienda (ficha de producto, carrito, checkout, /causas)</label>
+          <div className="pb-1"><SubmitButton>Guardar</SubmitButton></div>
+          <p className="basis-full text-xs text-stone">Ahora: {enabled ? `${formatMoney(perItem)} por artículo, visible` : "oculto en la tienda"}. Recomendado 1–2 €. Si aún no hay convenios, el importe se acumula por causa y se dona al firmar; publícalo en «Informes mensuales».</p>
+        </form>
+      </Card>
+      <div className="mt-6" />
       <Card title="Importe a donar por mes (calculado de pedidos pagados)">
         <table className="admin-table">
           <thead><tr><th>Mes</th>{CAUSES.map((c) => <th key={c}>{c}</th>)}<th>Sin elegir</th></tr></thead>

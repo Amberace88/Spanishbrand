@@ -8,13 +8,14 @@ import { getT } from "@/lib/i18n/server";
 import { getSessionUser } from "@/lib/supabase/server";
 import { formatMoney } from "@/lib/format";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { getDonation } from "@/lib/causes";
 import { Container } from "@/components/ui/Section";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {
-  const [t, cart, brand, user] = await Promise.all([getT(), getCart(), getBrand(), getSessionUser()]);
+  const [t, cart, brand, user, donation] = await Promise.all([getT(), getCart(), getBrand(), getSessionUser(), getDonation()]);
   if (cart.lines.length === 0) redirect("/cart");
   if (cart.lines.some((l) => l.issue)) redirect("/cart");
 
@@ -26,7 +27,7 @@ export default async function CheckoutPage() {
         </Link>
         <h1 className="headline mt-2 text-4xl sm:text-5xl">{t("checkout.title")}</h1>
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-20">
-          <CheckoutForm countries={brand.supportedCountries} defaultEmail={user?.email ?? undefined} hasPersonalized={cart.lines.some((l) => !!l.personalization && Object.keys(l.personalization).length > 0)} />
+          <CheckoutForm countries={brand.supportedCountries} defaultEmail={user?.email ?? undefined} hasPersonalized={cart.lines.some((l) => !!l.personalization && Object.keys(l.personalization).length > 0)} donation={donation.enabled ? formatMoney(donation.perItem).replace(/,00/, "") : null} />
           <aside className="h-fit border border-line bg-surface-2 p-6 sm:p-8">
             <ul className="space-y-4">
               {cart.lines.map((l) => (

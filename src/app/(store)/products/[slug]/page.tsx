@@ -14,7 +14,8 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { TrackView } from "@/components/analytics/TrackView";
-import { IconArrow, IconCheck, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
+import { IconArrow, IconCheck, IconHeart, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
+import { getDonation } from "@/lib/causes";
 import { Container } from "@/components/ui/Section";
 import { dbOrNull } from "@/lib/supabase/admin";
 
@@ -90,7 +91,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     if (moved) permanentRedirect(moved);
   }
   if (!p) notFound();
-  const [brand, t, rating, all] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 2000 })]);
+  const [brand, t, rating, all, donation] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 2000 }), getDonation()]);
   const design = p.design ? designBySlug(p.design) : null;
   const sameDesign = design ? all.filter((x) => x.design === design.slug && x.id !== p.id).slice(0, 4) : [];
   const related = all.filter((x) => x.collection?.slug === p.collection?.slug && x.id !== p.id && x.design !== p.design).slice(0, 4);
@@ -220,6 +221,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             [IconTruck, t("trust.shipping.t"), t("trust.shipping.b"), "/shipping"],
             [IconReturn, t("trust.returns.t"), t("product.returns.std"), "/returns"],
             [IconLock, t("trust.secure.t"), t("trust.secure.b"), null],
+            ...(donation.enabled ? [[IconHeart, t("causes.pdp.t", { amount: formatMoney(donation.perItem).replace(/,00/, "") }), t("causes.pdp.b"), "/causas"]] : []),
           ].map(([Icon, title, body, href]) => {
             const I = Icon as typeof IconTruck;
             const inner = (

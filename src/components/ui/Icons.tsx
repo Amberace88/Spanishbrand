@@ -85,3 +85,8 @@ export const IconChat = (p: SVGProps<SVGSVGElement>) => (
     <path d="M4 5h16v11H9l-5 4V5Z" />
   </svg>
 );
+export const IconHeart = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20Z" />
+  </svg>
+);

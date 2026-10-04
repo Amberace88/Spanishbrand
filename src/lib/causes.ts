@@ -18,6 +18,15 @@ export interface CausePartnerPublic {
   logo: string | null;
 }
 
+/** Donation pledge shown in the store: € per item from the brand's margin (clamped 0–5), and whether it's on. */
+export const getDonation = cache(async () => {
+  const brand = await getBrand();
+  const st = brand.settings as { donation_per_item?: number; donations_enabled?: boolean };
+  const raw = Number(st.donation_per_item ?? 1);
+  const perItem = Number.isFinite(raw) ? Math.min(5, Math.max(0, raw)) : 1;
+  return { enabled: st.donations_enabled !== false && perItem > 0, perItem };
+});
+
 /** Public, aggregated data only: signed partners, published reports and month-to-date totals. */
 export const getCausesData = cache(async () => {
   const brand = await getBrand();

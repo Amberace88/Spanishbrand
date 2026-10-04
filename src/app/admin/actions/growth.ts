@@ -74,3 +74,18 @@ export async function saveReportAction(formData: FormData) {
   revalidatePath("/admin/causas");
   revalidatePath("/causas");
 }
+
+/** Brand donation pledge: € per item sold (from our margin) and whether the store shows it. */
+export async function saveDonationAction(formData: FormData) {
+  const staff = await requireStaff(["ADMIN"]);
+  const perItem = z.coerce.number().min(0).max(5).parse(formData.get("donation_per_item"));
+  const enabled = formData.get("donations_enabled") === "on";
+  const sb = db();
+  const { data: before } = await sb.from("brand_settings").select("settings").eq("brand_id", env.brandId()).maybeSingle();
+  const settings = { ...((before?.settings ?? {}) as object), donation_per_item: Math.round(perItem * 100) / 100, donations_enabled: enabled };
+  await sb.from("brand_settings").update({ settings }).eq("brand_id", env.brandId());
+  await audit({ action: "cause.update", actorId: staff.userId, actorEmail: staff.email, entityType: "brand_settings", entityId: env.brandId(), after: { donation_per_item: settings.donation_per_item, donations_enabled: enabled } });
+  revalidatePath("/admin/causas");
+  revalidatePath("/causas");
+  revalidatePath("/", "layout");
+}

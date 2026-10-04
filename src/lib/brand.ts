@@ -27,6 +27,10 @@ export interface BrandSettings {
     refund_reserve_percent?: number;
     prices_include_tax?: boolean;
     abandoned_cart_hours?: number;
+    /** € the brand donates from its margin per item sold (admin → Causas). */
+    donation_per_item?: number;
+    /** Show the donation pledge in the store (product page, cart, checkout). Default on. */
+    donations_enabled?: boolean;
   };
 }
 

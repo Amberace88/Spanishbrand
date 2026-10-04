@@ -7,6 +7,7 @@ import { getBestsellers, getCollectionCounts, getCollectionsBySlugs, getPublishe
 import { merchandiseUnique, withHero } from "@/lib/catalog/merch";
 import { listSiteImages } from "@/lib/site-images";
 import { Container } from "@/components/ui/Section";
+import { getDonation } from "@/lib/causes";
 import { CartEmptyHero, CartHeader, CartLines, CartSummary, CartTrust, CollectionTiles, FreeShippingMeter, ProductRail } from "@/components/cart/CartSections";
 
 export const metadata: Metadata = { title: "Carrito", robots: { index: false } };
@@ -16,12 +17,13 @@ export const dynamic = "force-dynamic";
 const COLLECTION_PICKS = ["leon", "statement", "heritage", "sabiduria", "ciudades", "profesiones", "mediterraneo", "futbol"];
 
 export default async function CartPage({ searchParams }: { searchParams: Promise<{ cancelled?: string }> }) {
-  const [{ cancelled }, t, cart, promo, catalog] = await Promise.all([
+  const [{ cancelled }, t, cart, promo, catalog, donation] = await Promise.all([
     searchParams,
     getT(),
     getCart(),
     getShippingPromo().catch(() => null),
     getPublishedProducts({ limit: 5000 }).catch(() => [] as PublicProduct[]),
+    getDonation().catch(() => ({ enabled: false, perItem: 0 })),
   ]);
   const freeLabel = promo ? formatMoney(promo.freeOver, "EUR").replace(/,00/, "") : null;
 
@@ -65,7 +67,7 @@ export default async function CartPage({ searchParams }: { searchParams: Promise
               {promo && <FreeShippingMeter t={t} subtotal={cart.subtotal} freeOver={promo.freeOver} currency={cart.currency} />}
               <CartLines t={t} lines={cart.lines} currency={cart.currency} max={MAX_QTY} />
             </div>
-            <CartSummary t={t} subtotal={cart.subtotal} currency={cart.currency} itemCount={cart.itemCount} needsFix={needsFix} freeDone={freeDone} fixAction={refreshCartAction} />
+            <CartSummary t={t} subtotal={cart.subtotal} currency={cart.currency} itemCount={cart.itemCount} needsFix={needsFix} freeDone={freeDone} fixAction={refreshCartAction} donationPerItem={donation.enabled ? donation.perItem : 0} />
           </div>
         </Container>
       </section>

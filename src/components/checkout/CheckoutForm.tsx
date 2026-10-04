@@ -8,7 +8,7 @@ import type { TKey } from "@/lib/i18n/dictionaries";
 const CAUSES = ["VETERANOS", "MAYORES", "INFANCIA", "ANIMALES"] as const;
 const COUNTRY_NAMES: Record<string, string> = { ES: "España", PT: "Portugal", FR: "Francia", DE: "Alemania", IT: "Italia", NL: "Países Bajos", BE: "Bélgica", AT: "Austria", IE: "Irlanda" };
 
-export function CheckoutForm({ countries, defaultEmail, hasPersonalized = false }: { countries: string[]; defaultEmail?: string; hasPersonalized?: boolean }) {
+export function CheckoutForm({ countries, defaultEmail, hasPersonalized = false, donation = null }: { countries: string[]; defaultEmail?: string; hasPersonalized?: boolean; /** "1 €" when the pledge is on; null hides the cause picker */ donation?: string | null }) {
   const t = useT();
   const [state, action, pending] = useActionState(checkoutAction, null);
   const errKey = state?.error ? (`checkout.error.${state.error}` as TKey) : null;
@@ -33,7 +33,7 @@ export function CheckoutForm({ countries, defaultEmail, hasPersonalized = false 
         <span className="eyebrow mb-2 block text-muted">{t("checkout.discount")}</span>
         <input name="discount" maxLength={40} className="field uppercase" autoComplete="off" />
       </label>
-      <fieldset>
+      {donation && <fieldset>
         <legend className="eyebrow mb-2 block text-muted">{t("causes.choose")}</legend>
         <div className="grid grid-cols-2 gap-2">
           {CAUSES.map((c, i) => (
@@ -43,8 +43,8 @@ export function CheckoutForm({ countries, defaultEmail, hasPersonalized = false 
             </label>
           ))}
         </div>
-        <p className="mt-1.5 text-xs text-muted">{t("causes.checkoutNote")}</p>
-      </fieldset>
+        <p className="mt-1.5 text-xs text-muted">{t("causes.checkoutAmt", { amount: donation })}</p>
+      </fieldset>}
       <label className="flex cursor-pointer items-start gap-3 text-sm text-muted">
         <input type="checkbox" name="marketing" className="mt-1 accent-[var(--accent)]" />
         <span>{t("checkout.marketing")}</span>
