@@ -12,6 +12,7 @@ import { Wordmark } from "@/components/brand/Wordmark";
 import { useLocale, useT } from "@/components/providers/I18nProvider";
 import { IconArrow, IconBag, IconClose, IconMenu, IconSearch, IconUser } from "@/components/ui/Icons";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { SoundToggle } from "@/components/layout/SoundToggle";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -172,6 +173,7 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
               <button onClick={() => setSearchOpen(true)} className="grid h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06]" aria-label={t("nav.search")}>
                 <IconSearch className="h-[21px] w-[21px]" />
               </button>
+              <SoundToggle />
               <ThemeToggle />
               <Link href="/account" className="hidden h-10 w-10 place-items-center rounded-full hover:bg-fg/[0.06] sm:grid" aria-label={t("nav.account")}>
                 <IconUser className="h-[21px] w-[21px]" />

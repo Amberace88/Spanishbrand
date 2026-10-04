@@ -328,3 +328,8 @@ body {
 .admin-table th { text-align: left; font-weight: 600; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-stone-2); padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--color-sand); white-space: nowrap; }
 .admin-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid #efe9df; vertical-align: top; }
 .admin-table tr:hover td { background: #faf6ef; }
+
+/* header anthem equaliser */
+@keyframes eq-bounce { 0%, 100% { height: 4px; } 25% { height: 16px; } 50% { height: 8px; } 75% { height: 13px; } }
+.eq-bar { animation: eq-bounce 1.05s ease-in-out infinite; height: 8px; }
+@media (prefers-reduced-motion: reduce) { .eq-bar { animation: none; height: 10px; } }
