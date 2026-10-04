@@ -103,8 +103,7 @@ export function ProductRail({ t, title, kicker, products, href, compact = false,
       compact={compact}
       head={
         <>
-          <Kicker>{kicker}</Kicker>
-          <div className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
             <h2 className="headline text-[2rem] leading-none sm:text-5xl">{title}</h2>
             {href && (
               <Link href={href} className="eyebrow link-u text-[0.62rem] text-muted">
@@ -135,8 +134,7 @@ export function CollectionTiles({ t, collections, products, site, en }: { t: T; 
       <Container>
         <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
           <div>
-            <Kicker>{t("cart.collections.kicker")}</Kicker>
-            <h2 className="headline mt-3 text-[2rem] leading-none sm:text-5xl">{t("nav.collections")}</h2>
+            <h2 className="headline text-[2rem] leading-none sm:text-5xl">{t("nav.collections")}</h2>
           </div>
           <Link href="/collections" className="btn btn-ghost hidden sm:inline-flex">
             {t("cart.seeAll")} <IconArrow className="h-4 w-4" />

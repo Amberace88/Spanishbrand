@@ -98,18 +98,9 @@ export default async function FutbolPage({ searchParams }: { searchParams: Promi
               <a href="#serie-campeones" className="btn btn-primary">{t("futbol.ctaShop")} <IconArrow className="h-4 w-4" /></a>
               <a href="#ciudad" className="btn border border-white/25 text-white hover:bg-white hover:text-black">{t("futbol.ctaCity")}</a>
             </div>
-            <dl className="mt-10 flex gap-8 border-t border-white/10 pt-6 sm:gap-12">
-              {[
-                [designs.length, t("futbol.stat.designs")],
-                [new Set(FUTBOL_CITIES.map((c) => c.name)).size, t("futbol.stat.cities")],
-                [2, t("futbol.stat.stars")],
-              ].map(([n, l]) => (
-                <div key={String(l)}>
-                  <dt className="mega text-5xl text-white">{n}</dt>
-                  <dd className="mt-1 text-xs uppercase tracking-[0.2em] text-white/50">{l}</dd>
-                </div>
-              ))}
-            </dl>
+            <p className="mt-8 text-sm text-white/60">
+              {designs.length} {t("futbol.stat.designs").toLowerCase()} · {new Set(FUTBOL_CITIES.map((c) => c.name)).size} {t("futbol.stat.cities").toLowerCase()}
+            </p>
           </Reveal>
           <Reveal delay={0.1} className="relative mx-auto w-full max-w-xl">
             <div className="relative aspect-square">
