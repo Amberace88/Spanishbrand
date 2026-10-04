@@ -82,7 +82,7 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
 
   return (
     <section className="bg-bg px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
-      <div className="mx-auto grid max-w-[1600px] gap-3 lg:h-[min(82vh,800px)] lg:grid-cols-12 lg:grid-rows-2">
+      <div className="mx-auto grid max-w-[1600px] gap-3 lg:h-[clamp(680px,86vh,820px)] lg:grid-cols-12 lg:grid-rows-2">
         {/* Main tile — lookbook */}
         <motion.div {...tile(0)} className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
           <motion.div initial={reduce ? false : { scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
@@ -120,7 +120,7 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
         </motion.div>
 
         {/* Side tiles: quick live edit (name + number / text), full editors one click away */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-4 lg:row-span-2 lg:grid-cols-1 lg:grid-rows-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-4 lg:row-span-2 lg:min-h-0 lg:grid-cols-1 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
           <motion.div {...tile(0.12)} className="h-full">
             <JerseyTile photo={persoPhoto ?? null} badge={t("nav.personalize")} title={t("hero3.perso")} labels={{ name: t("hero3.tile.name"), number: t("hero3.tile.number"), go: t("hero3.tile.go") }} />
           </motion.div>

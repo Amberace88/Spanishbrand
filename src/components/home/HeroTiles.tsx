@@ -14,7 +14,7 @@ import { usePrintBox, type PrintBox } from "./teeGeometry";
 
 /* Homepage hero side tiles: a quick, live edit right in the tile; the full editor is one click away. */
 
-const tileBase = "group relative flex h-full min-h-[300px] flex-col justify-between overflow-hidden rounded-[28px] p-5 sm:min-h-[320px] sm:p-7";
+const tileBase = "group relative flex h-full min-h-[300px] flex-col justify-between overflow-hidden rounded-[28px] p-5 sm:min-h-[320px] sm:p-7 lg:min-h-0 lg:p-6";
 // square that always covers the tile, so overlay coordinates stay glued to the photo at any tile ratio
 const coverSquare = "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2";
 // the size container has no padding, so 100cqw/100cqh are the full tile
@@ -100,7 +100,8 @@ const TILE_TPLS: { key: string; label: string }[] = [
   { key: "fecha", label: "Fecha" },
 ];
 /** Used while a photo cannot be measured: chest box of a centred folded tee. */
-const FALLBACK_BOX: PrintBox = { left: 36, top: 37, width: 28, height: 37.3 };
+// measured on the campaign photo (folded tee): centred on the chest, just under the ribbed collar
+const FALLBACK_BOX: PrintBox = { left: 39.5, top: 32, width: 25, height: 30 };
 
 /** Width of an element that may mount later (callback ref → the observer follows the element). */
 function useWidth<T extends HTMLElement>() {
@@ -122,7 +123,8 @@ export function DesignTile({ photo, badge, title, labels }: { photo: string | nu
   const [font, setFont] = useState<AnyFontKey>("serif");
   const [tpl, setTpl] = useState<string | null>(null);
   const detected = usePrintBox(photo);
-  const box = photo ? (detected === undefined ? null : (detected ?? FALLBACK_BOX)) : null;
+  void detected; // automatic detection mis-read the collar on the real photo: use the measured box
+  const box = photo ? FALLBACK_BOX : null;
   const template = tpl ? TEMPLATES.find((x) => x.key === tpl) ?? null : null;
   const [ref, bw] = useWidth<HTMLDivElement>();
   const aspect = box ? box.height / box.width : 4 / 3;
