@@ -90,7 +90,7 @@ export function MemberCard3D({ number, name, since, points, tier, tierLabel, lab
           <div className="flag-line absolute inset-x-0 top-0 h-[5px] opacity-90" />
           {/* lion watermark */}
           <div className="absolute -bottom-[18%] -right-[8%] h-[95%] opacity-[0.07]">
-            <Image src="/brand/logo-lion.webp" alt="" width={997} height={1174} className="h-full w-auto" draggable={false} />
+            <Image src="/brand/logo-lion.webp" alt="" width={997} height={1174} sizes="(min-width: 640px) 384px, 256px" className="h-full w-auto" draggable={false} />
           </div>
         </div>
         <div className="rg-holo" />
@@ -100,13 +100,13 @@ export function MemberCard3D({ number, name, since, points, tier, tierLabel, lab
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <span className="block h-7 sm:h-9">
-                <Image src="/brand/logo-text.webp" alt="" width={1368} height={707} className="h-full w-auto" draggable={false} />
+                <Image src="/brand/logo-text.webp" alt="" width={1368} height={707} sizes="128px" className="h-full w-auto" draggable={false} />
               </span>
               <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#e0b84a] sm:text-[11px]">{labels.club}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
               <span className="block h-11 sm:h-14">
-                <Image src="/brand/logo-lion.webp" alt="" width={997} height={1174} className="h-full w-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]" draggable={false} />
+                <Image src="/brand/logo-lion.webp" alt="" width={997} height={1174} sizes="64px" className="h-full w-auto drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]" draggable={false} />
               </span>
             </div>
           </div>

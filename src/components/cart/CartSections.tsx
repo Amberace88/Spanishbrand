@@ -34,7 +34,7 @@ export interface CartLineView {
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <p className="kicker flex items-center gap-2 text-gold">
+    <p className="kicker flex items-center gap-2 text-gold-ink">
       <span className="flag-line inline-block h-[3px] w-6 rounded-full" aria-hidden />
       {children}
     </p>

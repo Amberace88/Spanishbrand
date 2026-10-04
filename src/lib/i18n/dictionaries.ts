@@ -1883,6 +1883,11 @@ const de: Dict = {
 
 export const DICTIONARIES: Record<Locale, Dict> = { es, en, fr: {}, de, it: {}, pt: {}, ca, eu, gl };
 
+/** Every key for one locale, Spanish filling the gaps — what the client I18nProvider receives. */
+export function messagesFor(locale: Locale): Dict {
+  return locale === "es" ? es : { ...es, ...DICTIONARIES[locale] };
+}
+
 export function translate(locale: Locale, key: TKey, vars?: Record<string, string | number>) {
   let s = DICTIONARIES[locale]?.[key] ?? es[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, String(v));

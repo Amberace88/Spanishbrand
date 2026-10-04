@@ -136,7 +136,7 @@ export default async function ClubPage() {
             <div className="relative isolate overflow-hidden rounded-[28px] bg-[#070606] px-6 py-14 text-center text-[#f5f1e8] sm:px-12 sm:py-20">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_50%_0%,rgba(163,22,43,0.45),transparent_70%),radial-gradient(50%_60%_at_50%_100%,rgba(201,162,39,0.2),transparent_70%)]" aria-hidden />
               <div className="relative mx-auto h-20 w-fit opacity-90">
-                <Image src="/brand/logo-lion.webp" alt="" width={997} height={1174} className="h-full w-auto" />
+                <Image src="/brand/logo-lion.webp" alt="" width={997} height={1174} sizes="128px" className="h-full w-auto" />
               </div>
               <h2 className="relative mt-6 font-[family-name:var(--font-logo)] text-[clamp(2rem,6vw,3.6rem)] font-bold leading-tight text-gold-metal">{c.ctaT}</h2>
               <p className="relative mx-auto mt-3 max-w-md text-white/70">{c.ctaB}</p>

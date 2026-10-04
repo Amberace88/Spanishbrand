@@ -41,7 +41,7 @@ export function EmptyBagArt({ className = "" }: { className?: string }) {
         <div className="ct-sway">
           <div className="ct-peek-clip">
             {/* eslint-disable-next-line @next/next/no-img-element -- small decorative brand mark inside an SVG composition */}
-            <img src="/brand/logo-lion.webp" alt="" width={764} height={900} className="ct-peek h-auto" draggable={false} />
+            <img src="/_next/image?url=%2Fbrand%2Flogo-lion.webp&w=256&q=75" alt="" width={764} height={900} className="ct-peek h-auto" draggable={false} />
           </div>
         </div>
 
