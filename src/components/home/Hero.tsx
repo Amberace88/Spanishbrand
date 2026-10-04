@@ -86,7 +86,7 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
         {/* Main tile — lookbook */}
         <motion.div {...tile(0)} className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
           <motion.div initial={reduce ? false : { scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
-            <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill priority sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
+            <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill preload sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
             {HERO_VIDEO && !reduce && <HeroFilm src={HERO_VIDEO} />}
             <div className="absolute -inset-px bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
           </motion.div>

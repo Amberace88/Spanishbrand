@@ -70,7 +70,7 @@ export default async function LookbookPage() {
             </div>
           </div>
           <div className="relative min-h-[420px] lg:min-h-[640px]">
-            <Image src="/brand/lookbook-trio.webp" alt="" fill priority sizes="(min-width:1024px) 50vw, 100vw" className="object-cover opacity-40" />
+            <Image src="/brand/lookbook-trio.webp" alt="" fill preload sizes="(min-width:1024px) 50vw, 100vw" className="object-cover opacity-40" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/40 to-transparent lg:bg-gradient-to-r" />
             <Image src="/catalog/art/lion-crowned.png" alt={en ? "Crowned lion" : "León coronado"} fill sizes="(min-width:1024px) 45vw, 100vw" className="lion-float object-contain p-10 drop-shadow-[0_30px_60px_rgba(0,0,0,0.7)] sm:p-16" />
           </div>

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getT } from "@/lib/i18n/server";
-import { getShowcase, type PublicCollection, type Showcase } from "@/lib/products/queries";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { getShowcase, type PublicCollection, type PublicProduct, type Showcase } from "@/lib/products/queries";
+import { EditorialTile, type TileSize } from "@/components/merch/EditorialTile";
+import { CATEGORY_LOOKS, lookFor } from "@/lib/catalog/tones";
+import { tileCards, tileCount, tilePhoto } from "@/lib/catalog/tiles";
 import { themeFor, upcomingFiestas } from "@/lib/themes";
 import { Mockup, type MockupKind } from "@/components/art/Mockup";
 import { JerseyBack } from "@/components/art/Jersey";
@@ -49,30 +52,23 @@ export async function TrustBar() {
   );
 }
 
-/* site: our own campaign photo (models in Spain wearing the house designs) preferred over the provider mockup */
-const CATEGORY_TILES: { key: string; cat: string; kind: MockupKind; color: string; slug: string; print?: "art" | "logo"; site?: string; photo: (s: Showcase) => string | undefined }[] = [
-  { key: "cats.TEES", cat: "APPAREL", kind: "tee", color: "#111111", slug: "espana", print: "logo", site: "look-toro-hombre", photo: (s) => s.byType.TSHIRT },
-  { key: "cats.HOODIES", cat: "APPAREL", kind: "hoodie", color: "#111111", slug: "heritage", print: "logo", site: "look-quijote-hombre", photo: (s) => s.byType.HOODIE },
-  { key: "cats.HEADWEAR", cat: "HEADWEAR", kind: "cap", color: "#111111", slug: "espana", print: "logo", site: "cat-gorras", photo: (s) => s.byType.CAP ?? s.byType.BEANIE },
-  { key: "cats.DRINKWARE", cat: "DRINKWARE", kind: "mug", color: "#ffffff", slug: "tapas", site: "cat-tazas", photo: (s) => s.byCategory.DRINKWARE },
-  { key: "cats.WALL_ART", cat: "WALL_ART", kind: "poster", color: "#ffffff", slug: "futbol", photo: (s) => s.byType.FRAMED_PRINT ?? s.byCategory.WALL_ART },
-  { key: "cats.BAGS", cat: "BAGS", kind: "tote", color: "#111111", slug: "camino", print: "logo", site: "cat-bolsas", photo: (s) => s.byCategory.BAGS },
-  { key: "cats.HOME_LIVING", cat: "HOME_LIVING", kind: "poster", color: "#ffffff", slug: "playa", photo: (s) => s.byType.BLANKET ?? s.byType.PILLOW ?? s.byCategory.HOME_LIVING },
-  { key: "cats.EMBROIDERY", cat: "EMB", kind: "tee", color: "#111111", slug: "heritage", print: "logo", photo: (s) => s.byTag.bordado },
+/** Category tiles: what each covers in the listing, where it links and its editorial look. */
+export const CATEGORY_TILES: { key: string; look: string; href: string; match: (p: PublicProduct) => boolean }[] = [
+  { key: "cats.TEES", look: "TSHIRT", href: "/shop?c=APPAREL&t=TSHIRT", match: (p) => p.productType === "TSHIRT" },
+  { key: "cats.HOODIES", look: "HOODIE", href: "/shop?c=APPAREL&t=HOODIE", match: (p) => p.productType === "HOODIE" },
+  { key: "cats.HEADWEAR", look: "HEADWEAR", href: "/shop?c=HEADWEAR", match: (p) => p.categoryCode === "HEADWEAR" },
+  { key: "cats.DRINKWARE", look: "DRINKWARE", href: "/shop?c=DRINKWARE", match: (p) => p.categoryCode === "DRINKWARE" },
+  { key: "cats.WALL_ART", look: "WALL_ART", href: "/shop?c=WALL_ART", match: (p) => p.categoryCode === "WALL_ART" },
+  { key: "cats.BAGS", look: "BAGS", href: "/shop?c=BAGS", match: (p) => p.categoryCode === "BAGS" },
+  { key: "cats.HOME_LIVING", look: "HOME_LIVING", href: "/shop?c=HOME_LIVING", match: (p) => p.categoryCode === "HOME_LIVING" },
+  { key: "cats.EMBROIDERY", look: "EMB", href: "/shop?tema=bordados", match: (p) => p.tags.includes("bordado") },
 ];
 
-/** Real product photo (provider mockup) in a rounded frame. */
-function Photo({ src, alt, className = "", sizes = "(min-width:1024px) 16vw, 45vw" }: { src: string; alt: string; className?: string; sizes?: string }) {
-  return (
-    <div className={`relative aspect-square overflow-hidden rounded-2xl bg-[#f3f1ee] ${className}`}>
-      <Image src={src} alt={alt} fill sizes={sizes} className="object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]" />
-    </div>
-  );
-}
-
-export async function CategoryGrid() {
-  const [t, show, site] = await Promise.all([getT(), getShowcase(), listSiteImages()]);
-  const photoOf = (c: (typeof CATEGORY_TILES)[number]) => (c.site && site[c.site]) || c.photo(show);
+export async function CategoryGrid({ products }: { products: PublicProduct[] }) {
+  const [t, site, locale] = await Promise.all([getT(), listSiteImages(), getLocale()]);
+  const en = locale === "en";
+  const tiles = CATEGORY_TILES.map((c) => ({ c, items: products.filter(c.match) })).filter((x) => x.items.length);
+  if (!tiles.length) return null;
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
@@ -85,69 +81,66 @@ export async function CategoryGrid() {
             </Link>
           }
         />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {CATEGORY_TILES.map((c, i) => (
-            <Reveal key={c.key} delay={i * 0.04}>
-              <Link href={c.cat === "EMB" ? "/collections/esenciales" : `/shop?c=${c.cat}`} className="group relative block overflow-hidden rounded-3xl bg-surface-2 p-4 transition-colors duration-500 hover:bg-fg hover:text-bg sm:p-5">
-                <span className="text-[11px] font-bold tabular-nums text-muted group-hover:text-bg/60">{String(i + 1).padStart(2, "0")}</span>
-                {photoOf(c) ? (
-                  <Photo src={photoOf(c)!} alt={t(c.key as never)} className="my-3" />
-                ) : (
-                  <div className="px-2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-1 group-hover:scale-[1.06]">
-                    <Mockup kind={c.kind} color={c.color} slug={c.slug} print={c.print} />
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  <span className="headline text-lg uppercase sm:text-xl">{t(c.key as never)}</span>
-                  <IconArrow className="h-4 w-4 -rotate-45 transition-transform duration-300 group-hover:rotate-0" />
-                </div>
-              </Link>
-            </Reveal>
-          ))}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+          {tiles.map(({ c, items }, i) => {
+            const look = CATEGORY_LOOKS[c.look];
+            return (
+              <Reveal key={c.key} delay={(i % 4) * 0.05} className="aspect-[4/5]">
+                <EditorialTile href={c.href} title={t(c.key as never)} kicker={en ? `${items.length} items` : `${items.length} piezas`} tone={look.tone} texture={look.texture} word={look.word} photo={tilePhoto(look, site)} cards={tileCards(items, 3)} size="card" />
+              </Reveal>
+            );
+          })}
         </div>
       </Container>
     </section>
   );
 }
 
-/** "Lo que nos mueve": bento of what matters in Spain — football, sayings, fiesta, sea, tapas, trades. */
-export async function ThemesBento({ collections }: { collections: PublicCollection[] }) {
-  const [t, show] = await Promise.all([getT(), getShowcase()]);
-  const spans: Record<string, string> = {
-    futbol: "col-span-2 row-span-2",
-    sabiduria: "col-span-2 row-span-2",
-    profesiones: "col-span-2",
-  };
+/** Bento spans per tile size (mobile: 2 columns, desktop: 4). */
+const SPAN: Record<string, string> = { hero: "col-span-2 row-span-2", tall: "row-span-2", sq: "", wide: "col-span-2", banner: "col-span-2 lg:col-span-4" };
+/** Layout patterns that fill whole rows of the 4-column bento for 3–8 themes. */
+const BENTO: Record<number, string[]> = {
+  8: ["hero", "tall", "sq", "sq", "wide", "sq", "sq", "banner"],
+  7: ["hero", "tall", "sq", "sq", "wide", "sq", "sq"],
+  6: ["hero", "tall", "sq", "sq", "wide", "wide"],
+  5: ["hero", "sq", "sq", "sq", "sq"],
+  4: ["hero", "tall", "sq", "sq"],
+  3: ["hero", "wide", "wide"],
+};
+
+/** "Lo que nos mueve": editorial bento of the themes — brand tones, texture, campaign photo or fanned product cards. */
+export async function ThemesBento({ collections, products }: { collections: PublicCollection[]; products: PublicProduct[] }) {
+  const [t, site, locale] = await Promise.all([getT(), listSiteImages(), getLocale()]);
+  const en = locale === "en";
+  const tiles = collections
+    .map((c) => ({ c, items: products.filter((p) => p.collection?.slug === c.slug) }))
+    .filter((x) => x.items.length || !products.length)
+    .slice(0, 8);
+  const pattern = BENTO[tiles.length] ?? tiles.map(() => "wide");
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
         <SectionHead eyebrow={t("themes.kicker")} title={t("themes.title")} sub={t("themes.sub")} />
-        <div className="grid grid-flow-dense auto-rows-[210px] grid-cols-2 gap-3 sm:auto-rows-[250px] lg:grid-cols-4">
-          {collections.map((c, i) => {
-            const th = themeFor(c.slug);
-            const big = c.slug === "futbol" || c.slug === "sabiduria";
+        <div className="grid grid-flow-dense auto-rows-[190px] grid-cols-2 gap-3 sm:auto-rows-[250px] sm:gap-4 lg:auto-rows-[270px] lg:grid-cols-4">
+          {tiles.map(({ c, items }, i) => {
+            const look = lookFor(c.slug);
+            const kind = pattern[i] ?? "sq";
+            const size = kind as TileSize;
             return (
-              <Reveal key={c.slug} delay={(i % 4) * 0.05} className={spans[c.slug] ?? ""}>
-                <Link href={`/collections/${c.slug}`} className={`group relative flex h-full flex-col overflow-hidden rounded-3xl p-5 sm:p-6 ${th.tile}`}>
-                  <div className="relative z-10 flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className={`headline uppercase ${big ? "text-4xl sm:text-6xl" : "text-2xl sm:text-3xl"}`}>{c.name}</h3>
-                      {c.tagline && <p className={`mt-1.5 max-w-[15rem] text-[13px] leading-snug opacity-80 ${big ? "sm:text-base" : ""}`}>{c.tagline}</p>}
-                    </div>
-                    <ArrowDot />
-                  </div>
-                  <div className={`pointer-events-none absolute transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-2 group-hover:rotate-[-4deg] group-hover:scale-105 ${big ? "-bottom-[6%] -right-[4%] w-[78%] sm:w-[70%]" : "-bottom-[16%] -right-[10%] w-[62%] sm:w-[58%]"}`}>
-                    {show.byCollection[c.slug]?.[0] ? (
-                      <div className="relative aspect-square overflow-hidden rounded-[1.4rem] shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)] ring-1 ring-black/5 rotate-[-5deg]">
-                        <Image src={show.byCollection[c.slug][0]} alt={c.name} fill sizes="(min-width:1024px) 22vw, 50vw" className="object-cover" />
-                      </div>
-                    ) : c.slug === "futbol" ? (
-                      <JerseyBack name="AFICIÓN" number="10" shirt="#ffffff" ink="#0f7a3d" trim="#e3051b" />
-                    ) : (
-                      <Mockup kind={th.kind} color={th.garment} slug={th.art} />
-                    )}
-                  </div>
-                </Link>
+              <Reveal key={c.slug} delay={(i % 4) * 0.05} className={SPAN[kind]}>
+                <EditorialTile
+                  href={`/collections/${c.slug}`}
+                  title={c.name}
+                  kicker={items.length ? tileCount(items, en) : undefined}
+                  tagline={c.tagline}
+                  cta={en ? "See the collection" : "Ver colección"}
+                  tone={look.tone}
+                  texture={look.texture}
+                  word={look.word}
+                  photo={tilePhoto(look, site)}
+                  cards={tileCards(items, 3)}
+                  size={size}
+                />
               </Reveal>
             );
           })}

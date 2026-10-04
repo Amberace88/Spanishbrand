@@ -4,7 +4,14 @@ import type { PublicProduct } from "@/lib/products/queries";
 import { formatMoney } from "@/lib/format";
 import { CollectionArt } from "@/components/art/CollectionArt";
 
-export function ProductCard({ p, labels }: { p: PublicProduct; labels: { madeToOrder: string; from: string; limited: string } }) {
+const SIZES = "(min-width:1440px) 340px, (min-width:1024px) 24vw, 48vw";
+
+/**
+ * Listing card. Shows images[0] and, on hover, images[1] — listings pass products through the
+ * merchandising engine (lib/catalog/merch.ts), which puts the chosen hero colour first and a second photo
+ * of the same colour (back print / angle) next.
+ */
+export function ProductCard({ p, labels, priority = false }: { p: PublicProduct; labels: { madeToOrder: string; from: string; limited: string }; priority?: boolean }) {
   const [a, b] = p.images;
   const prices = p.variants.map((v) => v.price);
   const min = prices.length ? Math.min(...prices) : p.price;
@@ -17,8 +24,8 @@ export function ProductCard({ p, labels }: { p: PublicProduct; labels: { madeToO
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-2">
         {a ? (
           <>
-            <Image src={a.url} alt={a.alt ?? p.name} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.05]" />
-            {b && <Image src={b.url} alt="" fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />}
+            <Image src={a.url} alt={a.alt ?? p.name} fill sizes={SIZES} loading={priority ? "eager" : undefined} className="object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.05]" />
+            {b && <Image src={b.url} alt="" fill sizes={SIZES} className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />}
           </>
         ) : (
           <CollectionArt slug={p.collection?.slug ?? "default"} className="absolute inset-0" />
