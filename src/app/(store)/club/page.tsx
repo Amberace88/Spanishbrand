@@ -86,8 +86,7 @@ export default async function ClubPage() {
       {/* HOW IT WORKS */}
       <section className="bg-bg py-16 sm:py-24">
         <Container>
-          <p className="kicker text-accent">{c.how}</p>
-          <h2 className="headline mt-3 max-w-2xl text-4xl sm:text-5xl">{c.howT}</h2>
+          <h2 className="headline max-w-2xl text-4xl sm:text-5xl">{c.howT}</h2>
           <div className="relative mt-8 sm:mt-10">
           <ol className="relative grid gap-3 md:grid-cols-3 md:gap-4">
             {[[c.s1t, c.s1b], [c.s2t, c.s2b], [c.s3t, c.s3b]].map(([t, b], i) => (
@@ -112,8 +111,7 @@ export default async function ClubPage() {
       {/* PERKS */}
       <section className="bg-surface-2/50 py-16 sm:py-24">
         <Container>
-          <p className="kicker text-accent">{c.perks}</p>
-          <h2 className="headline mt-3 text-4xl sm:text-5xl">{c.perksT}</h2>
+          <h2 className="headline text-4xl sm:text-5xl">{c.perksT}</h2>
           <div className="mt-10">
             <PerksGrid locale={locale} />
           </div>
@@ -124,8 +122,7 @@ export default async function ClubPage() {
       <section className="bg-bg py-16 sm:py-24">
         <Container className="grid gap-8 lg:grid-cols-[1fr_1.4fr] lg:items-center lg:gap-10">
           <div>
-            <p className="kicker text-accent">{c.tiers}</p>
-            <h2 className="headline mt-3 text-4xl sm:text-5xl">{c.tiersT}</h2>
+            <h2 className="headline text-4xl sm:text-5xl">{c.tiersT}</h2>
             <p className="mt-4 max-w-md leading-relaxed text-muted">{c.tiersB}</p>
           </div>
           <TierLadder locale={locale} current={isMember ? tier : undefined} />

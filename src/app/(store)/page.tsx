@@ -49,7 +49,13 @@ export default async function Home() {
   ];
   const looks = LOOKS.filter(([k]) => site[k]).map(([k, alt, art]) => ({ src: site[k], alt, href: `/disena?arte=${art}` }));
   const arts = ART_SERIES.map((p) => ({ key: p.art, name: p.name, src: siteArtSrc(p.art) }));
-  const core = collections.filter((c) => ["espana", "heritage", "mediterraneo"].includes(c.slug));
+  // collections not already in the themes bento above (no tile shown twice on the page)
+  const CORE = ["statement", "leon", "espana"];
+  const THEMED = ["futbol", "fiestas", "playa", "tapas", "sabiduria", "heritage", "mediterraneo", "profesiones"];
+  const withStock = (c: { slug: string }) => !catalog.length || counts[c.slug];
+  const picked = collections.filter((c) => CORE.includes(c.slug) && withStock(c)).sort((a, b) => CORE.indexOf(a.slug) - CORE.indexOf(b.slug));
+  // top up to three with other collections that are not in the themes bento
+  const core = [...picked, ...collections.filter((c) => !picked.includes(c) && !THEMED.includes(c.slug) && withStock(c))].slice(0, 3);
   // real bestsellers keep their sales order (each card leads with its best colour); otherwise the newest pieces, curated
   const products = bestsellers.length ? bestsellers.map((p) => withHero(p)) : merchandiseUnique(newest, 8);
   const productsTitle = bestsellers.length ? t("home.bestsellers.title") : t("home.newest.title");
@@ -98,7 +104,7 @@ export default async function Home() {
       <FiestasCalendar />
       {!products.length && <ComingSoonGrid collections={core.length ? core : collections} />}
       <Manifesto kicker={t("manifesto.kicker")} text={t("manifesto.text")} highlight={["identidad", "españa", "identity", "spain"]} />
-      <CollectionsBento collections={core.length ? core : collections} counts={counts} />
+      <CollectionsBento collections={core.length ? core : collections} counts={counts} products={catalog} />
 
       {/* Drop */}
       <section className="bg-bg pb-16 sm:pb-24">

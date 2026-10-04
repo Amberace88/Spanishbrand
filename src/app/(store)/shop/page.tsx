@@ -12,7 +12,8 @@ import { IconArrow, IconClose } from "@/components/ui/Icons";
 import { EditorialTile, type TileSize } from "@/components/merch/EditorialTile";
 import { FilterDrawer, type FilterGroup } from "@/components/shop/FilterDrawer";
 import { ChipRail } from "@/components/shop/ChipRail";
-import { AUDIENCES, isAudience, isFor } from "@/lib/catalog/audience";
+import { AUDIENCES, AUDIENCE_COVER, AUDIENCE_LOCAL, isAudience, isFor } from "@/lib/catalog/audience";
+import { AudienceTile } from "@/components/merch/AudienceTile";
 import { COLLECTION_THEMES, themeByKey } from "@/lib/catalog/themes";
 import { merchandise, merchandiseUnique } from "@/lib/catalog/merch";
 import { CATEGORY_LOOKS, lookFor } from "@/lib/catalog/tones";
@@ -153,8 +154,6 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       const types = [...new Set(items.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
       return { code, items, types };
     }).filter((c) => c.items.length);
-    const AUDIENCE_COVER: Record<string, string> = { mujer: "look-leon-mujer", hombre: "look-toro-hombre", ninos: "look-barca-nino" };
-    const AUDIENCE_LOCAL: Record<string, string> = { ninos: "/lifestyle/kids-1.webp", bebes: "/lifestyle/kids-2.webp", abuelos: "/lifestyle/kids-4.webp" };
     const usedCovers = new Set<string>();
     const audienceTiles = AUDIENCES.map((x) => {
       const items = all.filter((p) => isFor(p, x));
@@ -215,21 +214,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-4 sm:overflow-visible sm:px-0">
                 {audienceTiles.map((x, i) => (
                   <Reveal key={x.a} delay={i * 0.04} className="w-[42vw] shrink-0 snap-start sm:w-auto">
-                    <Link href={`/para/${x.a}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#17130f] text-white">
-                      {x.cover ? (
-                        <Image src={x.cover} alt={t(`audience.${x.a}`)} fill sizes="(min-width:640px) 20vw, 42vw" className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-105" />
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src="/catalog/art/lion-crowned.png" alt="" className="absolute inset-0 m-auto h-1/2 w-1/2 object-contain opacity-80 transition-transform duration-700 group-hover:scale-110" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                        {x.count > 0 && <p className="kicker text-[#e0b84a]">{t("audience.count", { n: x.count })}</p>}
-                        <p className="mega mt-1.5 flex items-center justify-between gap-2 text-2xl sm:text-3xl">
-                          {t(`audience.${x.a}`)} <IconArrow className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                        </p>
-                      </div>
-                    </Link>
+                    <AudienceTile href={`/para/${x.a}`} label={t(`audience.${x.a}`)} count={x.count > 0 ? t("audience.count", { n: x.count }) : null} cover={x.cover} />
                   </Reveal>
                 ))}
               </div>

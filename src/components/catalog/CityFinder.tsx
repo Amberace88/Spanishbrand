@@ -1,4 +1,5 @@
 "use client";
+import { IconArrow } from "@/components/ui/Icons";
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -54,7 +55,7 @@ export function CityFinder({ cities }: { cities: CityCard[] }) {
         <p className="py-16 text-center text-muted">
           {en ? "No city found. " : "No encontramos esa ciudad. "}
           <Link href="/disena" className="underline">
-            {en ? "Design yours with any name →" : "Diseña la tuya con cualquier nombre →"}
+            {en ? "Design yours with any name" : "Diseña la tuya con cualquier nombre"}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
           </Link>
         </p>
       ) : (

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { getPublishedProducts, type PublicProduct } from "@/lib/products/queries";
 import { listSiteImages } from "@/lib/site-images";
-import { AUDIENCES, AUDIENCE_EXTRAS, AUDIENCE_TYPE_ORDER, audienceTypeLabel, isAudience, isFor, type Audience } from "@/lib/catalog/audience";
+import { AUDIENCES, AUDIENCE_COVER, AUDIENCE_LOCAL, AUDIENCE_EXTRAS, AUDIENCE_TYPE_ORDER, audienceTypeLabel, isAudience, isFor, type Audience } from "@/lib/catalog/audience";
 import { ACTIVE_DESIGNS, artUrl, type BlueprintKey, type Design } from "@/lib/catalog/designs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { merchandise, merchandiseUnique } from "@/lib/catalog/merch";
@@ -13,6 +13,8 @@ import { DesignArt } from "@/components/catalog/DesignArt";
 import { Container, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { IconArrow } from "@/components/ui/Icons";
+import { AudienceTile } from "@/components/merch/AudienceTile";
+import { campaignPhoto } from "@/lib/campaign";
 
 export const revalidate = 120;
 export const dynamicParams = false;
@@ -141,12 +143,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
               <Link href="/shop" className="hover:text-fg">{t("nav.shop")}</Link> <span className="mx-1.5">/</span>
               <span className="text-fg">{t("audience.title")}</span>
             </nav>
-            <p className="kicker mt-6 flex items-center gap-2 text-gold">
-              <span className="flag-line inline-block h-[3px] w-6 rounded-full" />
-              {t("audience.title")} · {t(`audience.${a}`)}
-              {own.length > 0 && <span className="text-muted"> · {t("audience.count", { n: own.length })}</span>}
-            </p>
-            <h1 className="mt-4 font-[family-name:var(--font-logo)] text-[13vw] font-bold leading-[0.95] tracking-[0.01em] text-fg sm:text-7xl lg:text-[6.2rem]">{t(`audience.${a}.title`)}</h1>
+            <h1 className="mt-6 font-[family-name:var(--font-logo)] text-[13vw] font-bold leading-[0.95] tracking-[0.01em] text-fg sm:text-7xl lg:text-[6.2rem]">{t(`audience.${a}.title`)}</h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">{t(`audience.${a}.sub`)}</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a href="#productos" className="btn btn-primary px-6 py-3.5">
@@ -301,20 +298,12 @@ export default async function AudiencePage({ params, searchParams }: { params: P
       {/* ───────── the other recipients ───────── */}
       <section className="border-t border-line bg-bg py-14 sm:py-16">
         <Container>
-          <p className="kicker flex items-center gap-2 text-gold">
-            <span className="flag-line inline-block h-[3px] w-6 rounded-full" />
-            {t("audience.others")}
-          </p>
-          <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {AUDIENCES.filter((x) => x !== a).map((x) => (
-              <Link key={x} href={`/para/${x}`} className="group relative overflow-hidden rounded-[1.6rem] border border-line bg-surface p-5 transition-colors hover:border-fg/40 sm:p-6">
-                <span className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full opacity-25 blur-2xl transition-opacity group-hover:opacity-50" style={{ background: PAGE[x].accent }} aria-hidden />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={artUrl("lion-crowned")} alt="" aria-hidden className="pointer-events-none absolute -bottom-3 -right-3 h-20 w-20 object-contain opacity-[0.12] transition-transform duration-700 group-hover:scale-110" />
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted">{t(`audience.${x}`)}</p>
-                <p className="headline mt-1 text-xl leading-tight sm:text-2xl">{t(`audience.${x}.title`)}</p>
-                <IconArrow className="mt-4 h-4 w-4 text-accent transition-transform group-hover:translate-x-1" />
-              </Link>
+          <h2 className="headline text-[2.1rem] sm:text-5xl">{t("audience.others")}</h2>
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {AUDIENCES.filter((x) => x !== a).map((x, i) => (
+              <Reveal key={x} delay={i * 0.04}>
+                <AudienceTile href={`/para/${x}`} label={t(`audience.${x}.title`)} cover={campaignPhoto(x) || (AUDIENCE_COVER[x] && site[AUDIENCE_COVER[x]]) || AUDIENCE_LOCAL[x] || null} sizes="(min-width:1024px) 25vw, 50vw" />
+              </Reveal>
             ))}
           </div>
         </Container>

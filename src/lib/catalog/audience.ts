@@ -99,3 +99,7 @@ export function audienceTypeLabel(code: string, locale: string): string {
   if (!l) return code.charAt(0) + code.slice(1).toLowerCase().replace(/_/g, " ");
   return locale === "en" ? l.en : locale === "de" ? l.de : l.es;
 }
+
+/** Cover photo slots per audience: campaign photo, then an uploaded site photo, then a bundled lifestyle photo. */
+export const AUDIENCE_COVER: Record<string, string> = { mujer: "look-leon-mujer", hombre: "look-toro-hombre", ninos: "look-barca-nino" };
+export const AUDIENCE_LOCAL: Record<string, string> = { ninos: "/lifestyle/kids-1.webp", bebes: "/lifestyle/kids-2.webp", abuelos: "/lifestyle/kids-4.webp" };

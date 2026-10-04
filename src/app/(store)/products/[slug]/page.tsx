@@ -423,7 +423,7 @@ function Rail({ title, items, labels, tone, href, more }: { title: string; items
           <h2 className="headline text-3xl sm:text-4xl">{title}</h2>
           {href && more && (
             <Link href={href} className="text-sm font-semibold underline-offset-4 hover:underline">
-              {more} →
+              {more}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
             </Link>
           )}
         </div>

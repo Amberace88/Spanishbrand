@@ -4,14 +4,16 @@ import { getBrand } from "@/lib/brand";
 import Image from "next/image";
 import { Container, PageHero } from "@/components/ui/Section";
 import { MaskLines, Reveal } from "@/components/ui/Reveal";
+import { IconArrow } from "@/components/ui/Icons";
+import { campaignPhoto } from "@/lib/campaign";
 
 export const metadata: Metadata = { title: "La marca", alternates: { canonical: "/about" } };
 
-const VALUES = [
-  ["Identidad, no souvenir", "Diseñamos piezas que se llevan a diario: sin clichés, sin exceso de banderas, con respeto por la historia y la cultura."],
-  ["Colecciones con historia", "Cada colección nace de una idea, una ciudad, una carretera, un mar, un oficio, y se expresa en ropa, hogar, arte y accesorios."],
-  ["Bajo pedido, sin stock", "Cada artículo se produce cuando lo pides, a través de socios de producción conectados. Sin almacenes llenos ni excedentes."],
-  ["Comunidad", "Votas diseños y colecciones. Los resultados deciden qué producimos después."],
+const VALUES: [string, string, string][] = [
+  ["Identidad, no souvenir", "Diseñamos piezas que se llevan a diario: sin clichés, sin exceso de banderas, con respeto por la historia y la cultura.", "statement"],
+  ["Colecciones con historia", "Cada colección nace de una idea, una ciudad, una carretera, un mar, un oficio, y se expresa en ropa, hogar, arte y accesorios.", "heritage"],
+  ["Bajo pedido, sin stock", "Cada artículo se produce cuando lo pides, a través de socios de producción conectados. Sin almacenes llenos ni excedentes.", "bordados"],
+  ["Comunidad", "Votas diseños y colecciones. Los resultados deciden qué producimos después.", "fiestas"],
 ];
 
 export default async function AboutPage() {
@@ -40,18 +42,25 @@ export default async function AboutPage() {
       </section>
       <section className="bg-surface-2 py-20">
         <Container>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {VALUES.map(([title, body], i) => (
-              <Reveal key={title} delay={i * 0.06} className="rounded-3xl bg-surface p-8 sm:p-10">
-                <p className="headline text-5xl text-accent">{String(i + 1).padStart(2, "0")}</p>
-                <h3 className="mt-6 text-2xl font-semibold">{title}</h3>
-                <p className="mt-3 leading-relaxed text-muted">{body}</p>
-              </Reveal>
-            ))}
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+            {VALUES.map(([title, body, photo], i) => {
+              const src = campaignPhoto(photo);
+              return (
+                <Reveal key={title} delay={i * 0.06} className="flex items-stretch gap-5 overflow-hidden rounded-[1.75rem] bg-surface p-3 ring-1 ring-line sm:p-4">
+                  <div className="relative w-28 shrink-0 overflow-hidden rounded-[1.25rem] bg-surface-2 sm:w-36">
+                    {src && <Image src={src} alt="" fill sizes="144px" className="object-cover" />}
+                  </div>
+                  <div className="py-3 pr-3 sm:py-5">
+                    <h3 className="headline text-xl sm:text-2xl">{title}</h3>
+                    <p className="mt-2 text-[15px] leading-relaxed text-muted">{body}</p>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
           <div className="mt-16 text-center">
             <Link href="/collections" className="btn btn-ink">
-              Ver colecciones →
+              Ver colecciones <IconArrow className="h-4 w-4" />
             </Link>
           </div>
         </Container>

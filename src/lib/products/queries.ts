@@ -313,6 +313,11 @@ const cachedProductRow = unstable_cache(
 );
 
 export const getProductBySlug = cache(async (slug: string) => {
+  // local design previews without a database (never in production)
+  if (process.env.LISTING_FIXTURE && process.env.NODE_ENV !== "production") {
+    const hit = (await loadListing()).find((p) => p.slug === slug);
+    if (hit) return { ...hit, description: hit.description ?? "Algodón 100 %, impresión directa. Fabricado bajo pedido en Europa." };
+  }
   const row = await cachedProductRow(slug).catch(async () => {
     const q = publishedQuery();
     return q ? ((await q.eq("slug", slug).maybeSingle()).data as Row | null) : null;

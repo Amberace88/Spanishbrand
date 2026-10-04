@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconArrow } from "@/components/ui/Icons";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -12,6 +13,10 @@ import { merchandise } from "@/lib/catalog/merch";
 import { TrackView } from "@/components/analytics/TrackView";
 import { Container } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
+import { listSiteImages } from "@/lib/site-images";
+import { lookFor } from "@/lib/catalog/tones";
+import { tileCards, tilePhoto } from "@/lib/catalog/tiles";
+import { EditorialTile } from "@/components/merch/EditorialTile";
 
 export const revalidate = 120;
 
@@ -36,7 +41,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
-  const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 })]);
+  const [t, all, site] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 }), listSiteImages()]);
   const byTag = TAG_COLLECTIONS.has(c.slug);
   // curated order (quality × diversity × hero colour): lib/catalog/merch.ts
   const own = merchandise(all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))));
@@ -50,6 +55,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
   if (design) products = products.filter((p) => p.design === design.slug);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const hero = own.find((p) => p.images.some((i) => i.kind === "LIFESTYLE"))?.images.find((i) => i.kind === "LIFESTYLE") ?? own[0]?.images[0];
+  const look = lookFor(c.slug);
   // sections by design, in curated order (each design led by its best piece)
   const bySlug = new Map<string, (typeof all)[number][]>();
   for (const p of own) {
@@ -87,11 +93,11 @@ export default async function CollectionPage({ params, searchParams }: { params:
               {designs[0] && <Link href={`/disena?style=${designs[0].slug}`} className="btn btn-ghost">{t("collections.designOwn")}</Link>}
             </div>
           </Reveal>
-          <Reveal delay={0.08} className="relative mx-auto aspect-[4/3] w-full max-w-lg overflow-hidden rounded-[2rem]">
-            {hero ? (
-              <Image src={hero.url} alt={hero.alt ?? c.name} fill preload sizes="(min-width:1024px) 40vw, 100vw" className="object-cover" />
+          <Reveal delay={0.08} className="relative mx-auto aspect-[4/3] w-full max-w-xl">
+            {tilePhoto(look, site) || own.length ? (
+              <EditorialTile title="" tone={look.tone} texture={look.texture} word={look.word} photo={tilePhoto(look, site)} cards={tileCards(own, 3)} size="stage" priority sizes="(min-width:1024px) 40vw, 100vw" />
             ) : designs.length ? (
-              <div className="absolute inset-0 grid grid-cols-2 gap-3 bg-surface p-6">
+              <div className="absolute inset-0 grid grid-cols-2 gap-3 rounded-[1.75rem] bg-surface p-6">
                 {designs.slice(0, 2).map((d) => (
                   <DesignArt key={d.slug} layers={d.layers} tone={d.tone} kind="tee" />
                 ))}
@@ -108,10 +114,9 @@ export default async function CollectionPage({ params, searchParams }: { params:
           {c.slug === "futbol" && (
             <Link href="/futbol" className="group mb-10 flex items-center justify-between gap-4 overflow-hidden rounded-[1.75rem] bg-[#0b0b0b] p-6 text-white sm:p-8">
               <div>
-                <p className="kicker text-gold">★★ {t("futbol.eyebrow")}</p>
-                <p className="mega mt-2 text-4xl sm:text-6xl">{t("futbol.title")} · {t("futbol.series.ciudad")}</p>
+                <p className="mega text-4xl sm:text-6xl">{t("futbol.title")} · {t("futbol.series.ciudad")}</p>
               </div>
-              <span className="btn btn-primary shrink-0">{t("futbol.ctaShop")} →</span>
+              <span className="btn btn-primary shrink-0">{t("futbol.ctaShop")}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" /></span>
             </Link>
           )}
           {own.length > 0 && (
@@ -141,7 +146,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
                     <ProductCard p={x.lead} labels={labels} />
                     {x.design && x.count > 1 && (
                       <Link href={`/collections/${c.slug}?d=${x.design}${type ? `&c=${type}` : ""}#productos`} className="mt-2 inline-flex items-center gap-1 px-0.5 text-[12px] font-semibold text-accent hover:underline">
-                        +{x.count - 1} {t("collections.moreOfDesign" as never)} →
+                        +{x.count - 1} {t("collections.moreOfDesign" as never)}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
                       </Link>
                     )}
                   </Reveal>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IconArrow } from "@/components/ui/Icons";
 import Image from "next/image";
 import Link from "next/link";
 import { getLocale } from "@/lib/i18n/server";
@@ -47,7 +48,7 @@ export default async function ReturnStatusPage({ searchParams }: { searchParams:
                     <input name="email" type="email" required defaultValue={email} className="field" />
                   </label>
                 </div>
-                <button className="btn btn-primary mt-6 px-8 py-4">{en ? "Check" : "Consultar"} →</button>
+                <button className="btn btn-primary mt-6 px-8 py-4">{en ? "Check" : "Consultar"}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" /></button>
                 <p className="mt-6 text-sm text-muted">
                   {en ? "No request yet?" : "¿Aún no tienes solicitud?"}{" "}
                   <Link href="/returns/new" className="underline">

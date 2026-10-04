@@ -111,7 +111,7 @@ export default async function CausesPage() {
 
           <div className="mt-16 grid gap-10 lg:grid-cols-2">
             <div>
-              <p className="kicker text-accent">{c.how}</p>
+              <h2 className="headline text-2xl sm:text-3xl">{c.how}</h2>
               <ol className="mt-5 space-y-4">
                 {[c.h1, c.h2, c.h3, c.h4].map((h, i) => (
                   <li key={i} className="flex gap-4">

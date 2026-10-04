@@ -143,8 +143,7 @@ export default async function FutbolPage({ searchParams }: { searchParams: Promi
             <section key={s.key} id="ciudad" className="scroll-mt-28 bg-[#0b0b0b] py-14 text-white sm:py-20">
               <Container>
                 <Reveal>
-                  <p className="kicker text-gold">{t("futbol.picker.title")}</p>
-                  <h2 className="mega mt-3 text-6xl sm:text-8xl">{t("futbol.series.ciudad")}</h2>
+                  <h2 className="mega text-6xl sm:text-8xl">{t("futbol.series.ciudad")}</h2>
                   <p className="mt-4 max-w-2xl text-lg text-white/65">{t("futbol.series.ciudadSub")} {t("futbol.picker.sub")}</p>
                 </Reveal>
                 <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
@@ -205,8 +204,7 @@ export default async function FutbolPage({ searchParams }: { searchParams: Promi
             <Container>
               <Reveal className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="kicker flex items-center gap-2 text-gold"><span className="flag-line inline-block h-[3px] w-6 rounded-full" />{t("futbol.pieces", { n: list.reduce((a, d) => a + (byDesign.get(d.slug)?.length ?? 0), 0) || list.length })}</p>
-                  <h2 className="mega mt-2 text-5xl sm:text-7xl">{t(`futbol.series.${s.key}` as never)}</h2>
+                  <h2 className="mega text-5xl sm:text-7xl">{t(`futbol.series.${s.key}` as never)}</h2>
                   <p className="mt-3 max-w-xl text-muted">{t(`futbol.series.${s.key}Sub` as never)}</p>
                 </div>
               </Reveal>

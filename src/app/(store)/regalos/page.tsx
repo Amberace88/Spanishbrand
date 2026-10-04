@@ -108,8 +108,7 @@ export default async function GiftsPage({ searchParams }: { searchParams: Promis
           <div className="grid overflow-hidden rounded-[2rem] border border-line lg:grid-cols-[1fr_1.2fr]">
             <div className="relative flex flex-col justify-between gap-8 bg-[#0b0b0b] p-8 text-[#f5f1e8] sm:p-12">
               <div>
-                <p className="kicker text-[#e0b84a]">{c.cardKicker}</p>
-                <h2 className="headline mt-3 text-4xl sm:text-5xl">{c.cardTitle}</h2>
+                <h2 className="headline text-4xl sm:text-5xl">{c.cardTitle}</h2>
                 <p className="mt-4 max-w-sm text-[#f5f1e8]/70">{c.cardBody}</p>
               </div>
               <div className="relative aspect-[1.586] w-full max-w-sm rotate-[-4deg] overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0b0b0b] p-6 shadow-2xl ring-1 ring-[#e0b84a]/40">

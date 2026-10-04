@@ -89,7 +89,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
                   <h2 className="headline mt-2 text-3xl sm:text-4xl">{en ? `The ${c.label} collection is being produced` : `La colección de ${c.label} está en producción`}</h2>
                   <p className="mt-3 text-muted">{en ? "Meanwhile you can make it your own in the designer." : "Mientras tanto, puedes hacerla tuya en el diseñador."}</p>
                   <Link href={`/disena?style=ciudad-${c.slug}-cartel`} className="btn btn-primary mt-6 px-6 py-3.5">
-                    {en ? "Design it" : "Diséñala"} →
+                    {en ? "Design it" : "Diséñala"}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
                   </Link>
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
                 ))}
                 {region && (
                   <Link href={`/regiones/${region.slug}`} className="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-bg">
-                    {region.name} →
+                    {region.name}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
                   </Link>
                 )}
               </div>

@@ -13,6 +13,7 @@ import { Container, SectionHead } from "@/components/ui/Section";
 import { IconArrow, IconChat, IconLeaf, IconLock, IconReturn, IconTruck } from "@/components/ui/Icons";
 import { Newsletter } from "@/components/home/Newsletter";
 import { listSiteImages } from "@/lib/site-images";
+import { campaignPhoto } from "@/lib/campaign";
 import { BrandLogo } from "@/components/brand/Wordmark";
 
 function ArrowDot({ className = "" }: { className?: string }) {
@@ -153,88 +154,109 @@ export async function ThemesBento({ collections, products }: { collections: Publ
 export async function FiestasCalendar() {
   const t = await getT();
   const list = upcomingFiestas(new Date(), 4);
+  if (!list.length) return null;
+  const [next, ...rest] = list;
+  const photo = campaignPhoto("fiestas");
+  const date = (d: Date) => d.toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" });
   return (
     <section className="bg-bg pb-16 sm:pb-24">
       <Container>
         <Reveal>
           <h2 className="headline text-[2.1rem] sm:text-5xl">{t("fiestas.title")}</h2>
         </Reveal>
-        <div className="no-scrollbar -mx-4 mt-8 flex snap-x gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4">
-          {list.map((f, i) => (
-            <Reveal key={f.key} delay={i * 0.05} className="w-[78vw] shrink-0 snap-start sm:w-auto">
-              <Link href={`/collections/${f.theme}`} className={`group flex h-full flex-col justify-between rounded-3xl border p-6 transition-colors ${i === 0 ? "border-accent bg-accent text-white" : "border-line hover:border-fg"}`}>
-                <div className="flex items-start justify-between">
-                  <p className={`kicker ${i === 0 ? "text-white/80" : "text-muted"}`}>{f.date.toLocaleDateString("es-ES", { day: "numeric", month: "long", timeZone: "UTC" })}</p>
-                  <IconArrow className="h-4 w-4 -rotate-45 transition-transform group-hover:rotate-0" />
-                </div>
-                <p className="mega mt-8 text-7xl">{f.days === 0 ? "HOY" : f.days}</p>
-                <p className={`text-sm font-semibold ${i === 0 ? "text-white/85" : "text-muted"}`}>{f.days === 0 ? t("fiestas.today") : t("fiestas.days", { n: f.days })}</p>
-                <div className={`mt-6 border-t pt-4 ${i === 0 ? "border-white/25" : "border-line"}`}>
-                  <p className="headline text-xl">{f.name}</p>
-                  <p className={`text-[13px] ${i === 0 ? "text-white/75" : "text-muted"}`}>{f.place}</p>
-                </div>
-              </Link>
-            </Reveal>
-          ))}
+        <div className="mt-8 grid gap-3 lg:grid-cols-[1.25fr_1fr]">
+          <Reveal>
+            <Link href={`/collections/${next.theme}`} className="group relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-[#7a0a1c] p-6 text-white sm:min-h-[380px] sm:p-9">
+              {photo && <Image src={photo} alt="" fill sizes="(min-width:1024px) 55vw, 100vw" className="-z-10 object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />}
+              <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(60,4,14,.95)_0%,rgba(60,4,14,.6)_45%,rgba(60,4,14,.1)_100%)]" />
+              <span className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full border border-white/40 transition-transform duration-200 ease-out group-hover:-rotate-45 sm:right-9 sm:top-9">
+                <IconArrow className="h-4 w-4" />
+              </span>
+              <p className="text-sm font-medium text-white/80">{date(next.date)} · {next.place}</p>
+              <p className="mega mt-2 text-[4.5rem] leading-none sm:text-8xl">{next.days === 0 ? "HOY" : next.days}</p>
+              <p className="mt-1 text-sm font-semibold text-white/85">{next.days === 0 ? t("fiestas.today") : t("fiestas.days", { n: next.days })}</p>
+              <p className="headline mt-5 text-2xl sm:text-3xl">{next.name}</p>
+            </Link>
+          </Reveal>
+          <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[1.75rem] bg-surface ring-1 ring-line">
+            {rest.map((f, i) => (
+              <Reveal key={f.key} delay={0.05 + i * 0.05} className="flex-1">
+                <li className="h-full">
+                  <Link href={`/collections/${f.theme}`} className="group flex h-full items-center gap-5 px-6 py-5 transition-colors hover:bg-surface-2 sm:px-8">
+                    <span className="mega w-20 shrink-0 text-5xl tabular-nums leading-none">{f.days}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="headline block text-lg sm:text-xl">{f.name}</span>
+                      <span className="block text-[13px] text-muted">{date(f.date)} · {f.place}</span>
+                    </span>
+                    <IconArrow className="h-4 w-4 shrink-0 text-muted transition-transform duration-200 ease-out group-hover:translate-x-1" />
+                  </Link>
+                </li>
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </Container>
     </section>
   );
 }
 
+/**
+ * Personalisation banner, in the same editorial language as the theme / category tiles: a campaign photo
+ * under a deep wash, display type on the left and the live jersey (name + number) floating on the right.
+ * Shared by the home page and /deportes.
+ */
+export async function PersoBanner({ title, body, href = "/personaliza", options, photoKey = "futbol" }: { title: string; body: string; href?: string; options?: string[]; photoKey?: string }) {
+  const t = await getT();
+  const photo = campaignPhoto(photoKey);
+  return (
+    <Link href={href} className="group relative isolate block overflow-hidden rounded-[1.75rem] bg-[#0b0b0b] text-white">
+      {photo && (
+        <div className="absolute inset-0">
+          <Image src={photo} alt="" fill sizes="(min-width:1024px) 90vw, 100vw" className="object-cover object-[60%_30%] transition-transform duration-[1.4s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,#0b0b0b_0%,rgba(11,11,11,.92)_34%,rgba(11,11,11,.55)_62%,rgba(11,11,11,.25)_100%)] max-lg:bg-[linear-gradient(0deg,#0b0b0b_0%,rgba(11,11,11,.9)_45%,rgba(11,11,11,.35)_100%)]" />
+        </div>
+      )}
+      <div className="grain-soft pointer-events-none absolute inset-0" aria-hidden />
+      <div className="relative grid min-h-[460px] items-end gap-8 p-6 sm:p-10 lg:min-h-[420px] lg:grid-cols-[1.15fr_1fr] lg:items-center lg:p-14">
+        <div className="relative z-10 max-lg:order-2">
+          <h2 className="mega text-[3.2rem] leading-[0.92] sm:text-7xl lg:text-8xl">{title}</h2>
+          <p className="mt-5 max-w-md text-[17px] leading-relaxed text-white/75">{body}</p>
+          {options && (
+            <ul className="mt-6 flex flex-wrap gap-2">
+              {options.map((o) => (
+                <li key={o} className="rounded-full border border-white/20 bg-black/20 px-3.5 py-1.5 text-[13px] font-medium backdrop-blur-sm">
+                  {o}
+                </li>
+              ))}
+            </ul>
+          )}
+          <span className="btn btn-primary mt-8 w-fit px-7 py-4 text-[15px]">
+            {t("perso.cta")} <IconArrow className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-1" />
+          </span>
+        </div>
+        <div className="pointer-events-none relative mx-auto w-[62%] max-w-[360px] max-lg:order-1 lg:w-[72%]" aria-hidden>
+          <div className="floaty rotate-[-4deg] drop-shadow-[0_30px_40px_rgba(0,0,0,0.55)]">
+            <JerseyBack name="TU NOMBRE" number="7" shirt="#f5f1e8" ink="#c8102e" trim="#c9a227" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export async function PersonalizeTeaser() {
-  const [t, show, site] = await Promise.all([getT(), getShowcase(), listSiteImages()]);
-  const photo = site["campaign-garcia"];
-  const pueblo = show.byType.POSTER ?? null;
+  const t = await getT();
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
         <Reveal>
-          <div className="relative grid overflow-hidden rounded-[2rem] bg-fg text-bg lg:grid-cols-2">
-            <div className="relative z-10 flex flex-col justify-center p-8 sm:p-14">
-              <h2 className="mega text-6xl sm:text-8xl">{t("perso.title")}</h2>
-              <p className="mt-5 max-w-md text-lg leading-relaxed text-bg/75">{t("perso.body")}</p>
-              <div className="mt-8 flex flex-wrap gap-2">
-                {[t("perso.opt.jersey"), t("perso.opt.pueblo"), t("perso.opt.city"), t("perso.opt.year")].map((o) => (
-                  <span key={o} className="rounded-full border border-bg/20 px-3.5 py-1.5 text-[13px] font-medium">
-                    {o}
-                  </span>
-                ))}
-              </div>
-              <Link href="/personaliza" className="btn btn-primary mt-9 w-fit px-8 py-4 text-[15px]">
-                {t("perso.cta")} <IconArrow className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="relative flex min-h-[380px] items-center justify-center bg-accent p-8">
-              {photo && <Image src={photo} alt={t("perso.title")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />}
-              <div className="grain-soft absolute inset-0" />
-              <div className={`floaty relative w-[78%] max-w-[440px] ${photo ? "hidden" : ""}`}>
-                {show.jersey ? (
-                  <div className="relative aspect-square overflow-hidden rounded-[1.6rem] shadow-2xl">
-                    <Image src={show.jersey} alt={t("perso.title")} fill sizes="(min-width:1024px) 30vw, 70vw" className="object-cover" />
-                  </div>
-                ) : (
-                  <JerseyBack name="TU NOMBRE" number="7" shirt="#ffffff" ink="#e3051b" trim="#ffc400" />
-                )}
-              </div>
-              <div className="floaty-slow absolute bottom-6 left-6 w-[30%] max-w-[170px] rotate-[-8deg] rounded-2xl bg-white p-2 shadow-2xl">
-                {pueblo ? (
-                  <div className="relative aspect-square overflow-hidden rounded-xl">
-                    <Image src={pueblo} alt="" fill sizes="170px" className="object-cover" />
-                  </div>
-                ) : (
-                  <Mockup kind="poster" slug="mi-pueblo" />
-                )}
-              </div>
-            </div>
-          </div>
+          <PersoBanner title={t("perso.title")} body={t("perso.body")} options={[t("perso.opt.jersey"), t("perso.opt.pueblo"), t("perso.opt.city"), t("perso.opt.year")]} />
         </Reveal>
       </Container>
     </section>
   );
 }
 
-/** Digital membership card (also used in /club and the account page). */
 export function MemberCard({ brandName, number, name, since, points }: { brandName: string; number: string; name: string; since: string; points?: number }) {
   return (
     <div className="group relative mx-auto aspect-[1.586] w-full max-w-[480px] [perspective:1200px]">
@@ -338,35 +360,33 @@ export async function ComingSoonGrid({ collections }: { collections: PublicColle
   );
 }
 
-export async function CollectionsBento({ collections, counts }: { collections: PublicCollection[]; counts: Record<string, number> }) {
-  const [t, show] = await Promise.all([getT(), getShowcase()]);
+export async function CollectionsBento({ collections, counts, products = [] }: { collections: PublicCollection[]; counts: Record<string, number>; products?: PublicProduct[] }) {
+  const [t, site, locale] = await Promise.all([getT(), listSiteImages(), getLocale()]);
+  const en = locale === "en";
   const list = collections.slice(0, 3);
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
-        <SectionHead eyebrow={t("cols.eyebrow")} title={t("cols.title")} sub={t("home.collections.sub")} />
-        <div className="grid gap-3 lg:grid-cols-3">
+        <SectionHead title={t("cols.title")} sub={t("home.collections.sub")} />
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
           {list.map((c, i) => {
-            const th = themeFor(c.slug);
+            const look = lookFor(c.slug);
+            const items = products.filter((p) => p.collection?.slug === c.slug);
             return (
-              <Reveal key={c.slug} delay={i * 0.06}>
-                <Link href={`/collections/${c.slug}`} className={`group relative flex min-h-[480px] flex-col overflow-hidden rounded-[2rem] p-7 sm:p-9 ${th.tile}`}>
-                  <div className="relative z-10 flex items-start justify-between">
-                    <p className="kicker opacity-75">{counts[c.slug] ? t("collections.pieces", { n: counts[c.slug] }) : t("collections.soon")}</p>
-                    <ArrowDot />
-                  </div>
-                  <h3 className="mega relative z-10 mt-4 text-6xl sm:text-7xl">{c.name}</h3>
-                  {c.tagline && <p className="relative z-10 mt-3 max-w-xs text-[15px] opacity-85">{c.tagline}</p>}
-                  <div className="pointer-events-none absolute -bottom-[10%] left-1/2 w-[70%] -translate-x-1/2 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:-translate-y-2">
-                    {c.heroImage || show.byCollection[c.slug]?.[0] ? (
-                      <div className="relative aspect-square overflow-hidden rounded-[1.6rem] shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)]">
-                        <Image src={(c.heroImage || show.byCollection[c.slug][0])!} alt={c.name} fill sizes="(min-width:1024px) 26vw, 80vw" className="object-cover" />
-                      </div>
-                    ) : (
-                      <Mockup kind={th.kind} color={th.garment} slug={th.art} />
-                    )}
-                  </div>
-                </Link>
+              <Reveal key={c.slug} delay={i * 0.06} className="aspect-[4/5] sm:aspect-[16/10] lg:aspect-[4/5]">
+                <EditorialTile
+                  href={`/collections/${c.slug}`}
+                  title={c.name}
+                  kicker={items.length ? tileCount(items, en) : counts[c.slug] ? t("collections.pieces", { n: counts[c.slug] }) : undefined}
+                  tagline={c.tagline}
+                  cta={en ? "See the collection" : "Ver colección"}
+                  tone={look.tone}
+                  texture={look.texture}
+                  word={look.word}
+                  photo={tilePhoto(look, site)}
+                  cards={tileCards(items, 3)}
+                  size="tall"
+                />
               </Reveal>
             );
           })}

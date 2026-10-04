@@ -202,8 +202,7 @@ export function ClubDashboard({ locale, email, member, flags, ledger, orders, jo
       {isMember && (
         <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
           <section className="rounded-[24px] bg-surface p-6 ring-1 ring-line sm:p-8" aria-labelledby="club-points">
-            <p className="kicker text-accent">{c.pointsK}</p>
-            <h3 id="club-points" className="headline mt-2 text-3xl">{c.pointsT}</h3>
+            <h3 id="club-points" className="headline text-3xl">{c.pointsT}</h3>
 
             <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
               <div className="relative h-[168px] w-[168px] shrink-0">
@@ -247,8 +246,7 @@ export function ClubDashboard({ locale, email, member, flags, ledger, orders, jo
           </section>
 
           <section className="rounded-[24px] bg-surface p-6 ring-1 ring-line sm:p-8" aria-labelledby="club-how">
-            <p className="kicker text-accent">{c.howK}</p>
-            <h3 id="club-how" className="headline mt-2 text-3xl">{c.howT}</h3>
+            <h3 id="club-how" className="headline text-3xl">{c.howT}</h3>
             <ol className="mt-6 space-y-5">
               {rules.map(({ icon: Icon, t, b }, i) => (
                 <li key={t} className="flex gap-4">
@@ -325,8 +323,7 @@ export function ClubDashboard({ locale, email, member, flags, ledger, orders, jo
 
       {/* ---------------- PERKS + TIERS ---------------- */}
       <section className="rounded-[24px] bg-surface-2/60 p-6 ring-1 ring-line sm:p-8" aria-labelledby="club-perks">
-        <p className="kicker text-accent">{c.perksK}</p>
-        <h3 id="club-perks" className="headline mt-2 text-3xl">{c.perksT}</h3>
+        <h3 id="club-perks" className="headline text-3xl">{c.perksT}</h3>
         <div className="mt-6">
           <PerksGrid locale={locale} />
         </div>

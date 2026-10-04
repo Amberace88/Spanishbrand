@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IconArrow } from "@/components/ui/Icons";
 import Link from "next/link";
 import { getBrand } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/server";
@@ -35,7 +36,7 @@ export default async function ReturnsPage() {
       <PageHero eyebrow={en ? "Help" : "Ayuda"} title={en ? "Returns" : "Devoluciones"} sub={en ? "Clear rules, made-to-order fairness. Every piece is produced for you, so please check size and options before buying." : "Reglas claras y justas para productos hechos bajo pedido. Cada pieza se fabrica para ti: revisa talla y opciones antes de comprar."}>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/returns/new" className="btn btn-primary px-7 py-4">
-            {en ? "Start a return" : "Solicitar devolución"} →
+            {en ? "Start a return" : "Solicitar devolución"}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
           </Link>
           <Link href="/returns/status" className="btn btn-ghost px-7 py-4">
             {en ? "Check a request" : "Consultar una solicitud"}

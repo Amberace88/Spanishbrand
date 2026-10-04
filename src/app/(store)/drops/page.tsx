@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IconArrow } from "@/components/ui/Icons";
 import Link from "next/link";
 import { getDrops } from "@/lib/products/queries";
 import { getT } from "@/lib/i18n/server";
@@ -44,7 +45,7 @@ export default async function DropsPage() {
                           <Countdown to={d.startDate} />
                         ) : d.collection ? (
                           <Link href={`/collections/${d.collection.slug}`} className="btn btn-ink">
-                            {t("collections.explore")} →
+                            {t("collections.explore")}<IconArrow className="ml-1.5 inline h-4 w-4 align-[-3px]" />
                           </Link>
                         ) : null}
                       </div>
