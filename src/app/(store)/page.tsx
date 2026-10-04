@@ -10,6 +10,7 @@ import { LookbookLeon } from "@/components/home/LookbookLeon";
 import { ArteBand } from "@/components/home/ArteBand";
 import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
 import { Countdown } from "@/components/home/Countdown";
+import { merchandise, merchandiseUnique, withHero } from "@/lib/catalog/merch";
 import { Newsletter } from "@/components/home/Newsletter";
 import { PollCard } from "@/components/community/PollCard";
 import { Container, SectionHead } from "@/components/ui/Section";
@@ -26,21 +27,19 @@ export default async function Home() {
     getCollections(),
     getCollectionCounts(),
     getBestsellers(8),
-    getPublishedProducts({ limit: 8 }),
+    getPublishedProducts({ limit: 48 }),
     getDrops(),
     getOpenPoll(),
     getCollectionsBySlugs(["futbol", "fiestas", "playa", "tapas", "sabiduria", "heritage", "mediterraneo", "profesiones"]),
     getLocale(),
-    getPublishedProducts({ limit: 500 }),
+    getPublishedProducts({ limit: 5000 }),
     listSiteImages(),
   ]);
   // lookbook line: one piece per design first (tee, hoodie, art…), garments before accessories
-  const lookbook = catalog
-    .filter((p) => p.tags.includes("lookbook"))
-    .sort((a, b) => Number(/tee|hoodie|sweat/.test(b.tags.join(" "))) - Number(/tee|hoodie|sweat/.test(a.tags.join(" "))))
-    .filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i || arr.length < 8);
-  // art series: one garment per illustration, newest pieces first
-  const arte = catalog.filter((p) => p.tags.includes("serie-arte") && p.categoryCode === "APPAREL").filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i);
+  const lookbookAll = catalog.filter((p) => p.tags.includes("lookbook"));
+  const lookbook = lookbookAll.length >= 8 ? merchandiseUnique(lookbookAll, 12) : merchandise(lookbookAll);
+  // art series: one garment per illustration (big art first, «· Frase» variants last), curated order
+  const arte = merchandiseUnique(catalog.filter((p) => p.tags.includes("serie-arte") && p.categoryCode === "APPAREL"), 24);
   const LOOKS: [string, string, string][] = [
     ["look-flamenca-mujer", "La Flamenca", "art-flamenca"],
     ["look-toro-hombre", "Toro Bravo", "art-toro"],
@@ -51,7 +50,8 @@ export default async function Home() {
   const looks = LOOKS.filter(([k]) => site[k]).map(([k, alt, art]) => ({ src: site[k], alt, href: `/disena?arte=${art}` }));
   const arts = ART_SERIES.map((p) => ({ key: p.art, name: p.name, src: siteArtSrc(p.art) }));
   const core = collections.filter((c) => ["espana", "heritage", "mediterraneo"].includes(c.slug));
-  const products = bestsellers.length ? bestsellers : newest;
+  // real bestsellers keep their sales order (each card leads with its best colour); otherwise the newest pieces, curated
+  const products = bestsellers.length ? bestsellers.map((p) => withHero(p)) : merchandiseUnique(newest, 8);
   const productsTitle = bestsellers.length ? t("home.bestsellers.title") : t("home.newest.title");
   const activeDrop = drops.find((d) => d.status === "LIVE") ?? drops.find((d) => d.status === "SCHEDULED");
   const cardLabels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
@@ -62,7 +62,7 @@ export default async function Home() {
       <Hero brandName={brand.name} jerseyImg={show.jersey} blankImg={show.blank} persoPhoto={site["hero-personaliza"] ?? null} designPhoto={site["hero-disena"] ?? null} />
       <TrustBar />
       <BrandEssentials />
-      <CategoryGrid />
+      <CategoryGrid products={catalog} />
       <LookbookLeon products={lookbook} photo={site["look-leon-mujer"] ?? null} en={locale === "en"} labels={{ madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") }} />
       <ArteBand arts={arts} looks={looks} products={arte} en={locale === "en"} labels={cardLabels} />
 
@@ -90,7 +90,7 @@ export default async function Home() {
       ) : null}
 
       {/* only themes with something to buy (retired lines leave some collections empty) */}
-      <ThemesBento collections={catalog.length ? themes.filter((c) => counts[c.slug]) : themes} />
+      <ThemesBento collections={catalog.length ? themes.filter((c) => counts[c.slug]) : themes} products={catalog} />
       <BigMarquee words={t("marquee.words").split("|")} />
       <PersonalizeTeaser />
       <FiestasCalendar />

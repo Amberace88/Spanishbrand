@@ -8,6 +8,7 @@ import { listSiteImages } from "@/lib/site-images";
 import { AUDIENCES, AUDIENCE_EXTRAS, AUDIENCE_TYPE_ORDER, audienceTypeLabel, isAudience, isFor, type Audience } from "@/lib/catalog/audience";
 import { ACTIVE_DESIGNS, artUrl, type BlueprintKey, type Design } from "@/lib/catalog/designs";
 import { ProductCard } from "@/components/product/ProductCard";
+import { merchandise, merchandiseUnique } from "@/lib/catalog/merch";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { Container, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -95,26 +96,21 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   const cfg = PAGE[a];
   const [t, locale, all, site] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1500 }), listSiteImages()]);
 
-  // ranking: lion pieces and audience-specific garments lead; never two pieces of one design side by side
-  const score = (p: PublicProduct) =>
-    (p.tags.includes("leon") ? 6 : 0) + (p.tags.includes("lookbook") ? 4 : 0) + (p.featured ? 4 : 0) + (p.tags.includes("bestseller") ? 3 : 0) + (cfg.tag && p.tags.includes(cfg.tag) ? 5 : 0) + (a === "mujer" && p.productType.startsWith("WOMENS_") ? 4 : 0);
-  const own = all.filter((p) => isFor(p, a)).sort((x, y) => score(y) - score(x) || (y.publishedAt ?? "").localeCompare(x.publishedAt ?? ""));
+  // curated order (lib/catalog/merch.ts) with this landing's own bonus: audience-specific pieces lead
+  const boost = (p: PublicProduct) => (cfg.tag && p.tags.includes(cfg.tag) ? 3 : 0) + (a === "mujer" && p.productType.startsWith("WOMENS_") ? 2.5 : 0) + (p.tags.includes("leon") ? 1 : 0);
+  const own = all.filter((p) => isFor(p, a));
   const typeIdx = (code: string) => (AUDIENCE_TYPE_ORDER.indexOf(code) + 999) % 999;
   const types = [...new Set(own.map((p) => p.productType))].sort((x, y) => typeIdx(x) - typeIdx(y));
   const type = types.find((x) => x === sp.t);
-  const groups = new Map<string, PublicProduct[]>();
-  for (const p of type ? own.filter((x) => x.productType === type) : own) (groups.get(p.design ?? p.id) ?? groups.set(p.design ?? p.id, []).get(p.design ?? p.id)!).push(p);
-  const queues = [...groups.values()];
-  const products: PublicProduct[] = [];
-  for (let round = 0; queues.some((q) => q[round]); round++) for (const q of queues) if (q[round]) products.push(q[round]);
+  const products = merchandise(type ? own.filter((x) => x.productType === type) : own, { boost });
   const page = Math.max(1, Math.min(40, Number(sp.page) || 1));
   const shown = products.slice(0, page * PAGE_SIZE);
   const designs = designsFor(a);
-  const more = a === "abuelos" ? all.filter((p) => !isFor(p, "abuelos") && ["tapas", "heritage", "mi-pueblo"].includes(p.collection?.slug ?? "") && p.images[0]).filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i).slice(0, 8) : [];
+  const more = a === "abuelos" ? merchandiseUnique(all.filter((p) => !isFor(p, "abuelos") && ["tapas", "heritage", "mi-pueblo"].includes(p.collection?.slug ?? "") && p.images[0]), 8) : [];
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
 
   // hero collage: campaign photos first, then real product photos, then live design previews
-  const photos = [...cfg.photos.map((k) => (k.startsWith("/") ? k : site[k])).filter(Boolean), ...own.filter((p) => p.images[0]).filter((p, i, arr) => arr.findIndex((x) => x.design === p.design) === i).map((p) => p.images[0].url)].slice(0, 3);
+  const photos = [...cfg.photos.map((k) => (k.startsWith("/") ? k : site[k])).filter(Boolean), ...merchandiseUnique(own, 3, { boost }).map((p) => p.images[0]?.url).filter(Boolean)].slice(0, 3) as string[];
   const heroDesigns = designs.slice(0, 3 - Math.min(3, photos.length));
   const href = (patch: { t?: string; page?: string }) => {
     const q = new URLSearchParams();
@@ -176,7 +172,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
             <div className="grid grid-cols-[1.35fr_1fr] gap-3 sm:gap-4">
               <div className="relative row-span-2 aspect-[4/5] overflow-hidden rounded-[2rem] bg-surface shadow-[0_40px_80px_-40px_rgba(0,0,0,0.5)]">
                 {photos[0] ? (
-                  <Image src={photos[0]} alt={t(`audience.${a}.title`)} fill priority sizes="(min-width:1024px) 28vw, 60vw" className="object-cover" />
+                  <Image src={photos[0]} alt={t(`audience.${a}.title`)} fill preload sizes="(min-width:1024px) 28vw, 60vw" className="object-cover" />
                 ) : heroDesigns[0] ? (
                   <div className="absolute inset-0 grid place-items-center p-4">
                     <DesignArt layers={heroDesigns[0].layers} tone={heroDesigns[0].tone} kind="tee" className="w-full" />

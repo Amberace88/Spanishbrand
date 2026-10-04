@@ -19,6 +19,8 @@ export interface PublicVariant {
   price: number;
   compareAt: number | null;
   available: boolean;
+  /** First photo of this colour (listing: first colours only; null when the payload does not carry it). */
+  image?: string | null;
 }
 
 export interface PublicProduct {
@@ -94,11 +96,12 @@ const PRODUCT_SELECT = `id, name, slug, short_description, description, story, r
   categories:category_id(code),
   collections:collection_id(slug, name),
   product_images(url, alt, sort, kind, variant_id),
-  product_variants(id, variant_name, size, color, color_hex, retail_price, compare_at_price, active, stock_status, sort)`;
+  product_variants(id, variant_name, size, color, color_hex, retail_price, compare_at_price, active, stock_status, sort, image)`;
 
 type Row = Record<string, unknown> & {
-  product_images?: { url: string; alt: string | null; sort: number; kind: string; variant_id: string | null }[];
-  product_variants?: { id: string; variant_name: string; size: string | null; color: string | null; color_hex: string | null; retail_price: number | null; compare_at_price: number | null; active: boolean; stock_status: string; sort: number }[];
+  /** `color` comes straight from the listing RPC (20261004000001); full reads resolve it through variant_id. */
+  product_images?: { url: string; alt: string | null; sort: number; kind: string; variant_id: string | null; color?: string | null }[];
+  product_variants?: { id: string; variant_name: string; size: string | null; color: string | null; color_hex: string | null; retail_price: number | null; compare_at_price: number | null; active: boolean; stock_status: string; sort: number; image?: string | null }[];
 };
 
 function mapProduct(r: Row): PublicProduct {
@@ -123,7 +126,7 @@ function mapProduct(r: Row): PublicProduct {
     images: (r.product_images ?? [])
       .filter((i) => i.kind !== "PRINT_FILE")
       .sort((a, b) => a.sort - b.sort)
-      .map((i) => ({ url: i.url, alt: i.alt, kind: i.kind, color: (i.variant_id && r.product_variants?.find((v) => v.id === i.variant_id)?.color) || null })),
+      .map((i) => ({ url: i.url, alt: i.alt ?? null, kind: i.kind, color: i.color ?? ((i.variant_id && r.product_variants?.find((v) => v.id === i.variant_id)?.color) || null) })),
     design: ((r.metadata as { catalog?: { design?: string | null } } | null)?.catalog?.design as string) ?? null,
     sizeGuide: toSizeGuide((r.metadata as { size_guide?: unknown } | null)?.size_guide ?? null),
     featured: Boolean(r.featured),
@@ -140,6 +143,7 @@ function mapProduct(r: Row): PublicProduct {
         price: v.retail_price != null ? Number(v.retail_price) : price,
         compareAt: v.compare_at_price != null ? Number(v.compare_at_price) : null,
         available: v.stock_status !== "OUT_OF_STOCK" && v.stock_status !== "DISCONTINUED",
+        image: v.image ?? null,
       })),
     collection: (r.collections as { slug: string; name: string } | null) ?? null,
     personalization: (r.personalization as PublicProduct["personalization"]) ?? null,
@@ -202,6 +206,11 @@ function compactVariants(p: PublicProduct): PublicProduct {
 }
 
 async function loadListing(): Promise<PublicProduct[]> {
+  // local design previews without a database (never in production): LISTING_FIXTURE=/abs/path/products.json
+  if (process.env.LISTING_FIXTURE && process.env.NODE_ENV !== "production") {
+    const { readFile } = await import("node:fs/promises");
+    return JSON.parse(await readFile(process.env.LISTING_FIXTURE, "utf8")) as PublicProduct[];
+  }
   const sb = dbOrNull();
   if (!sb) return [];
   // one round trip: the DB builds the lean listing (first images, one variant per colour) — see migration listing_products

@@ -46,7 +46,7 @@ function Ticker({ messages }: { messages: string[] }) {
   );
 }
 
-export function Header({ brandName, cartCount, messages }: { brandName: string; cartCount: number; messages: string[] }) {
+export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { brandName: string; cartCount: number; messages: string[]; /** Menu targets with nothing to buy right now (hidden). */ emptyHrefs?: string[] }) {
   const t = useT();
   const locale = useLocale() as string;
   const lx = (l: L3) => (locale === "en" ? l.en : locale === "de" ? l.de : l.es);
@@ -103,11 +103,12 @@ export function Header({ brandName, cartCount, messages }: { brandName: string; 
     { href: "/disena", label: t("hero3.design"), badge: true },
     { href: "/club", label: t("nav.club") },
   ] as { href: string; label: string; badge?: boolean }[];
-  const cats = CATEGORY_LINKS.map((c) => ({ href: c.href, label: lx(c.label) }));
+  const hidden = new Set(emptyHrefs);
+  const cats = CATEGORY_LINKS.filter((c) => !hidden.has(c.href)).map((c) => ({ href: c.href, label: lx(c.label) }));
   /** Mega menu / drawer groups: "Para quién" first, then the editorial EXPLORE columns. */
   const groups = [
     { key: "para", title: t("audience.title"), wide: false, links: AUDIENCES.map((a) => ({ href: `/para/${a}`, label: t(`audience.${a}`) })) },
-    ...EXPLORE.map((g) => ({ key: g.key, title: lx(g.title), wide: g.wide, links: g.links.map((x) => ({ href: x.href, label: lx(x.label) })) })),
+    ...EXPLORE.map((g) => ({ key: g.key, title: lx(g.title), wide: g.wide, links: g.links.filter((x) => !hidden.has(x.href)).map((x) => ({ href: x.href, label: lx(x.label) })) })),
   ];
   const secondary = [
     { href: "/regalos", label: t("nav.gifts") },

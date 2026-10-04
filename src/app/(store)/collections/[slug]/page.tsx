@@ -8,6 +8,7 @@ import { ACTIVE_DESIGNS, designsFor } from "@/lib/catalog/designs";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { ProductCard } from "@/components/product/ProductCard";
+import { merchandise } from "@/lib/catalog/merch";
 import { TrackView } from "@/components/analytics/TrackView";
 import { Container } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -36,9 +37,9 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
   const [t, all] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 })]);
-  const rank = (p: (typeof all)[number]) => (p.tags.includes("futbol-pro") ? 9 : 0) + (p.tags.includes("arte") ? 8 : 0) + (p.tags.includes("lookbook") ? 5 : 0) + (p.featured ? 3 : 0);
   const byTag = TAG_COLLECTIONS.has(c.slug);
-  const own = all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))).sort((a, b) => rank(b) - rank(a));
+  // curated order (quality × diversity × hero colour): lib/catalog/merch.ts
+  const own = merchandise(all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))));
   const designs = byTag ? ACTIVE_DESIGNS.filter((d) => d.collection === c.slug || d.tags?.includes(c.slug)) : designsFor(c.slug);
   // a collection whose every design was retired (lib/catalog/retired.ts) and has nothing left: send old links to the shop
   if (!own.length && !designs.length) permanentRedirect("/shop");
@@ -48,9 +49,8 @@ export default async function CollectionPage({ params, searchParams }: { params:
   if (type) products = products.filter((p) => p.categoryCode === type);
   if (design) products = products.filter((p) => p.design === design.slug);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
-  const hero = own.find((p) => p.images.some((i) => i.kind === "LIFESTYLE"))?.images.find((i) => i.kind === "LIFESTYLE") ?? own.find((p) => p.featured && p.images[0])?.images[0] ?? own[0]?.images[0];
-  // sections by design: garments first inside each, designs ordered by their best rank
-  const typeRank = (p: (typeof all)[number]) => (p.categoryCode === "APPAREL" ? 0 : 1);
+  const hero = own.find((p) => p.images.some((i) => i.kind === "LIFESTYLE"))?.images.find((i) => i.kind === "LIFESTYLE") ?? own[0]?.images[0];
+  // sections by design, in curated order (each design led by its best piece)
   const bySlug = new Map<string, (typeof all)[number][]>();
   for (const p of own) {
     const k = p.design ?? "_";
@@ -59,9 +59,8 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const sections = [...bySlug.entries()]
     .map(([key, items]) => {
       const d = designs.find((x) => x.slug === key);
-      return { key, title: d?.name ?? c.name, line: d?.line ?? "", items: [...items].sort((a, b) => typeRank(a) - typeRank(b)), score: Math.max(...items.map(rank)) };
-    })
-    .sort((a, b) => b.score - a.score || b.items.length - a.items.length);
+      return { key, title: d?.name ?? c.name, line: d?.line ?? "", items };
+    });
   const presentTypes = TYPES.filter((x) => own.some((p) => p.categoryCode === x));
   const chip = (active: boolean) => `shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${active ? "border-fg bg-fg text-bg" : "border-line bg-surface hover:border-fg/40"}`;
 
@@ -90,7 +89,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
           </Reveal>
           <Reveal delay={0.08} className="relative mx-auto aspect-[4/3] w-full max-w-lg overflow-hidden rounded-[2rem]">
             {hero ? (
-              <Image src={hero.url} alt={hero.alt ?? c.name} fill priority sizes="(min-width:1024px) 40vw, 100vw" className="object-cover" />
+              <Image src={hero.url} alt={hero.alt ?? c.name} fill preload sizes="(min-width:1024px) 40vw, 100vw" className="object-cover" />
             ) : designs.length ? (
               <div className="absolute inset-0 grid grid-cols-2 gap-3 bg-surface p-6">
                 {designs.slice(0, 2).map((d) => (
