@@ -1281,6 +1281,8 @@ export const REBUILD: Record<string, string> = Object.fromEntries(
 
 /** At most this many replacements in flight; a new one starts only when a run has a free slot (1 per run). */
 const MAX_REBUILDS_IN_FLIGHT = 4;
+/** Separate lane for jersey and kids re-prints (see the runner). */
+const MAX_URGENT_REBUILDS_IN_FLIGHT = 6;
 /** New replacements started per run (the runner fires every 10 min, see netlify/functions/catalog-runner.mts). */
 const REBUILDS_PER_RUN = 2;
 const BASELINE = VERSION_BASELINE as Record<string, string>;
@@ -1388,7 +1390,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
     if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || ["baby", "toddler", "kidshoodie"].includes(bpk))) return -0.5;
     if (d?.tags?.includes("sabiduria")) return core ? -0.2 : 0.5;
     if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon"))) return 0;
-    if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
+    if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return bpk === "jersey" || bpk === "kids" ? -4 : 1; // re-prints of mis-fitted number shirts / kids' tees first
     return 2;
   };
   const fresh = plan
@@ -1398,9 +1400,16 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   // products keep progressing; the live product stays on sale until its replacement publishes
   const rebuildKeys: string[] = [];
   if (await rebuildEnabled().catch(() => false)) {
+    const urgentBp = (k: string) => ["jersey", "kids"].includes(k.split(":")[2] ?? "");
     const inFlight = jobs.filter((j) => j.replaces && open(j.key)).length;
-    const slots = Math.max(0, Math.min(REBUILDS_PER_RUN, MAX_REBUILDS_IN_FLIGHT - inFlight));
-    if (slots) rebuildKeys.push(...rebuildCandidates(jobs).filter((c) => free(c.key)).slice(0, slots).map((c) => c.key));
+    // number shirts and kids' tees (visibly mis-printed) have their own small lane, so a backlog of other
+    // re-prints never holds them back
+    const urgentInFlight = jobs.filter((j) => j.replaces && open(j.key) && urgentBp(j.key)).length;
+    const cands = rebuildCandidates(jobs).filter((c) => free(c.key));
+    const urgentSlots = Math.max(0, Math.min(REBUILDS_PER_RUN, MAX_URGENT_REBUILDS_IN_FLIGHT - urgentInFlight));
+    rebuildKeys.push(...cands.filter((c) => urgentBp(c.key)).slice(0, urgentSlots).map((c) => c.key));
+    const slots = Math.max(0, Math.min(REBUILDS_PER_RUN - rebuildKeys.length, MAX_REBUILDS_IN_FLIGHT - inFlight));
+    if (slots) rebuildKeys.push(...cands.filter((c) => !rebuildKeys.includes(c.key)).slice(0, slots).map((c) => c.key));
   }
   const rebuildKey = rebuildKeys[0] ?? null;
   // one resolve per run (they can be slow: catalogue lookups) so product work is never starved by them
