@@ -4,6 +4,7 @@ import { ACTIVE_DESIGNS } from "@/lib/catalog/designs";
 import { buildPlan } from "@/lib/fulfillment/catalog-builder";
 import { CatalogBuilder } from "@/components/admin/CatalogBuilder";
 import { ArchiveRetired } from "@/components/admin/ArchiveRetired";
+import { RebuildChanged } from "@/components/admin/RebuildChanged";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function CatalogBuilderPage() {
         </p>
       </div>
       <ArchiveRetired />
+      <RebuildChanged />
       <CatalogBuilder plan={plan} />
     </div>
   );

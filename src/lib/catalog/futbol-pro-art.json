@@ -1,45 +1,45 @@
 {
  "fp-campeones-mundo-noche": {
   "aspect": 1.1915,
-  "x": 0.4998,
-  "y": 0.4614,
-  "w": 0.9271
+  "x": 0.5,
+  "y": 0.4353,
+  "w": 0.84
  },
  "fp-campeones-mundo-noche-espalda": {
-  "aspect": 1.2288,
-  "x": 0.5,
-  "y": 0.5045,
-  "w": 1
+  "aspect": 1.2666,
+  "x": 0.5029,
+  "y": 0.4517,
+  "w": 0.7142
  },
  "fp-campeones-mundo-dia": {
   "aspect": 1.1915,
-  "x": 0.4998,
-  "y": 0.4614,
-  "w": 0.9271
+  "x": 0.5,
+  "y": 0.4353,
+  "w": 0.84
  },
  "fp-campeones-mundo-dia-espalda": {
-  "aspect": 1.2288,
-  "x": 0.5,
-  "y": 0.5045,
-  "w": 1
+  "aspect": 1.2666,
+  "x": 0.5029,
+  "y": 0.4517,
+  "w": 0.7142
  },
  "fp-campeones-script-noche": {
   "aspect": 1.1122,
-  "x": 0.5042,
-  "y": 0.4573,
-  "w": 0.9767
+  "x": 0.5,
+  "y": 0.4103,
+  "w": 0.84
  },
  "fp-dos-estrellas-noche": {
   "aspect": 1.1777,
   "x": 0.5,
-  "y": 0.4684,
-  "w": 0.9333
+  "y": 0.431,
+  "w": 0.84
  },
  "fp-dos-fechas-noche": {
   "aspect": 1.0246,
   "x": 0.5,
-  "y": 0.402,
-  "w": 0.9317
+  "y": 0.3827,
+  "w": 0.84
  },
  "fp-campeones-pecho-noche": {
   "aspect": 0.8125,
@@ -48,40 +48,40 @@
   "w": 0.2667
  },
  "fp-campeones-espalda-noche": {
-  "aspect": 1.296,
-  "x": 0.4998,
-  "y": 0.478,
-  "w": 0.9038
+  "aspect": 1.0953,
+  "x": 0.5,
+  "y": 0.4267,
+  "w": 0.765
  },
  "fp-mi-equipo-noche": {
   "aspect": 1.2703,
-  "x": 0.4998,
-  "y": 0.4948,
-  "w": 0.9404
+  "x": 0.5,
+  "y": 0.4601,
+  "w": 0.84
  },
  "fp-pequeno-campeon-noche": {
   "aspect": 1.3435,
   "x": 0.5,
-  "y": 0.4553,
-  "w": 0.8708
+  "y": 0.4832,
+  "w": 0.84
  },
  "fp-campeones-script-dia": {
   "aspect": 1.1122,
-  "x": 0.5042,
-  "y": 0.4573,
-  "w": 0.9767
+  "x": 0.5,
+  "y": 0.4103,
+  "w": 0.84
  },
  "fp-dos-estrellas-dia": {
   "aspect": 1.1777,
   "x": 0.5,
-  "y": 0.4684,
-  "w": 0.9333
+  "y": 0.431,
+  "w": 0.84
  },
  "fp-dos-fechas-dia": {
   "aspect": 1.0246,
   "x": 0.5,
-  "y": 0.402,
-  "w": 0.9317
+  "y": 0.3827,
+  "w": 0.84
  },
  "fp-campeones-pecho-dia": {
   "aspect": 0.8125,
@@ -90,424 +90,424 @@
   "w": 0.2667
  },
  "fp-campeones-espalda-dia": {
-  "aspect": 1.296,
-  "x": 0.4998,
-  "y": 0.478,
-  "w": 0.9038
+  "aspect": 1.0953,
+  "x": 0.5,
+  "y": 0.4267,
+  "w": 0.765
  },
  "fp-mi-equipo-dia": {
   "aspect": 1.2703,
-  "x": 0.4998,
-  "y": 0.4948,
-  "w": 0.9404
+  "x": 0.5,
+  "y": 0.4601,
+  "w": 0.84
  },
  "fp-pequeno-campeon-dia": {
   "aspect": 1.3435,
   "x": 0.5,
-  "y": 0.4553,
-  "w": 0.8708
+  "y": 0.4832,
+  "w": 0.84
  },
  "fp-campeones-bandas": {
   "aspect": 1.1173,
   "x": 0.5,
-  "y": 0.4333,
-  "w": 0.8917
+  "y": 0.4119,
+  "w": 0.84
  },
  "fp-bufanda-espana": {
-  "aspect": 1.0946,
+  "aspect": 1.2765,
   "x": 0.5,
-  "y": 0.457,
-  "w": 1
+  "y": 0.4621,
+  "w": 0.84
  },
  "fp-hasta-el-final": {
   "aspect": 1.1189,
   "x": 0.5,
-  "y": 0.4625,
-  "w": 0.9533
+  "y": 0.4149,
+  "w": 0.84
  },
  "fp-aficion-estadio": {
-  "aspect": 1.2492,
+  "aspect": 1.3384,
   "x": 0.5,
-  "y": 0.5056,
-  "w": 1
+  "y": 0.4816,
+  "w": 0.84
  },
  "fp-noventa-minutos": {
   "aspect": 0.7884,
   "x": 0.5,
-  "y": 0.3192,
-  "w": 0.955
+  "y": 0.3083,
+  "w": 0.84
  },
  "fp-siempre-contigo": {
-  "aspect": 1.0433,
+  "aspect": 1.1387,
   "x": 0.5,
-  "y": 0.4381,
-  "w": 1
+  "y": 0.4187,
+  "w": 0.84
  },
  "fp-domingo-de-partido": {
   "aspect": 1.1792,
   "x": 0.5,
-  "y": 0.4719,
-  "w": 0.8833
+  "y": 0.4527,
+  "w": 0.84
  },
  "fp-retro-90-espana": {
   "aspect": 1.1054,
   "x": 0.5,
-  "y": 0.4409,
-  "w": 0.8775
+  "y": 0.4254,
+  "w": 0.84
  },
  "fp-retro-portero": {
   "aspect": 1.1116,
   "x": 0.5,
-  "y": 0.443,
-  "w": 0.8775
+  "y": 0.4273,
+  "w": 0.84
  },
  "fp-retro-club-de-barrio": {
   "aspect": 1.0745,
   "x": 0.5,
-  "y": 0.4308,
-  "w": 0.8775
+  "y": 0.4157,
+  "w": 0.84
  },
  "fp-retro-balon": {
   "aspect": 1.2977,
-  "x": 0.4998,
-  "y": 0.5206,
-  "w": 0.9054
+  "x": 0.5,
+  "y": 0.4888,
+  "w": 0.84
  },
  "fp-mi-primer-partido": {
   "aspect": 1.2125,
   "x": 0.5,
-  "y": 0.4681,
-  "w": 0.9058
+  "y": 0.4419,
+  "w": 0.84
  },
  "fp-futuro-diez": {
   "aspect": 1.1113,
   "x": 0.5,
-  "y": 0.4633,
-  "w": 1
+  "y": 0.41,
+  "w": 0.84
  },
  "fp-ciudad-madrid": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-madrid-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0211,
+  "x": 0.505,
+  "y": 0.3966,
+  "w": 0.75
  },
  "fp-ciudad-madrid-rojiblanco": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-madrid-rojiblanco-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0211,
+  "x": 0.505,
+  "y": 0.3966,
+  "w": 0.75
  },
  "fp-ciudad-barcelona": {
-  "aspect": 1.3795,
+  "aspect": 1.3974,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9333
+  "y": 0.4905,
+  "w": 0.8167
  },
  "fp-ciudad-barcelona-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9561,
+  "x": 0.5052,
+  "y": 0.3784,
+  "w": 0.7504
  },
  "fp-ciudad-sevilla": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-sevilla-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0011,
+  "x": 0.5046,
+  "y": 0.3906,
+  "w": 0.7492
  },
  "fp-ciudad-sevilla-verdiblanco": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-sevilla-verdiblanco-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0011,
+  "x": 0.5046,
+  "y": 0.3906,
+  "w": 0.7492
  },
  "fp-ciudad-bilbao": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-bilbao-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9956,
+  "x": 0.5048,
+  "y": 0.3895,
+  "w": 0.7504
  },
  "fp-ciudad-valencia": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-valencia-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9667,
+  "x": 0.5048,
+  "y": 0.3814,
+  "w": 0.7504
  },
  "fp-ciudad-vigo": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-vigo-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0234,
+  "x": 0.5054,
+  "y": 0.3969,
+  "w": 0.7492
  },
  "fp-ciudad-gijon": {
-  "aspect": 1.3949,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.517,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-gijon-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0301,
+  "x": 0.5052,
+  "y": 0.3986,
+  "w": 0.7488
  },
  "fp-ciudad-zaragoza": {
-  "aspect": 1.3944,
+  "aspect": 1.474,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7858
  },
  "fp-ciudad-zaragoza-espalda": {
-  "aspect": 1.1462,
-  "x": 0.5,
-  "y": 0.4795,
-  "w": 1
+  "aspect": 0.9844,
+  "x": 0.5056,
+  "y": 0.3861,
+  "w": 0.7496
  },
  "fp-ciudad-pamplona": {
-  "aspect": 1.3795,
-  "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9333
+  "aspect": 1.4094,
+  "x": 0.4998,
+  "y": 0.4939,
+  "w": 0.8163
  },
  "fp-ciudad-pamplona-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9755,
+  "x": 0.505,
+  "y": 0.3831,
+  "w": 0.7483
  },
  "fp-ciudad-coruna": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-coruna-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0306,
+  "x": 0.5054,
+  "y": 0.3986,
+  "w": 0.7483
  },
  "fp-ciudad-santander": {
-  "aspect": 1.3795,
+  "aspect": 1.3969,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9333
+  "y": 0.4903,
+  "w": 0.8167
  },
  "fp-ciudad-santander-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9666,
+  "x": 0.5054,
+  "y": 0.3806,
+  "w": 0.7492
  },
  "fp-ciudad-cadiz": {
-  "aspect": 1.3949,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.517,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-cadiz-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0401,
+  "x": 0.5052,
+  "y": 0.4011,
+  "w": 0.7479
  },
  "fp-ciudad-malaga": {
-  "aspect": 1.3944,
+  "aspect": 1.4813,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.497,
+  "w": 0.7817
  },
  "fp-ciudad-malaga-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0267,
+  "x": 0.505,
+  "y": 0.3981,
+  "w": 0.75
  },
  "fp-ciudad-getafe": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-getafe-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0211,
+  "x": 0.505,
+  "y": 0.3966,
+  "w": 0.75
  },
  "fp-ciudad-valladolid": {
-  "aspect": 1.3732,
+  "aspect": 1.3898,
   "x": 0.5,
-  "y": 0.515,
-  "w": 0.9333
+  "y": 0.4881,
+  "w": 0.8167
  },
  "fp-ciudad-valladolid-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9311,
+  "x": 0.5044,
+  "y": 0.3711,
+  "w": 0.7496
  },
  "fp-ciudad-oviedo": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-oviedo-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0301,
+  "x": 0.5052,
+  "y": 0.3986,
+  "w": 0.7488
  },
  "fp-ciudad-mallorca": {
-  "aspect": 1.3795,
+  "aspect": 1.4143,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9333
+  "y": 0.4956,
+  "w": 0.8167
  },
  "fp-ciudad-mallorca-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9711,
+  "x": 0.5044,
+  "y": 0.382,
+  "w": 0.7496
  },
  "fp-ciudad-las-palmas": {
-  "aspect": 1.3577,
-  "x": 0.4998,
-  "y": 0.5094,
-  "w": 0.9329
+  "aspect": 1.3735,
+  "x": 0.5,
+  "y": 0.4831,
+  "w": 0.8167
  },
  "fp-ciudad-las-palmas-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9494,
+  "x": 0.5052,
+  "y": 0.3759,
+  "w": 0.7488
  },
  "fp-ciudad-elche": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-elche-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0245,
+  "x": 0.5048,
+  "y": 0.3973,
+  "w": 0.7496
  },
  "fp-ciudad-donostia": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-donostia-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9795,
+  "x": 0.5048,
+  "y": 0.385,
+  "w": 0.7504
  },
  "fp-ciudad-vitoria": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-vitoria-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0228,
+  "x": 0.5044,
+  "y": 0.3969,
+  "w": 0.7496
  },
  "fp-ciudad-girona": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-girona-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0368,
+  "x": 0.5052,
+  "y": 0.4002,
+  "w": 0.7479
  },
  "fp-ciudad-villarreal": {
-  "aspect": 1.3944,
+  "aspect": 1.4662,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.79
  },
  "fp-ciudad-villarreal-espalda": {
-  "aspect": 1.1462,
-  "x": 0.5,
-  "y": 0.4795,
-  "w": 1
+  "aspect": 0.9911,
+  "x": 0.5058,
+  "y": 0.3878,
+  "w": 0.7492
  },
  "fp-ciudad-alicante": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-alicante-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 0.9978,
+  "x": 0.5048,
+  "y": 0.3895,
+  "w": 0.7496
  },
  "fp-ciudad-granada": {
-  "aspect": 1.3944,
+  "aspect": 1.4819,
   "x": 0.5,
-  "y": 0.5172,
-  "w": 0.9233
+  "y": 0.4969,
+  "w": 0.7817
  },
  "fp-ciudad-granada-espalda": {
-  "aspect": 1.1458,
-  "x": 0.5,
-  "y": 0.4797,
-  "w": 1
+  "aspect": 1.0111,
+  "x": 0.5058,
+  "y": 0.3934,
+  "w": 0.7492
  },
  "fp-camiseta-madrid-patron": {
   "aspect": 1.3333,
@@ -516,16 +516,16 @@
   "w": 1
  },
  "fp-camiseta-madrid-frente": {
-  "aspect": 0.698,
-  "x": 0.5069,
-  "y": 0.2672,
-  "w": 0.6029
+  "aspect": 0.6902,
+  "x": 0.5008,
+  "y": 0.2798,
+  "w": 0.5367
  },
  "fp-camiseta-madrid-dorsal": {
-  "aspect": 0.9381,
+  "aspect": 0.9711,
   "x": 0.5,
-  "y": 0.4213,
-  "w": 0.835
+  "y": 0.3672,
+  "w": 0.6058
  },
  "fp-camiseta-madrid-rojiblanco-patron": {
   "aspect": 1.3333,
@@ -534,16 +534,16 @@
   "w": 1
  },
  "fp-camiseta-madrid-rojiblanco-frente": {
-  "aspect": 0.698,
-  "x": 0.5069,
-  "y": 0.2672,
-  "w": 0.6029
+  "aspect": 0.6902,
+  "x": 0.5008,
+  "y": 0.2798,
+  "w": 0.5367
  },
  "fp-camiseta-madrid-rojiblanco-dorsal": {
-  "aspect": 0.9381,
+  "aspect": 0.9711,
   "x": 0.5,
-  "y": 0.4213,
-  "w": 0.835
+  "y": 0.3672,
+  "w": 0.6058
  },
  "fp-camiseta-barcelona-patron": {
   "aspect": 1.3333,
@@ -552,16 +552,16 @@
   "w": 1
  },
  "fp-camiseta-barcelona-frente": {
-  "aspect": 0.5759,
+  "aspect": 0.5713,
   "x": 0.5,
-  "y": 0.2623,
-  "w": 0.7083
+  "y": 0.2748,
+  "w": 0.625
  },
  "fp-camiseta-barcelona-dorsal": {
-  "aspect": 0.9344,
+  "aspect": 0.9205,
   "x": 0.5,
-  "y": 0.4213,
-  "w": 0.8383
+  "y": 0.3566,
+  "w": 0.6083
  },
  "fp-camiseta-sevilla-patron": {
   "aspect": 1.3333,
@@ -570,16 +570,16 @@
   "w": 1
  },
  "fp-camiseta-sevilla-frente": {
-  "aspect": 0.7009,
-  "x": 0.511,
-  "y": 0.2672,
-  "w": 0.6004
+  "aspect": 0.6934,
+  "x": 0.5046,
+  "y": 0.2798,
+  "w": 0.5342
  },
  "fp-camiseta-sevilla-dorsal": {
-  "aspect": 0.9095,
-  "x": 0.4994,
-  "y": 0.4213,
-  "w": 0.8612
+  "aspect": 0.942,
+  "x": 0.4998,
+  "y": 0.3672,
+  "w": 0.6246
  },
  "fp-camiseta-sevilla-verdiblanco-patron": {
   "aspect": 1.3333,
@@ -588,16 +588,16 @@
   "w": 1
  },
  "fp-camiseta-sevilla-verdiblanco-frente": {
-  "aspect": 0.7009,
-  "x": 0.511,
-  "y": 0.2672,
-  "w": 0.6004
+  "aspect": 0.6934,
+  "x": 0.5046,
+  "y": 0.2798,
+  "w": 0.5342
  },
  "fp-camiseta-sevilla-verdiblanco-dorsal": {
-  "aspect": 0.9095,
-  "x": 0.4994,
-  "y": 0.4213,
-  "w": 0.8612
+  "aspect": 0.942,
+  "x": 0.4998,
+  "y": 0.3672,
+  "w": 0.6246
  },
  "fp-camiseta-bilbao-patron": {
   "aspect": 1.3333,
@@ -606,16 +606,16 @@
   "w": 1
  },
  "fp-camiseta-bilbao-frente": {
-  "aspect": 0.7421,
-  "x": 0.5285,
-  "y": 0.2672,
-  "w": 0.5671
+  "aspect": 0.7353,
+  "x": 0.5206,
+  "y": 0.2798,
+  "w": 0.5038
  },
  "fp-camiseta-bilbao-dorsal": {
-  "aspect": 0.903,
-  "x": 0.5,
-  "y": 0.4213,
-  "w": 0.8675
+  "aspect": 0.9367,
+  "x": 0.5002,
+  "y": 0.3663,
+  "w": 0.6254
  },
  "fp-camiseta-valencia-patron": {
   "aspect": 1.3333,
@@ -624,16 +624,16 @@
   "w": 1
  },
  "fp-camiseta-valencia-frente": {
-  "aspect": 0.6059,
+  "aspect": 0.5909,
   "x": 0.5002,
-  "y": 0.2672,
-  "w": 0.6946
+  "y": 0.2795,
+  "w": 0.6254
  },
  "fp-camiseta-valencia-dorsal": {
-  "aspect": 0.903,
-  "x": 0.5,
-  "y": 0.4213,
-  "w": 0.8675
+  "aspect": 0.9254,
+  "x": 0.5002,
+  "y": 0.3636,
+  "w": 0.6254
  },
  "fp-camiseta-donostia-patron": {
   "aspect": 1.3333,
@@ -642,16 +642,16 @@
   "w": 1
  },
  "fp-camiseta-donostia-frente": {
-  "aspect": 0.5935,
+  "aspect": 0.5893,
   "x": 0.5,
-  "y": 0.267,
-  "w": 0.7083
+  "y": 0.2791,
+  "w": 0.625
  },
  "fp-camiseta-donostia-dorsal": {
-  "aspect": 0.9298,
+  "aspect": 0.9447,
   "x": 0.5,
-  "y": 0.4213,
-  "w": 0.8425
+  "y": 0.363,
+  "w": 0.6108
  },
  "fp-camiseta-coruna-patron": {
   "aspect": 1.3333,
@@ -660,16 +660,16 @@
   "w": 1
  },
  "fp-camiseta-coruna-frente": {
-  "aspect": 0.698,
-  "x": 0.5052,
-  "y": 0.2672,
-  "w": 0.6029
+  "aspect": 0.6886,
+  "x": 0.5002,
+  "y": 0.2798,
+  "w": 0.5379
  },
  "fp-camiseta-coruna-dorsal": {
-  "aspect": 0.9572,
-  "x": 0.5004,
-  "y": 0.4213,
-  "w": 0.8183
+  "aspect": 0.9909,
+  "x": 0.5002,
+  "y": 0.3672,
+  "w": 0.5938
  },
  "fp-camiseta-cadiz-patron": {
   "aspect": 1.3333,
@@ -678,15 +678,15 @@
   "w": 1
  },
  "fp-camiseta-cadiz-frente": {
-  "aspect": 0.8883,
-  "x": 0.5694,
-  "y": 0.2672,
-  "w": 0.4738
+  "aspect": 0.8837,
+  "x": 0.5575,
+  "y": 0.2798,
+  "w": 0.4192
  },
  "fp-camiseta-cadiz-dorsal": {
-  "aspect": 0.9641,
-  "x": 0.5,
-  "y": 0.4213,
-  "w": 0.8125
+  "aspect": 0.9979,
+  "x": 0.5002,
+  "y": 0.3672,
+  "w": 0.5896
  }
 }
