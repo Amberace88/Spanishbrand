@@ -43,7 +43,7 @@ export async function Footer({ brand }: { brand: BrandSettings }) {
       <div className="flag-line h-1.5" />
 
       {/* newsletter: one wide band, headline left, form right */}
-      <div className="border-b border-white/10">
+      <div id="newsletter" className="scroll-mt-24 border-b border-white/10">
         <div className="mx-auto grid max-w-[1440px] gap-6 px-4 py-12 sm:px-8 sm:py-14 lg:grid-cols-[1fr_minmax(0,30rem)] lg:items-center lg:gap-16">
           <div>
             <p className="headline text-[2.2rem] leading-[0.95] sm:text-5xl">{t("newsletter.title")}</p>

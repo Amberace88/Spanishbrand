@@ -200,9 +200,11 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 ${CAT_COLS[cats.length] ?? "lg:grid-cols-5"}`}>
                 {cats.map((c, i) => {
                   const look = CATEGORY_LOOKS[c.code] ?? lookFor(c.code);
+                  // an odd count in the 4-column grid: the first tile spans two columns so no row ends with a hole
+                  const wide = i === 0 && cats.length % 2 === 1 && (CAT_COLS[cats.length] ?? "").includes("cols-4");
                   return (
-                    <Reveal key={c.code} delay={(i % 5) * 0.04} className="aspect-[4/5]">
-                      <EditorialTile href={`/shop?c=${c.code}`} title={t(`shop.cat.${c.code}` as never)} kicker={en ? `${c.items.length} items` : `${c.items.length} piezas`} tagline={c.types.slice(0, 3).map((x) => typeLabel(x, en)).join(" · ")} tone={look.tone} texture={look.texture} word={look.word} photo={tilePhoto(look, site)} cards={tileCards(c.items, 3)} size="card" sizes="(min-width:1024px) 20vw, 50vw" />
+                    <Reveal key={c.code} delay={(i % 5) * 0.04} className={wide ? "col-span-2 aspect-[8/5]" : "aspect-[4/5]"}>
+                      <EditorialTile href={`/shop?c=${c.code}`} title={t(`shop.cat.${c.code}` as never)} kicker={en ? `${c.items.length} items` : `${c.items.length} piezas`} tagline={c.types.slice(0, 3).map((x) => typeLabel(x, en)).join(" · ")} tone={look.tone} texture={look.texture} word={look.word} photo={tilePhoto(look, site)} cards={tileCards(c.items, 3)} size={wide ? "wide" : "card"} sizes={wide ? "(min-width:1024px) 40vw, 100vw" : "(min-width:1024px) 20vw, 50vw"} />
                     </Reveal>
                   );
                 })}
@@ -222,8 +224,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
             <Link href="/arte" className="group mt-16 grid overflow-hidden rounded-[1.75rem] bg-[#f3ead7] text-[#1c1a17] sm:mt-20 sm:grid-cols-[1.1fr_1fr]">
               <div className="flex flex-col justify-center p-6 sm:p-10">
-                <p className="kicker text-[#a3162b]">{en ? "New · Author illustration" : "Nuevo · Ilustración de autor"}</p>
-                <p className="mega mt-3 text-[2.4rem] sm:text-6xl">{en ? "Wearable art" : "Arte que se lleva"}</p>
+                <p className="mega text-[2.4rem] sm:text-6xl">{en ? "Wearable art" : "Arte que se lleva"}</p>
                 <p className="serif mt-3 max-w-md text-lg italic text-[#1c1a17]/70 sm:text-xl">{en ? "Illustrations of Spain in five series, printed as large as the garment allows." : "Ilustraciones de España en cinco series, impresas tan grandes como permite la prenda."}</p>
                 <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#a3162b]">
                   {en ? "See the series" : "Ver las series"} <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -466,8 +467,7 @@ function EmptyState({ en, title, clear, clearLabel, suggestions, labels }: { en:
     <div>
       <div className="relative overflow-hidden rounded-[1.75rem] bg-surface-2 p-8 sm:p-12">
         <div className="azulejo-line pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-40 [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden />
-        <p className="kicker text-accent">{en ? "Nothing here yet" : "Nada por aquí todavía"}</p>
-        <p className="headline mt-3 max-w-xl text-3xl sm:text-4xl">{title}</p>
+        <p className="headline max-w-xl text-3xl sm:text-4xl">{title}</p>
         <p className="mt-3 max-w-lg text-muted">{en ? "Try removing a filter, or design your own piece in a minute." : "Prueba a quitar algún filtro o diseña tu propia pieza en un minuto."}</p>
         <div className="relative mt-7 flex flex-wrap gap-3">
           <Link href={clear} className="btn btn-ink">
@@ -480,7 +480,7 @@ function EmptyState({ en, title, clear, clearLabel, suggestions, labels }: { en:
       </div>
       {suggestions.length > 0 && (
         <div className="mt-14">
-          <p className="kicker text-muted">{en ? "You might like" : "Quizá te guste"}</p>
+          <h2 className="headline text-2xl sm:text-3xl">{en ? "You might like" : "Quizá te guste"}</h2>
           <div className="mt-5">
             <ProductGrid products={suggestions} labels={labels} />
           </div>

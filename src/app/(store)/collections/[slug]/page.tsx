@@ -81,7 +81,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
               <Link href="/collections" className="hover:text-fg">{t("nav.collections")}</Link> <span className="mx-1.5">/</span>
               <span className="text-fg">{c.name}</span>
             </nav>
-            <p className="eyebrow mt-6 text-accent">
+            <p className="eyebrow mt-6 text-gold-ink">
               {own.length ? t("collections.pieces", { n: own.length }) : t("collections.designs", { n: designs.length })}
               {own.length && designs.length ? ` · ${t("collections.designs", { n: designs.length })}` : ""}
             </p>

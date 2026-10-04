@@ -131,9 +131,10 @@ export default async function Home() {
                       {t("drops.title")} <IconArrow className="h-4 w-4" />
                     </Link>
                   ) : (
-                    <div className="force-light max-w-md rounded-3xl bg-white p-6 text-[#0d0d0d]">
-                      <Newsletter source="drop-teaser" />
-                    </div>
+                    // one sign-up form per page: the drop points to the newsletter band in the footer
+                    <a href="#newsletter" className="btn btn-light w-fit px-7 py-4 text-[15px]">
+                      {t("home.drop.notify")} <IconArrow className="h-4 w-4" />
+                    </a>
                   )}
                 </div>
               </div>

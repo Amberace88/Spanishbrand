@@ -207,6 +207,7 @@ export const gl: Dict = {
   "home.story.cta": "Coñecer a marca",
   "home.editorial.eyebrow": "Editorial",
   "home.editorial.title": "Historias que se levan postas",
+  "home.drop.notify": "Avísame do lanzamento",
   "home.drop.eyebrow": "Próximo lanzamento",
   "home.drop.title": "Drop 001: Heritage",
   "home.drop.body": "Camiseta, sudadoira, gorra, póster, taza e funda. Unha soa identidade visual en seis pezas. Data por anunciar.",

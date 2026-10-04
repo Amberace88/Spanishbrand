@@ -207,6 +207,7 @@ export const eu: Dict = {
   "home.story.cta": "Ezagutu marka",
   "home.editorial.eyebrow": "Editoriala",
   "home.editorial.title": "Jantzita eramaten diren istorioak",
+  "home.drop.notify": "Abisatu abiaraztean",
   "home.drop.eyebrow": "Hurrengo abiaraztea",
   "home.drop.title": "Drop 001: Heritage",
   "home.drop.body": "Kamiseta, izerdi-jertsea, txanoa, posterra, katilua eta funda. Nortasun bisual bakarra sei piezatan. Data iragartzeke.",

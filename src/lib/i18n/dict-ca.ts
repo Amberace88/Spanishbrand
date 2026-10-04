@@ -207,6 +207,7 @@ export const ca: Dict = {
   "home.story.cta": "Coneix la marca",
   "home.editorial.eyebrow": "Editorial",
   "home.editorial.title": "Històries que es porten posades",
+  "home.drop.notify": "Avisa'm del llançament",
   "home.drop.eyebrow": "Proper llançament",
   "home.drop.title": "Drop 001: Heritage",
   "home.drop.body": "Samarreta, dessuadora, gorra, pòster, tassa i funda. Una sola identitat visual en sis peces. Data per anunciar.",
