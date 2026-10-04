@@ -12,6 +12,8 @@ import { ART_SERIES, siteArtSrc } from "@/lib/catalog/art-series";
 import { Countdown } from "@/components/home/Countdown";
 import { merchandise, merchandiseUnique, withHero } from "@/lib/catalog/merch";
 import { Newsletter } from "@/components/home/Newsletter";
+import { CausesBand } from "@/components/home/CausesBand";
+import { getCausesData, getDonation } from "@/lib/causes";
 import { PollCard } from "@/components/community/PollCard";
 import { Container, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -20,6 +22,7 @@ import { IconArrow } from "@/components/ui/Icons";
 export const revalidate = 300;
 
 export default async function Home() {
+  const [donation, causes] = await Promise.all([getDonation(), getCausesData()]);
   const [show, brand, t, collections, counts, bestsellers, newest, drops, poll, themes, locale, catalog, site] = await Promise.all([
     getShowcase(),
     getBrand(),
@@ -104,6 +107,7 @@ export default async function Home() {
       <FiestasCalendar />
       {!products.length && <ComingSoonGrid collections={core.length ? core : collections} />}
       <Manifesto kicker={t("manifesto.kicker")} text={t("manifesto.text")} highlight={["identidad", "españa", "identity", "spain"]} />
+      {donation.enabled && <CausesBand perItem={donation.perItem} month={causes.month} locale={locale} />}
       <CollectionsBento collections={core.length ? core : collections} counts={counts} products={catalog} />
 
       {/* Drop */}
