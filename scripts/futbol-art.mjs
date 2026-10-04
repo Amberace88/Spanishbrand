@@ -344,11 +344,28 @@ async function wear(data, seed, amount) {
 }
 
 /* ───────────────────────── output ───────────────────────── */
+/**
+ * Safe area of the 3:4 canvas every piece must sit inside (print audit 2026-10-04): side seams eat the
+ * outer 8 %, the hood seam the top 10 % of a hoodie back. Fronts keep 6 % at the top (collar curve).
+ * A piece drawn beyond it is scaled into it when placed (the PNG keeps its full resolution) and logged,
+ * so a new piece can never again print into a seam. The renderer adds the garment zones on top
+ * (lib/catalog/print-safety.ts: hoodie pocket, all-over panel crop).
+ */
+const SAFE_FRONT = { l: 0.08, t: 0.06, r: 0.08, b: 0.05 };
+const SAFE_BACK = { l: 0.08, t: 0.1, r: 0.08, b: 0.06 };
+const lum = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+};
+/** A colour that reads on a black garment: very dark inks (outlines, shadows) are swapped for `alt`. */
+const onDark = (hex, alt) => (lum(hex) < 0.045 ? alt : hex);
 const placement = {};
 const manifestAdds = {};
 const SHOTS = [];
 /** Rasterise a full-canvas SVG body, wear it, trim, save. `cover` keeps the full canvas (all-over patterns). */
-async function out(name, body, { wear: amount = 0.45, seed = 1, cover = false, bg } = {}) {
+async function out(name, body, { wear: amount0 = 0.45, seed = 1, cover = false, bg } = {}) {
+  const amount = Math.min(amount0, 0.3); // print audit: heavier wear ate thin strokes on the garment
   if (ONLY && !name.includes(ONLY)) return;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${bg ? rect(0, 0, W, H, bg) : ""}${body}</svg>`;
   const { data, info } = await sharp(Buffer.from(svg), { limitInputPixels: false }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -369,7 +386,23 @@ async function out(name, body, { wear: amount = 0.45, seed = 1, cover = false, b
   const aspect = +(h / w).toFixed(4);
   manifestAdds[file] = aspect;
   // layer geometry on the 3:4 canvas: centre + width fraction (the renderer's ImageLayer contract)
-  placement[file] = { aspect, x: +((x0 + w / 2) / W).toFixed(4), y: +((y0 + h / 2) / H).toFixed(4), w: +(w / W).toFixed(4) };
+  let px = (x0 + w / 2) / W, py = (y0 + h / 2) / H, pw = w / W;
+  if (!cover) {
+    const z = /espalda|dorsal/.test(name) ? SAFE_BACK : SAFE_FRONT;
+    const bw = w / W, bh = h / H;
+    const k = Math.min(1, (1 - z.l - z.r) / bw, (1 - z.t - z.b) / bh);
+    const bx0 = x0 / W, by0 = y0 / H;
+    if (k < 1 || bx0 < z.l - 1e-4 || by0 < z.t - 1e-4 || bx0 + bw > 1 - z.r + 1e-4 || by0 + bh > 1 - z.b + 1e-4) {
+      const nw = bw * k, nh = bh * k;
+      const cx = Math.min(Math.max(bx0 + bw / 2, z.l + nw / 2), 1 - z.r - nw / 2);
+      const ny0 = Math.min(Math.max(by0, z.t), 1 - z.b - nh);
+      console.warn(`  safe area: ${file} scaled x${k.toFixed(3)} (was ${(bx0 * 100).toFixed(1)}-${((bx0 + bw) * 100).toFixed(1)}% x ${(by0 * 100).toFixed(1)}-${((by0 + bh) * 100).toFixed(1)}%)`);
+      px = cx;
+      py = ny0 + nh / 2;
+      pw = nw;
+    }
+  }
+  placement[file] = { aspect, x: +px.toFixed(4), y: +py.toFixed(4), w: +pw.toFixed(4) };
   SHOTS.push(`${file}.png ${(png.length / 1024).toFixed(0)} KB`);
 }
 
@@ -398,13 +431,18 @@ async function campeonesMundo(tone) {
   s += await scarf({ x: 240, y: yrs.box.y + yrs.box.h + 150, w: W - 480, h: 300, base: C.red, stripe: C.gold, rib: "#a50d26", text: "ESPAÑA", textFill: C.gold, fringe: true, ls: 0.3, textW: 0.5 });
   await out(`campeones-mundo-${tone === "dark" ? "noche" : "dia"}`, s, { seed: 11, wear: 0.42 });
 
-  // back: ESPAÑA + giant 26 with two stars
+  // back: one block in the upper-middle of the back — ESPAÑA, two stars, the 26, CAMPEONES DEL MUNDO.
+  // Numeral ~28 % smaller than the first edition, clear of the hood seam (top ≥ 10 %) and side seams
+  // (≥ 8 %), light wear so the strokes print solid.
   let b = "";
-  b += (await T("ESPAÑA", { font: "shoulders", fill: t.main, w: 1700, top: 140, ls: 0.06 })).svg;
-  b += star(W / 2 - 170, 860, 120, t.alt) + star(W / 2 + 170, 860, 120, t.alt);
-  b += (await T("26", { font: "varsity", fill: t.alt, h: 1650, top: 1080, stroke: t.hot, sw: 40, shadow: [36, 36, tone === "dark" ? t.deep : C.ink, 14] })).svg;
-  b += (await T("CAMPEONES DEL MUNDO", { font: "anton", fill: t.main, w: 2100, top: 2900, ls: 0.05 })).svg;
-  await out(`campeones-mundo-${tone === "dark" ? "noche" : "dia"}-espalda`, b, { seed: 12, wear: 0.4 });
+  const es = await T("ESPAÑA", { font: "shoulders", fill: t.main, w: 1500, top: 360, ls: 0.06 });
+  b += es.svg;
+  const sy2 = es.box.y + es.box.h + 150;
+  b += star(W / 2 - 150, sy2, 100, t.alt) + star(W / 2 + 150, sy2, 100, t.alt);
+  const n26 = await T("26", { font: "varsity", fill: t.alt, h: 1190, w: 1700, top: sy2 + 170, stroke: t.hot, sw: 34, shadow: [26, 26, tone === "dark" ? t.deep : C.ink, 10] });
+  b += n26.svg;
+  b += (await T("CAMPEONES DEL MUNDO", { font: "anton", fill: t.main, w: 1700, top: n26.box.y + n26.box.h + 130, ls: 0.05 })).svg;
+  await out(`campeones-mundo-${tone === "dark" ? "noche" : "dia"}-espalda`, b, { seed: 12, wear: 0.1 });
 }
 
 async function campeonesScript(tone) {
@@ -476,22 +514,24 @@ async function campeonesEspalda(tone) {
   f += rect(1460, 700, 640, 26, t.hot);
   await out(`campeones-pecho-${tone === "dark" ? "noche" : "dia"}`, f, { seed: 61, wear: 0.25 });
   // back: the whole statement
+  // back: the statement as one block in the upper-middle, inside the seams (sides ≥ 8 %, top ≥ 10 %)
   let b = "";
-  b += halftone({ x: 100, y: 120, w: W - 200, h: 2900, cell: 52, angle: 45, fill: tone === "dark" ? "#5c0b17" : "#f2d27a", f: (u, v) => 1.05 - Math.hypot(u - 0.5, (v - 0.42) * 0.8) * 2.1 });
-  for (let i = 0; i < 2; i++) b += star(W / 2 + (i ? 230 : -230), 360, 190, t.alt);
-  const l1 = await T("CAMPEONES", { font: "anton", fill: t.main, w: 2200, sy: 1.6, top: 680, shadow: [0, 30, t.hot, 10] });
+  b += halftone({ x: 260, y: 360, w: W - 520, h: 2200, cell: 48, angle: 45, fill: tone === "dark" ? "#5c0b17" : "#f2d27a", f: (u, v) => 1.0 - Math.hypot(u - 0.5, (v - 0.45) * 0.85) * 2.2 });
+  for (let i = 0; i < 2; i++) b += star(W / 2 + (i ? 200 : -200), 520, 150, t.alt);
+  const l1 = await T("CAMPEONES", { font: "anton", fill: t.main, w: 1860, sy: 1.5, top: 780, shadow: [0, 24, t.hot, 10] });
   b += l1.svg;
-  const l2 = await T("DEL MUNDO", { font: "anton", fill: t.alt, w: 2200, sy: 1.6, top: l1.box.y + l1.box.h + 90, shadow: [0, 30, tone === "dark" ? t.deep : C.ink, 10] });
+  const l2 = await T("DEL MUNDO", { font: "anton", fill: t.alt, w: 1860, sy: 1.5, top: l1.box.y + l1.box.h + 80, shadow: [0, 24, tone === "dark" ? t.deep : C.ink, 10] });
   b += l2.svg;
-  b += (await T("2010 · 2026", { font: "varsity", fill: t.main, w: 1600, top: l2.box.y + l2.box.h + 150 })).svg;
-  await out(`campeones-espalda-${tone === "dark" ? "noche" : "dia"}`, b, { seed: 62, wear: 0.42 });
+  b += (await T("2010 · 2026", { font: "varsity", fill: t.main, w: 1400, top: l2.box.y + l2.box.h + 130 })).svg;
+  await out(`campeones-espalda-${tone === "dark" ? "noche" : "dia"}`, b, { seed: 62, wear: 0.16 });
 }
 
 async function bufandaEspana() {
   let s = "";
   // a scarf crossing the chest diagonally
-  const band = await scarf({ x: -200, y: 1150, w: W + 400, h: 560, base: C.red, stripe: C.gold, rib: "#a50d26", text: "ESPAÑA · CAMPEONES", textFill: C.gold, fringe: false, textW: 0.8 });
-  s += `<g transform="rotate(-14 ${W / 2} 1430)">${band}</g>`;
+  // the scarf ends (with its fringe) inside the print area: nothing runs into the side seams
+  const band = await scarf({ x: 360, y: 1180, w: W - 720, h: 500, base: C.red, stripe: C.gold, rib: "#a50d26", text: "ESPAÑA · CAMPEONES", textFill: C.gold, fringe: true, textW: 0.84 });
+  s += `<g transform="rotate(-12 ${W / 2} 1430)">${band}</g>`;
   s += (await T("VAMOS", { font: "shoulders", fill: C.white, w: 1500, top: 150, ls: 0.06 })).svg;
   s += star(W / 2 - 200, 2300, 140, C.gold) + star(W / 2 + 200, 2300, 140, C.gold);
   s += (await T("2010 · 2026", { font: "varsity", fill: C.white, w: 1700, top: 2560 })).svg;
@@ -518,7 +558,7 @@ async function hastaElFinal() {
 async function aficionEstadio() {
   let s = "";
   s += (await T("AFICIÓN", { font: "anton", fill: C.white, w: 2250, sy: 1.3, top: 120, shadow: [0, 28, C.red, 10] })).svg;
-  s += stadium(170, 1640, W - 340, 1260, { ink: C.cream, accent: C.gold, sw: 18 });
+  s += stadium(340, 1640, W - 680, 1200, { ink: C.cream, accent: C.gold, sw: 18 });
   s += (await T("EL FÚTBOL SE VIVE EN LA GRADA", { font: "inter", fill: C.gold, w: 2000, top: 3010, ls: 0.06 })).svg;
   await out("aficion-estadio", s, { seed: 91, wear: 0.35 });
 }
@@ -555,8 +595,8 @@ async function noventaMinutos() {
 async function siempreContigo() {
   let s = "";
   s += (await T("SIEMPRE", { font: "shoulders", fill: C.white, w: 2200, top: 150, ls: 0.04 })).svg;
-  const band = await scarf({ x: -200, y: 0, w: W + 400, h: 620, base: C.gold, stripe: C.red, rib: "#d9a800", text: "CONTIGO", textFill: C.red, fringe: false, textW: 0.5, ls: 0.12 });
-  s += `<g transform="translate(0 1050) rotate(-8 ${W / 2} 310)">${band}</g>`;
+  const band = await scarf({ x: 340, y: 0, w: W - 680, h: 580, base: C.gold, stripe: C.red, rib: "#d9a800", text: "CONTIGO", textFill: C.red, fringe: true, textW: 0.62, ls: 0.12 });
+  s += `<g transform="translate(0 1060) rotate(-7 ${W / 2} 290)">${band}</g>`;
   s += (await T("EN LAS BUENAS", { font: "anton", fill: C.cream, w: 1800, top: 2050, ls: 0.06 })).svg;
   s += (await T("Y EN LAS MALAS", { font: "anton", fill: C.red, w: 1800, top: 2420, ls: 0.06 })).svg;
   await out("siempre-contigo", s, { seed: 121, wear: 0.4 });
@@ -659,33 +699,42 @@ const CITIES = JSON.parse(await readFile(new URL("../src/lib/catalog/futbol-citi
 async function cityFront(c, i) {
   let s = "";
   // city name across the top
-  const nm = await T(c.name, { font: "anton", fill: c.name2, w: 2240, h: 640, sy: 1.25, top: 110, stroke: c.name2 === "#ffffff" ? undefined : undefined });
+  const nm = await T(c.name, { font: "anton", fill: c.name2, w: 1960, h: 560, sy: 1.25, top: 200 });
   s += nm.svg;
-  // the shirt
-  const sx = 120, sy = nm.box.y + nm.box.h + 110, sw = W - 240, sh = 2000;
+  // the shirt (outline included) keeps clear of the side seams
+  const sx = 290, sy = nm.box.y + nm.box.h + 100, sw = W - 580, sh = 1760;
   const id = nid("sh");
   s += `<clipPath id="${id}"><path d="${shirtPath(sx, sy, sw, sh)}"/></clipPath>`;
   s += `<path d="${shirtPath(sx, sy, sw, sh)}" fill="none" stroke="${C.cream}" stroke-width="56" stroke-linejoin="round"/>`;
   s += `<g clip-path="url(#${id})">${patternFill(c.pat, sx, sy, sw, sh)}</g>`;
   s += shirtNeck(sx, sy, sw, sh, c.trim, 70) + shirtCuffs(sx, sy, sw, sh, c.trim, 60);
   const [nf, no, ns] = c.num;
-  s += (await T(c.cp, { font: "varsity", fill: nf, h: 980, cy: sy + sh * 0.62, stroke: no, sw: 40, shadow: [28, 28, ns, 10] })).svg;
+  s += (await T(c.cp, { font: "varsity", fill: nf, h: 820, w: sw * 0.5, cy: sy + sh * 0.62, stroke: no, sw: 34, shadow: [24, 24, ns, 10] })).svg;
   // scarf band under the shirt
-  s += await scarf({ x: 260, y: sy + sh + 110, w: W - 520, h: 280, base: c.trim, stripe: c.accent === c.trim ? C.white : c.accent, rib: null, text: "COLORES DE MI CIUDAD", textFill: c.trim === "#ffffff" || c.trim === "#ffe14d" ? C.ink : c.accent === c.trim ? C.white : c.accent, fringe: true, textW: 0.86, ls: 0.05 });
-  await out(`ciudad-${c.key}`, s, { seed: 200 + i, wear: 0.3 });
+  s += await scarf({ x: 420, y: sy + sh + 100, w: W - 840, h: 260, base: c.trim, stripe: c.accent === c.trim ? C.white : c.accent, rib: null, text: "COLORES DE MI CIUDAD", textFill: c.trim === "#ffffff" || c.trim === "#ffe14d" ? C.ink : c.accent === c.trim ? C.white : c.accent, fringe: true, textW: 0.86, ls: 0.05 });
+  await out(`ciudad-${c.key}`, s, { seed: 200 + i, wear: 0.18 });
 }
 
+/**
+ * Back: city name and number as ONE block in the upper-middle of the back (print audit 2026-10-04).
+ * The first edition ran a 1900 px numeral edge to edge with heavy wear: on hoodies the hood and the side
+ * seams hid parts of it and the texture ate the strokes. Now: numeral 1370 px (−28 %), width ≤ 75 % of the
+ * print area, block from 11 % down (clear of the hood seam), light wear, outlines that read on black.
+ */
 async function cityBack(c, i) {
   let s = "";
-  const nm = await T(c.name, { font: "shoulders", fill: c.name2, w: 2100, h: 520, top: 160, ls: 0.06 });
+  const nm = await T(c.name, { font: "shoulders", fill: c.name2, w: 1640, h: 400, top: 350, ls: 0.06 });
   s += nm.svg;
   const [nf, no, ns] = c.num;
   // on black the number reads in the city's lightest colour with the strong colour as outline
   const fill = nf === "#111111" || nf === "#14213d" || nf === "#1c2c5b" ? no : nf;
-  const stroke = fill === no ? nf === "#111111" ? c.accent : nf : no;
-  s += (await T(c.cp, { font: "varsity", fill, h: 1900, top: nm.box.y + nm.box.h + 170, stroke: stroke === fill ? C.cream : stroke, sw: 46, shadow: [36, 36, ns, 12] })).svg;
-  s += rect(560, 2880, W - 1120, 30, c.accent === "#ffffff" ? c.pat.a === "#ffffff" ? c.trim : c.pat.a : c.accent);
-  await out(`ciudad-${c.key}-espalda`, s, { seed: 300 + i, wear: 0.36 });
+  let stroke = fill === no ? (nf === "#111111" ? c.accent : nf) : no;
+  if (stroke === fill) stroke = C.cream;
+  stroke = onDark(stroke, c.name2 === fill ? C.cream : c.name2);
+  const num = await T(c.cp, { font: "varsity", fill, h: 1370, w: 1800, top: nm.box.y + nm.box.h + 130, stroke, sw: 34, shadow: [24, 24, onDark(ns, "#2a2a2a"), 10] });
+  s += num.svg;
+  s += rect(W / 2 - 520, num.box.y + num.box.h + 120, 1040, 26, c.accent === "#ffffff" ? (c.pat.a === "#ffffff" ? c.trim : c.pat.a) : c.accent);
+  await out(`ciudad-${c.key}-espalda`, s, { seed: 300 + i, wear: 0.1 });
 }
 
 /* ═════════════════════════ ALL-OVER JERSEYS (sublimation) ═════════════════════════ */
@@ -703,15 +752,17 @@ async function aopPattern(c, i) {
 async function aopFront(c, i) {
   let s = "";
   const ink = c.pat.a === "#ffffff" || c.pat.a === "#ffd400" || c.pat.a === "#ffe14d" ? c.trim : C.white;
-  s += (await T(c.name, { font: "anton", fill: ink, w: 1700, h: 420, cy: 1150, stroke: ink === C.white ? c.trim : C.white, sw: 30, ls: 0.04 })).svg;
-  s += (await T(c.cp, { font: "varsity", fill: ink, h: 300, cx: 1720, top: 360, stroke: ink === C.white ? c.trim : C.white, sw: 20 })).svg;
+  s += (await T(c.name, { font: "anton", fill: ink, w: 1500, h: 380, cy: 1150, stroke: ink === C.white ? c.trim : C.white, sw: 26, ls: 0.04 })).svg;
+  s += (await T(c.cp, { font: "varsity", fill: ink, h: 280, cx: 1640, top: 460, stroke: ink === C.white ? c.trim : C.white, sw: 18 })).svg;
   await out(`camiseta-${c.key}-frente`, s, { wear: 0, seed: 500 + i });
 }
 async function aopBack(c, i) {
   let s = "";
   const ink = c.pat.a === "#ffffff" || c.pat.a === "#ffd400" || c.pat.a === "#ffe14d" ? c.trim : C.white;
-  s += (await T(c.name, { font: "shoulders", fill: ink, w: 1700, h: 380, top: 420, ls: 0.06, stroke: ink === C.white ? c.trim : C.white, sw: 24 })).svg;
-  s += (await T(c.cp, { font: "varsity", fill: ink, h: 1350, top: 960, stroke: ink === C.white ? c.trim : C.white, sw: 44 })).svg;
+  // name + number as one block, ~28 % smaller numeral, well inside the panel (it is cover-cropped and sewn)
+  const nm = await T(c.name, { font: "shoulders", fill: ink, w: 1440, h: 340, top: 480, ls: 0.06, stroke: ink === C.white ? c.trim : C.white, sw: 22 });
+  s += nm.svg;
+  s += (await T(c.cp, { font: "varsity", fill: ink, h: 980, w: 1500, top: nm.box.y + nm.box.h + 120, stroke: ink === C.white ? c.trim : C.white, sw: 34 })).svg;
   await out(`camiseta-${c.key}-dorsal`, s, { wear: 0, seed: 600 + i });
 }
 

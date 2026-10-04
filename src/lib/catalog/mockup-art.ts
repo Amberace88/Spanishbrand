@@ -22,13 +22,16 @@ export interface MockupArtParams {
   w: number;
   h: number;
   v: string; // print content hash (cache key)
+  /** Blueprint: the render applies that garment's safe zone (lib/catalog/print-safety.ts), exactly like the print file. */
+  b?: string;
 }
 
 function secret() {
   return process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 }
 
-const payload = (p: MockupArtParams) => `${p.d}|${p.s}|${p.m}|${p.w}|${p.h}|${p.v}`;
+// `b` is appended only when present, so URLs signed before it existed stay valid
+const payload = (p: MockupArtParams) => `${p.d}|${p.s}|${p.m}|${p.w}|${p.h}|${p.v}${p.b ? `|${p.b}` : ""}`;
 
 export function signMockupArt(p: MockupArtParams, key = secret()) {
   return createHmac("sha256", key).update(payload(p)).digest("hex").slice(0, 32);
@@ -52,8 +55,8 @@ export function mockupArtUrl(siteUrl: string, p: Omit<MockupArtParams, "w" | "h"
   const key = secret();
   if (!key || !/^https:\/\//.test(siteUrl)) return null;
   const { w, h } = mockupDims(p.width, p.height);
-  const params: MockupArtParams = { d: p.d, s: p.s, m: p.m, w, h, v: p.v };
-  const q = new URLSearchParams({ d: params.d, s: params.s, m: params.m, w: String(w), h: String(h), v: params.v });
+  const params: MockupArtParams = { d: p.d, s: p.s, m: p.m, w, h, v: p.v, ...(p.b ? { b: p.b } : {}) };
+  const q = new URLSearchParams({ d: params.d, s: params.s, m: params.m, w: String(w), h: String(h), v: params.v, ...(p.b ? { b: p.b } : {}) });
   // the path ends in .png so the proxy (session cookie) skips it and the CDN can cache the response
   return `${siteUrl.replace(/\/$/, "")}/api/catalog/mockup-art/${signMockupArt(params, key)}.png?${q}`;
 }

@@ -277,7 +277,8 @@ async function espaldaLeon() {
 }
 
 async function espaldaSol() {
-  await out("espalda-sol-pecho", [op(sun(MC.cx, 420, 170), C.gold), op(circle(MC.cx, 420, 50, `fill="#000"`), C.red), await tx("SOL", { font: "anton", w: 160, cx: MC.cx, top: 620, ls: 0.1 }, C.cream)], { seed: 170, wear: 0, region: CHEST });
+  // chest mark: 12 broad rays (24 tapered ones printed under 1 mm at this size — print audit 2026-10-04)
+  await out("espalda-sol-pecho", [op(sun(MC.cx, 420, 170, { n: 12, inner: 0.52, disc: 0.44 }), C.gold), op(circle(MC.cx, 420, 50, `fill="#000"`), C.red), await tx("SOL", { font: "anton", w: 160, cx: MC.cx, top: 620, ls: 0.1 }, C.cream)], { seed: 170, wear: 0, region: CHEST });
   await out("espalda-sol", [
     op(halftone({ x: 0, y: 100, w: 2400, h: 2400, cell: 54, f: (u, v) => 1.2 - Math.hypot(u - 0.5, v - 0.5) * 2.2 }), C.red),
     op(sun(1200, 1300, 1150, { n: 32 }), C.gold, { rough: ROUGH }),

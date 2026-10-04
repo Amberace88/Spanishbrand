@@ -27,7 +27,10 @@ import { AUDIENCE_BLUEPRINTS } from "@/lib/catalog/blueprints";
 import { AUDIENCE_EXTRAS } from "@/lib/catalog/audience";
 import { createHash } from "node:crypto";
 import { familyDesigns } from "@/lib/catalog/family";
+import { FUTBOL_AOP, FUTBOL_CITIES } from "@/lib/catalog/futbol-pro";
 import { mockupArtUrl } from "@/lib/catalog/mockup-art";
+import { designVersion, effectiveLayers } from "@/lib/catalog/print-safety";
+import VERSION_BASELINE from "@/lib/catalog/design-version-baseline.json";
 import { isKidsBlueprint, orderKidsImages, pickOptionGroups, styleOf, type MockupStyle } from "@/lib/fulfillment/mockup-styles";
 
 /* ───────────────────────── plan ───────────────────────── */
@@ -205,11 +208,11 @@ async function save(job: JobRow, patch: Partial<JobRow>) {
 /** All jobs, paged: PostgREST caps a single response at 1000 rows, and jobs beyond that looked "fresh" to the
  *  batch runner, which then spent every run re-visiting finished jobs (the builder stalled at ~1000 jobs). */
 export async function listJobs() {
-  const out: { key: string; kind: string; phase: string; product_id: string | null; error: string | null; attempts: number; updated_at: string; locked_until: string | null; replaces: string | null }[] = [];
+  const out: { key: string; kind: string; phase: string; product_id: string | null; error: string | null; attempts: number; updated_at: string; locked_until: string | null; replaces: string | null; design_version: string | null; rebuild_tag: string | null }[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await db()
       .from("catalog_jobs")
-      .select("key, kind, phase, product_id, error, attempts, updated_at, locked_until, replaces:state->>replaces")
+      .select("key, kind, phase, product_id, error, attempts, updated_at, locked_until, replaces:state->>replaces, design_version:state->>designVersion, rebuild_tag:state->>rebuildTag")
       .eq("brand_id", env.brandId())
       .order("key")
       .range(from, from + 999);
@@ -726,7 +729,8 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     // stable public domain: Gelato downloads the PDF when the order is produced (deploy-specific URLs can disappear)
     files.push({ type: "default", url: `${env.siteUrl()}/catalog/calendars/${design.slug}.pdf` });
   } else if (spec.kind === "design") {
-    const png = await renderDesign(design, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
+    // safe zones (lib/catalog/print-safety.ts): the design is kept clear of seams, hood and pocket of this garment
+    const png = await renderDesign({ ...design, layers: effectiveLayers(design, bp.key, "front") }, { width: res.printfile.width, height: res.printfile.height, mode: bp.renderMode });
     // content-addressed path: Printful caches files by URL, so a changed print needs a new URL — but identical
     // renders (retries, rebuilds without artwork changes) reuse the same object instead of adding a new copy
     const ver = printHash(png);
@@ -734,7 +738,7 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     files.push({ type: res.placement ?? bp.placement, url });
     // two-sided designs: second print file on the back (Printful garments that offer a back placement)
     if (design.back?.length && res.provider === "printful" && bp.renderMode === "print" && res.placements.includes("back")) {
-      const backPng = await renderDesign({ ...design, layers: design.back }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
+      const backPng = await renderDesign({ ...design, layers: effectiveLayers(design, bp.key, "back") }, { width: res.printfile.width, height: res.printfile.height, mode: "print" });
       const backHash = printHash(backPng);
       const backUrl = await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${backHash}-back.png`, backPng, "image/png", { immutable: true });
       files.push({ type: "back", url: backUrl });
@@ -742,7 +746,7 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
     // all-over garments: back panel = the design's back (or its pattern), sleeves = the pattern alone
     if (res.panels && bp.renderMode === "cover") {
       for (const [pl, size] of Object.entries(res.panels)) {
-        const layers = pl === "back" && design.back?.length ? design.back : design.layers.slice(0, 1);
+        const layers = pl === "back" && design.back?.length ? effectiveLayers(design, bp.key, "back") : design.layers.slice(0, 1);
         const panelPng = await renderDesign({ ...design, layers }, { ...size, mode: "cover" });
         files.push({ type: pl, url: await uploadObject(`catalog/prints/${design.slug}-${rk.slice(4).replace(":", "-")}-${ver}-${pl}.png`, panelPng, "image/png") });
       }
@@ -846,7 +850,9 @@ async function stepCreate(job: JobRow, staff: StaffSession): Promise<StepResult>
   if (vmErr) throw new Error(`variant mappings: ${vmErr.message}`);
 
   await sb.rpc("refresh_product_eligibility", { p_product_id: product.id });
-  await save(job, { phase: "test", product_id: product.id, state: { slug, resKey: rk, files, replaces: (job.state as { replaces?: string | null }).replaces ?? null }, error: null });
+  // design version + rebuild tag of what was printed: changed designs are rebuilt later (rebuildCandidates)
+  const versionInfo = spec.kind === "design" ? { designVersion: designVersion(design, bp.key), rebuildTag: REBUILD[design.slug] ?? null } : {};
+  await save(job, { phase: "test", product_id: product.id, state: { slug, resKey: rk, files, replaces: (job.state as { replaces?: string | null }).replaces ?? null, ...versionInfo }, error: null });
   return { key: job.key, phase: "test", done: false, message: `${copy.name} · ${variants.length} variantes` };
 }
 
@@ -882,7 +888,7 @@ function mockupSource(spec: Spec, file: { type: string; url: string }, printfile
   if (spec.kind !== "design" || spec.bp.technique === "EMBROIDERY" || process.env.MOCKUP_ART_FROM_SITE === "0" || (job.state as { noSiteArt?: boolean }).noSiteArt) return file.url;
   if (side === "back" && !spec.design.back?.length) return file.url;
   const v = createHash("sha256").update(file.url).digest("hex").slice(0, 12);
-  return mockupArtUrl(env.siteUrl(), { d: spec.design.slug, s: side, m: side === "back" ? "print" : spec.bp.renderMode, v, width: printfile.width, height: printfile.height }) ?? file.url;
+  return mockupArtUrl(env.siteUrl(), { d: spec.design.slug, s: side, m: side === "back" ? "print" : spec.bp.renderMode, b: spec.bp.key, v, width: printfile.width, height: printfile.height }) ?? file.url;
 }
 
 /** Small local render for poster scenes (Gelato/Prodigi): no download of the 10–47 MB poster file from storage. */
@@ -1255,6 +1261,86 @@ async function runStepLocked(key: string, kind: JobRow["kind"], staff: StaffSess
 }
 
 
+/* ───────────────────────── rebuilds of changed designs ───────────────────────── */
+
+/**
+ * Forced rebuilds: design slug → tag. A published product of the design whose recorded tag differs is
+ * rebuilt once (on top of the automatic version check below). Change the tag to force another round.
+ * 2026-10-04: Fútbol PRO backs/fronts redrawn (smaller numerals, safe margins, lighter wear) — print audit.
+ */
+export const REBUILD: Record<string, string> = Object.fromEntries(
+  [
+    ...["noche", "dia"].flatMap((t) => [`fp-campeones-mundo-${t}`, `fp-campeones-espalda-${t}`]),
+    ...FUTBOL_CITIES.map((c) => `fp-ciudad-${c.key}`),
+    ...FUTBOL_AOP.map((k) => `fp-camiseta-${k}`),
+    "fp-bufanda-espana",
+    "fp-siempre-contigo",
+    "fp-aficion-estadio",
+  ].map((slug) => [slug, "2026-10-04-print-safety"]),
+);
+
+/** At most this many replacements in flight; a new one starts only when a run has a free slot (1 per run). */
+const MAX_REBUILDS_IN_FLIGHT = 2;
+const BASELINE = VERSION_BASELINE as Record<string, string>;
+const versionMemo = new Map<string, string>();
+function currentVersion(design: Design, bp: BlueprintKey) {
+  const k = `${design.slug}:${bp}`;
+  let v = versionMemo.get(k);
+  if (!v) versionMemo.set(k, (v = designVersion(design, bp)));
+  return v;
+}
+
+export interface RebuildCandidate {
+  key: string;
+  reason: "forced" | "changed";
+}
+
+/**
+ * Published library products whose print no longer matches the design: the version recorded when the
+ * product was built (or, for products built before versions were recorded, the baseline of 2026-10-04)
+ * differs from the current one, or the design is in REBUILD with a tag the product has not been built with.
+ */
+export function rebuildCandidates(jobs: { key: string; phase: string; design_version?: string | null; rebuild_tag?: string | null }[]): RebuildCandidate[] {
+  const out: RebuildCandidate[] = [];
+  for (const j of jobs) {
+    if (j.phase !== "done" || !j.key.startsWith("p:")) continue;
+    const [, slug, bpk] = j.key.split(":");
+    const design = designBySlug(slug);
+    const bp = bpk as BlueprintKey;
+    if (!design || design.retired || !BLUEPRINTS[bp] || !productsFor(design).includes(bp) || bp === "calendar") continue;
+    const tag = REBUILD[slug];
+    const was = j.design_version ?? BASELINE[`${slug}:${bp}`];
+    if (tag && j.rebuild_tag !== tag) out.push({ key: j.key, reason: "forced" });
+    else if (was && was !== currentVersion(design, bp)) out.push({ key: j.key, reason: "changed" });
+  }
+  // forced first, then the garments people browse first
+  const core = (k: string) => (["tee", "hoodie", "sweat", "jersey", "womtee", "kids"].includes(k.split(":")[2]) ? 0 : 1);
+  return out.sort((a, b) => (a.reason === b.reason ? 0 : a.reason === "forced" ? -1 : 1) || core(a.key) - core(b.key) || a.key.localeCompare(b.key));
+}
+
+/** Rebuild switch (brand_settings.settings.catalogRebuild): off until an admin starts it on /admin/catalogo. */
+export async function rebuildEnabled(): Promise<boolean> {
+  const { data } = await db().from("brand_settings").select("settings").eq("brand_id", env.brandId()).maybeSingle();
+  return Boolean((data?.settings as { catalogRebuild?: { enabled?: boolean } } | null)?.catalogRebuild?.enabled);
+}
+export async function setRebuildEnabled(enabled: boolean, staff: StaffSession) {
+  const sb = db();
+  const { data } = await sb.from("brand_settings").select("settings").eq("brand_id", env.brandId()).maybeSingle();
+  const settings = { ...((data?.settings as object | null) ?? {}), catalogRebuild: { enabled, at: new Date().toISOString(), by: staff.userId } };
+  const { error } = await sb.from("brand_settings").update({ settings }).eq("brand_id", env.brandId());
+  if (error) throw new Error(`brand_settings: ${error.message}`);
+}
+
+/** Admin summary: pending rebuilds, replacements in flight, switch state. */
+export async function rebuildStatus() {
+  const [jobs, enabled] = await Promise.all([listJobs(), rebuildEnabled()]);
+  const open = (p: string) => p !== "done" && p !== "failed";
+  const pending = rebuildCandidates(jobs);
+  const inFlight = jobs.filter((j) => j.replaces && open(j.phase)).map((j) => ({ key: j.key, phase: j.phase }));
+  const failed = jobs.filter((j) => j.replaces && j.phase === "failed").map((j) => ({ key: j.key, error: j.error }));
+  return { enabled, pending: pending.length, forced: pending.filter((c) => c.reason === "forced").length, next: pending.slice(0, 12), inFlight, failed: failed.slice(0, 12) };
+}
+
 /* ───────────────────────── server-side runner (cron) ───────────────────────── */
 
 /**
@@ -1300,8 +1386,15 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   const fresh = plan
     .filter((p) => p.kind === "PRODUCT" && open(p.key) && (!state.has(p.key) || state.get(p.key)!.phase === "new") && free(p.key))
     .sort((a, b) => prio(a.key) - prio(b.key));
+  // rebuilds of changed designs (admin switch): at most one new replacement per run, few in flight, so new
+  // products keep progressing; the live product stays on sale until its replacement publishes
+  let rebuildKey: string | null = null;
+  if (await rebuildEnabled().catch(() => false)) {
+    const inFlight = jobs.filter((j) => j.replaces && open(j.key)).length;
+    if (inFlight < MAX_REBUILDS_IN_FLIGHT) rebuildKey = rebuildCandidates(jobs).find((c) => free(c.key))?.key ?? null;
+  }
   // one resolve per run (they can be slow: catalogue lookups) so product work is never starved by them
-  const queue = [...resolves.slice(0, 1), ...inProgress, ...fresh].map((p) => p.key);
+  const queue = [...resolves.slice(0, 1).map((p) => p.key), ...(rebuildKey ? [rebuildKey] : []), ...[...inProgress, ...fresh].map((p) => p.key)];
   const remaining = queue.length;
   const results: { key: string; phase: string; error?: string }[] = [];
   const worker = async () => {
@@ -1309,7 +1402,7 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
       const key = queue.shift()!;
       // keep stepping the same job while time allows (mockup polling etc.)
       for (let i = 0; i < 12 && Date.now() - started < budget; i++) {
-        const r = await runStep(key, staff);
+        const r = await runStep(key, staff, i === 0 && key === rebuildKey ? { rebuild: true } : {});
         if (r.done || r.waitMs) {
           results.push({ key, phase: r.phase, error: r.error });
           break;
@@ -1318,5 +1411,5 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
     }
   };
   await Promise.all(Array.from({ length: opts.workers ?? 3 }, worker));
-  return { ms: Date.now() - started, remaining, processed: results.length, results: results.slice(0, 20) };
+  return { ms: Date.now() - started, remaining, processed: results.length, rebuild: rebuildKey, results: results.slice(0, 20) };
 }
