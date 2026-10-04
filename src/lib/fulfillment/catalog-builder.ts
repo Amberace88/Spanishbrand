@@ -1284,11 +1284,16 @@ export async function runCatalogBatch(staff: StaffSession, opts: { budgetMs?: nu
   // priority: brand-defining lines first (lookbook lion, royal crown, embroidery), then pending replacements, then the rest
   const prio = (key: string) => {
     const d = designBySlug(key.split(":")[1] ?? "");
-    if (d?.tags?.includes("serie-leon")) return BLUEPRINTS[key.split(":")[2] as BlueprintKey]?.category === "HEADWEAR" ? -2 : -1; // León series first, lion caps before all
-    // family / audience garments (Para quién: abuelos, niños, bebés, mujer) right after León — /para/bebes was empty.
-    // Ahead of the other prio-0 lines too: ~140 of those were queued first, so a plain 0 would not move them.
-    if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || AUDIENCE_BLUEPRINTS.includes(key.split(":")[2] as BlueprintKey))) return -0.5;
-    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon") || d.tags?.includes("sabiduria") || d.tags?.includes("futbol-pro") || d.tags?.includes("statement"))) return 0;
+    const bpk = key.split(":")[2] as BlueprintKey;
+    // core garments (the categories people browse first) of the new lines lead the queue
+    const core = ["tee", "hoodie", "sweat", "jersey", "teeoversize", "hoodieoversize", "womtee", "kids"].includes(bpk);
+    if (d?.tags?.includes("futbol-pro")) return core ? -3 : 0.5;
+    if (d?.tags?.includes("statement")) return core ? -2.5 : 0.5;
+    if (d?.tags?.includes("serie-leon")) return BLUEPRINTS[bpk]?.category === "HEADWEAR" ? -2 : -1; // lion caps, then the León series
+    // family designs and baby/toddler garments (Para quién: /para/bebes was empty)
+    if (key.startsWith("p:") && (FAMILY_SLUGS.has(d?.slug ?? "") || ["baby", "toddler", "kidshoodie"].includes(bpk))) return -0.5;
+    if (d?.tags?.includes("sabiduria")) return core ? -0.2 : 0.5;
+    if (d && (d.tags?.includes("lookbook") || d.tags?.includes("bordado") || d.tags?.includes("arte") || d.tags?.includes("leon"))) return 0;
     if ((state.get(key) as { replaces?: string | null } | undefined)?.replaces) return 1;
     return 2;
   };
