@@ -7,7 +7,7 @@ export function CountUp({ to, from = 0, duration = 1.4, format = (n: number) => 
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduce = useReducedMotion();
-  const [v, setV] = useState(reduce ? to : from);
+  const [v, setV] = useState(from); // same start on server and client (no hydration mismatch)
   useEffect(() => {
     if (!inView || reduce) return void setV(to);
     const c = animate(from, to, { duration, ease: [0.16, 1, 0.3, 1], onUpdate: setV });

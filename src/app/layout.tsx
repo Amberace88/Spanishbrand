@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import localFont from "next/font/local";
 import "./globals.css";
 import "@/lib/personalization/print-fonts.css";
 import { getBrand } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/server";
+import { messagesFor } from "@/lib/i18n/dictionaries";
 import { I18nProvider } from "@/components/providers/I18nProvider";
+import { MotionProvider } from "@/components/providers/MotionProvider";
+
+/* Body + logo faces through next/font: preloaded with the page and paired with a metric-matched fallback, so the
+ * swap from the system font no longer reflows the hero (the @fontsource faces in globals.css stay as the latin-ext
+ * fallback under the same CSS tokens). next/font options must be literals, hence the repeated latin range. */
+const inter = localFont({ src: "./fonts/inter-latin-wght-normal.woff2", weight: "100 900", display: "swap", variable: "--font-inter", declarations: [{ prop: "unicode-range", value: "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD" }] });
+const cinzel = localFont({ src: "./fonts/cinzel-latin-wght-normal.woff2", weight: "400 900", display: "swap", variable: "--font-cinzel", adjustFontFallback: "Times New Roman", declarations: [{ prop: "unicode-range", value: "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD" }] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getBrand();
@@ -45,7 +54,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} className={`${inter.variable} ${cinzel.variable}`} suppressHydrationWarning>
       <head>
         {/* Apply saved / system theme before first paint (storefront only). */}
         <script
@@ -55,7 +64,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
       </head>
       <body className="min-h-dvh">
-        <I18nProvider locale={locale}>{children}</I18nProvider>
+        <I18nProvider locale={locale} messages={messagesFor(locale)}>
+          <MotionProvider>{children}</MotionProvider>
+        </I18nProvider>
       </body>
     </html>
   );

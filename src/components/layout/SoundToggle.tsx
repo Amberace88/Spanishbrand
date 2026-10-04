@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 
 const SRC = "/audio/rojo-y-gualda.mp3";
 const TARGET_VOL = 0.55;
@@ -95,7 +95,7 @@ export function SoundToggle({ className = "" }: { className?: string }) {
 
       <AnimatePresence>
         {pill && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -10, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.96 }}
@@ -126,7 +126,7 @@ export function SoundToggle({ className = "" }: { className?: string }) {
             <button onClick={close} aria-label="Cerrar reproductor" className="grid h-8 w-8 place-items-center rounded-full text-[#f3ead7]/60 hover:bg-white/10 hover:text-[#f3ead7]">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
             </button>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

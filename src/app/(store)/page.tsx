@@ -62,6 +62,8 @@ export default async function Home() {
       <Hero brandName={brand.name} jerseyImg={show.jersey} blankImg={show.blank} persoPhoto={site["hero-personaliza"] ?? null} designPhoto={site["hero-disena"] ?? null} />
       <TrustBar />
       <BrandEssentials />
+      {/* below the fold: each section skips style/layout/paint (≈1500 nodes) until it nears the viewport */}
+      <div className="cv-sections">
       <CategoryGrid products={catalog} />
       <LookbookLeon products={lookbook} photo={site["look-leon-mujer"] ?? null} en={locale === "en"} labels={{ madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") }} />
       <ArteBand arts={arts} looks={looks} products={arte} en={locale === "en"} labels={cardLabels} />
@@ -134,6 +136,7 @@ export default async function Home() {
         </Container>
       </section>
 
+      </div>
       <ClubTeaser brandName={brand.name} />
       <BrandPromise />
 

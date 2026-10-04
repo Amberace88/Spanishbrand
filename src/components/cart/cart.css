@@ -16,7 +16,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--grain);
+  background-color: #000; -webkit-mask-image: var(--grain); mask-image: var(--grain); /* black + alpha mask = the grain tile, and not an LCP candidate */
   opacity: 0.12;
   mix-blend-mode: overlay;
   pointer-events: none;

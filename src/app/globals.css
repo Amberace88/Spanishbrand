@@ -20,9 +20,9 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-gold: var(--gold);
-  --font-display: "Bricolage Grotesque Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-logo: "Cinzel Variable", "Cinzel", Georgia, serif;
+  --font-display: "Bricolage Grotesque Variable", var(--font-inter), "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-logo: var(--font-cinzel), "Cinzel Variable", "Cinzel", Georgia, serif;
 }
 
 /* =====================================================================
@@ -88,6 +88,7 @@
   --line: rgb(13 13 13 / 0.1);
   --accent: #c8102e;
   --gold: #c99a1e;
+  --gold-ink: #7d5d0c; /* gold for small text on light backgrounds (≥ 4.5:1) */
 }
 .dark:not(.force-light),
 .dark .theme-dark-scope {
@@ -100,6 +101,7 @@
   --line: rgb(245 241 232 / 0.12);
   --accent: #e8263f;
   --gold: #e0b84a;
+  --gold-ink: #e0b84a;
 }
 .dark .force-light {
   color-scheme: light;
@@ -111,10 +113,14 @@
   --line: rgb(13 13 13 / 0.1);
   --accent: #c8102e;
   --gold: #c99a1e;
+  --gold-ink: #7d5d0c; /* gold for small text on light backgrounds (≥ 4.5:1) */
 }
 .logo-serif { font-family: var(--font-logo); }
+.text-gold-ink { color: var(--gold-ink); }
 :root {
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* film grain: the former inline feTurbulence SVG pre-rendered to a bitmap tile (an SVG filter re-runs on every
+     raster and held back the first frame on mobile); same pixels, see public/textures/grain.webp */
+  --grain: url("/textures/grain.webp");
 }
 
 html {
@@ -196,13 +202,17 @@ body {
   background: linear-gradient(100deg, #b8862b 0%, #f7e08a 18%, #d9a93a 36%, #8f6a1f 52%, #f1d27a 70%, #c9962e 86%, #f7e08a 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: metal-shine 7s ease-in-out infinite;
 }
 .text-red-metal {
   background: linear-gradient(100deg, #9c0a1f 0%, #ff3b4e 20%, #d1132c 40%, #7e0718 58%, #f0283c 78%, #b00d24 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: metal-shine 9s ease-in-out infinite;
+}
+/* The shine animates background-position (a full repaint of the lettering every frame): desktop pointers only.
+   Phones keep the static metal gradient — the endless repaint cost main-thread time and battery there. */
+@media (hover: hover) and (pointer: fine) {
+  .text-gold-metal { animation: metal-shine 7s ease-in-out infinite; }
+  .text-red-metal { animation: metal-shine 9s ease-in-out infinite; }
 }
 @keyframes metal-shine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 .bg-gold-metal { background: linear-gradient(135deg, #f7e08a, #d9a93a 40%, #9a7222 70%, #e8c766); }
@@ -214,11 +224,31 @@ body {
 @keyframes lion-float { 0%, 100% { transform: translateY(0) rotate(-0.6deg); } 50% { transform: translateY(-10px) rotate(0.6deg); } }
 .lion-float { animation: lion-float 7s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .lion-float { animation: none; } }
+/* Home hero entry: pure CSS (transform/opacity), so it starts with the first paint instead of after hydration */
+@keyframes hero-line { from { transform: translateY(105%); } to { transform: translateY(0); } }
+@keyframes hero-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes hero-zoom { from { transform: scale(1.12); } to { transform: scale(1); } }
+.hero-line { animation: hero-line 1.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.hero-zoom { animation: hero-zoom 2.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.hero-rise { animation: hero-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both; }
+/* Below-the-fold sections: each rendered only when near the viewport (the size estimate is replaced by the real one once seen) */
+.cv-sections > * { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+/* <Reveal>: scroll-driven, no JS. Visible by default (no support / reduced motion / already in view at load). */
+@keyframes reveal-in { from { opacity: 0; transform: translateY(var(--rv-y, 20px)); } to { opacity: 1; transform: none; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry var(--rv-start, 0%) entry calc(var(--rv-start, 0%) + 60%);
+    }
+  }
+}
 .marquee-track { animation: marquee 28s linear infinite; }
 .marquee-track-rev { animation: marquee-rev 34s linear infinite; }
 .grain-soft::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image: var(--grain); opacity: 0.12; mix-blend-mode: overlay;
+  background-color: #000; -webkit-mask-image: var(--grain); mask-image: var(--grain); /* black + alpha mask = the grain tile, and not an LCP candidate */ opacity: 0.12; mix-blend-mode: overlay;
 }
 /* Spanish flag stripe (rojo · gualda · rojo) */
 .flag-stripe {
@@ -249,7 +279,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: var(--grain);
+  background-color: #000; -webkit-mask-image: var(--grain); mask-image: var(--grain); /* black + alpha mask = the grain tile, and not an LCP candidate */
   opacity: 0.18;
   mix-blend-mode: overlay;
 }

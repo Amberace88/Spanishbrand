@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { m, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useT } from "@/components/providers/I18nProvider";
 import { Mockup } from "@/components/art/Mockup";
 import { IconArrow } from "@/components/ui/Icons";
@@ -15,19 +15,32 @@ const HERO_VIDEO: string | null = "/brand/hero-film";
 
 /**
  * Plays the hero film once over the poster still and holds the final close-up frame.
- * Skipped on reduced motion and data-saver (checked after mount); the still underneath stays the LCP image.
+ * Skipped on reduced motion and data-saver; the still underneath stays the LCP image.
  */
 function HeroFilm({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [ended, setEnded] = useState(false);
-  const [skip, setSkip] = useState(false);
+  // mounted only after window load + idle: the 1.4 MB film must not compete with the LCP still / first paint
+  const [start, setStart] = useState(false);
   useEffect(() => {
     const c = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    // decided after hydration (server and first client render match), so reduced motion never swaps the tree
-    if (c?.saveData || matchMedia("(prefers-reduced-motion: reduce)").matches) setSkip(true);
+    if (c?.saveData) return;
+    let idle = 0, timer = 0;
+    const go = () => {
+      const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+      if (ric) idle = ric(() => setStart(true), { timeout: 2500 });
+      else timer = window.setTimeout(() => setStart(true), 800);
+    };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+    return () => {
+      window.removeEventListener("load", go);
+      if (idle) (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(idle);
+      if (timer) clearTimeout(timer);
+    };
   }, []);
-  if (skip) return null;
+  if (!start) return null;
   return (
     // overflow-hidden: the end-of-film drift (scale) must never spill past the left fade into the text column
     // inset 3px on the faded edge (bottom on mobile, left on desktop): the GPU video layer otherwise bleeds a 1px seam past the gradient on bright frames
@@ -37,7 +50,6 @@ function HeroFilm({ src }: { src: string }) {
         ref={ref}
         className="h-full w-full object-cover object-center"
         style={{ transform: ended ? "scale(1.06)" : "scale(1)", transition: "transform 16s cubic-bezier(.16,1,.3,1)" }}
-        poster="/brand/lookbook-trio.webp"
         autoPlay
         muted
         playsInline
@@ -79,19 +91,19 @@ export function ClubBadge({ text, className = "", tone = "light" }: { text: stri
 export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string; jerseyImg?: string | null; blankImg?: string | null; persoPhoto?: string | null; designPhoto?: string | null }) {
   const t = useT();
   const reduce = useReducedMotion();
-  // same start state on server and client (no hydration mismatch); reduced motion just skips the tween
-  const tile = (d: number) => ({ initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: reduce ? { duration: 0 } : { delay: d, duration: 0.9, ease } });
+  const tile = (d: number) => (reduce ? {} : { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { delay: d, duration: 0.9, ease } });
 
   return (
     <section className="bg-bg px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
       <div className="mx-auto grid max-w-[1600px] gap-3 lg:h-[clamp(680px,86vh,820px)] lg:grid-cols-12 lg:grid-rows-2">
         {/* Main tile — lookbook */}
-        <motion.div {...tile(0)} className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
-          <motion.div initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={reduce ? { duration: 0 } : { duration: 2.2, ease }} className="absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
+        {/* no entry fade on this tile: it holds the LCP photo and the h1, which must paint with the HTML */}
+        <div className="grain-soft relative flex min-h-[720px] flex-col overflow-hidden rounded-[28px] bg-[#0b0b0b] text-[#f5f1e8] lg:col-span-8 lg:row-span-2 lg:min-h-0">
+          <div className="hero-zoom absolute inset-x-0 top-0 h-[46%] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
             <Image src="/brand/lookbook-trio.webp" alt="Lookbook ROJO Y GUALDA" fill preload sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-center" />
-            {HERO_VIDEO && <HeroFilm src={HERO_VIDEO} />}
+            {HERO_VIDEO && !reduce && <HeroFilm src={HERO_VIDEO} />}
             <div className="absolute -inset-px bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/30 to-transparent lg:bg-gradient-to-r lg:from-[#0b0b0b] lg:via-[#0b0b0b]/45 lg:to-transparent" />
-          </motion.div>
+          </div>
           <div className="relative z-10 mt-auto flex flex-col p-6 sm:p-10 lg:mt-0 lg:h-full lg:max-w-[58%]">
             <div className="flex items-center gap-3">
               <span className="flag-stripe h-3.5 w-5 rounded-[3px]" aria-hidden />
@@ -100,35 +112,35 @@ export function Hero({ brandName, persoPhoto, designPhoto }: { brandName: string
             <h1 className="mt-5 font-[family-name:var(--font-logo)] text-[14vw] font-bold leading-[0.98] tracking-[0.01em] sm:text-[10.5vw] lg:text-[min(calc(7.8vw_-_22px),5.9rem)]">
               {[t("hero3.title.a"), t("hero3.title.b")].map((w, k) => (
                 <span key={k} className="-mt-[0.12em] block overflow-hidden pb-[0.06em] pt-[0.12em]">
-                  <motion.span className={`block ${k === 1 ? "text-gold-metal" : "text-red-metal"}`} initial={{ y: "105%" }} animate={{ y: "0%" }} transition={reduce ? { duration: 0 } : { delay: 0.25 + k * 0.1, duration: 1.1, ease }}>
-                    {w}
-                  </motion.span>
+                  <span className="hero-line block" style={{ animationDelay: `${0.1 + k * 0.1}s` }}>
+                    <span className={`block ${k === 1 ? "text-gold-metal" : "text-red-metal"}`}>{w}</span>
+                  </span>
                 </span>
               ))}
             </h1>
-            <motion.p {...tile(0.45)} className="mt-5 max-w-md text-[17px] leading-relaxed text-[#f5f1e8]/75">
+            <p className="hero-rise mt-5 max-w-md text-[17px] leading-relaxed text-[#f5f1e8]/75">
               {t("hero3.body")}
-            </motion.p>
-            <motion.div {...tile(0.55)} className="mt-8 flex flex-wrap gap-3 lg:mt-auto">
+            </p>
+            <div className="hero-rise mt-8 flex flex-wrap gap-3 lg:mt-auto" style={{ animationDelay: "0.55s" }}>
               <Link href="/shop" className="btn bg-[#c8102e] px-7 py-4 text-[15px] text-white hover:-translate-y-px hover:shadow-[0_12px_30px_-10px_#c8102e]">
                 {t("hero2.cta.primary")} <IconArrow className="h-4 w-4" />
               </Link>
               <Link href="/collections" className="btn btn-ghost-light px-7 py-4 text-[15px]">
                 {t("hero2.cta.secondary")}
               </Link>
-            </motion.div>
+            </div>
           </div>
           <ClubBadge text={`${brandName} · club · est. 2026`} className="absolute right-5 top-5 z-10 w-24 sm:right-8 sm:top-8 sm:w-32" />
-        </motion.div>
+        </div>
 
         {/* Side tiles: quick live edit (name + number / text), full editors one click away */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-4 lg:row-span-2 lg:min-h-0 lg:grid-cols-1 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
-          <motion.div {...tile(0.12)} className="h-full">
+          <m.div {...tile(0.12)} className="h-full">
             <JerseyTile photo={persoPhoto ?? null} badge={t("nav.personalize")} title={t("hero3.perso")} labels={{ name: t("hero3.tile.name"), number: t("hero3.tile.number"), go: t("hero3.tile.go") }} />
-          </motion.div>
-          <motion.div {...tile(0.22)} className="h-full">
+          </m.div>
+          <m.div {...tile(0.22)} className="h-full">
             <DesignTile photo={designPhoto ?? null} badge={t("hero3.designBadge")} title={t("hero3.design")} labels={{ text: t("hero3.tile.text"), go: t("hero3.tile.go"), font: t("hero3.tile.font"), tpl: t("hero3.tile.tpl") }} />
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>
@@ -162,9 +174,9 @@ export function BigMarquee({ words, reverse = false }: { words: string[]; revers
 function Word({ children, progress, range }: { children: ReactNode; progress: MotionValue<number>; range: [number, number] }) {
   const opacity = useTransform(progress, range, [0.15, 1]);
   return (
-    <motion.span style={{ opacity }} className="mr-[0.25em] inline-block">
+    <m.span style={{ opacity }} className="mr-[0.25em] inline-block">
       {children}
-    </motion.span>
+    </m.span>
   );
 }
 
@@ -175,7 +187,7 @@ export function Manifesto({ kicker, text, highlight }: { kicker: string; text: s
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "end 45%"] });
   const words = text.split(" ");
   return (
-    <section className="bg-bg py-16 sm:py-24">
+    <section className="bg-bg py-24 sm:py-36">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8">
         <p className="kicker text-accent">{kicker}</p>
         <p ref={ref} className="headline mt-6 max-w-6xl text-[2.3rem] leading-[1.02] sm:text-6xl lg:text-[5.2rem]">

@@ -144,7 +144,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {p.collection.name}
           </Link>
         )}
-        {p.featured && <span className="kicker rounded-full bg-gold/15 px-3 py-1 text-[color:var(--gold)]">{t("product.favourite")}</span>}
+        {p.featured && <span className="kicker rounded-full bg-gold/15 px-3 py-1 text-gold-ink">{t("product.favourite")}</span>}
       </div>
       <h1 className="headline mt-3 text-3xl sm:text-[2.6rem]">{p.name}</h1>
       {p.shortDescription && <p className="mt-3 text-lg leading-relaxed text-muted">{p.shortDescription}</p>}

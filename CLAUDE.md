@@ -11,7 +11,7 @@
 ## Dizaina darbs
 - JEBKURAM UI/dizaina darbam VIENMĒR izmanto skills **ui-ux-pro-max** (+ **ui-styling**, **design-system**, **brand**). Ja kāds no tiem sesijā nav pieejams, izmanto tuvāko pieejamo (piem. `frontend-design`, `design:design-system`) un pasaki to lietotājam.
 - Pirms jaunas sekcijas vai komponentes VIENMĒR meklē **21st MCP** (21st.dev). Ņem tikai to, kas der zīmolam, un pielāgo krāsām/tipogrāfijai. Ja 21st MCP nav pieslēgts, pasaki to lietotājam.
-- Animācijas ar **motion** (`motion/react`), izmantojot esošās komponentes `src/components/ui/Reveal.tsx` (`Reveal`, `Stagger`/`Stagger.Item`, `MaskLines`) un `src/components/ui/CountUp.tsx` (`CountUp`).
+- Animācijas ar **motion** (`motion/react`), izmantojot esošās komponentes `src/components/ui/Reveal.tsx` (`Reveal` un `Stagger`/`Stagger.Item` — CSS scroll-driven, bez JS; `MaskLines`) un `src/components/ui/CountUp.tsx` (`CountUp`).
   - Animē tikai **transform / opacity**.
   - Vienmēr ievēro **prefers-reduced-motion**.
   - **Nekāds CLS** (rezervē izmērus attēliem/blokiem).

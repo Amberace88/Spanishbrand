@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { useLocale, useT } from "@/components/providers/I18nProvider";
 import { IconArrow, IconBag, IconClose, IconMenu, IconSearch, IconUser } from "@/components/ui/Icons";
@@ -191,7 +191,7 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
           {/* Tienda mega menu: products, collections and places in three calm columns */}
           <AnimatePresence>
             {mega && (
-              <motion.div
+              <m.div
                 onMouseEnter={megaOpen}
                 onMouseLeave={megaClose}
                 initial={{ opacity: 0, y: -8 }}
@@ -234,7 +234,7 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
                     <Image src={`${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "")}/storage/v1/object/public/print-files/site-art/art-toro.png`} alt="" width={128} height={128} className="ml-auto mt-2 h-32 w-32 object-contain transition-transform duration-500 group-hover:scale-110" />
                   </Link>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </header>
@@ -243,7 +243,7 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
       {/* Search overlay */}
       <AnimatePresence>
         {searchOpen && (
-          <motion.div className="fixed inset-0 z-[70] bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <m.div className="fixed inset-0 z-[70] bg-bg/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <div className="mx-auto max-w-4xl px-4 pt-24 sm:px-8 sm:pt-32">
               <div className="flex items-center justify-between">
                 <p className="kicker text-muted">{t("nav.search")}</p>
@@ -252,7 +252,7 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
                 </button>
               </div>
               <form onSubmit={search} role="search" className="mt-6">
-                <motion.input
+                <m.input
                   ref={inputRef}
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -283,14 +283,14 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
                 ))}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Mobile menu */}
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[60] flex flex-col bg-bg pt-[env(safe-area-inset-top)]"
             initial={{ clipPath: "inset(0 0 100% 0)" }}
             animate={{ clipPath: "inset(0 0 0% 0)" }}
@@ -308,12 +308,12 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
             </div>
             <nav className="flex-1 overflow-y-auto px-4 pt-4">
               {nav.map((l, i) => (
-                <motion.div key={l.href} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 + i * 0.04, duration: 0.6, ease }}>
+                <m.div key={l.href} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 + i * 0.04, duration: 0.6, ease }}>
                   <Link href={l.href} className="group flex items-center justify-between border-b border-line py-3">
                     <span className="headline text-[2.4rem] uppercase group-hover:text-accent">{l.label}</span>
                     <IconArrow className="h-6 w-6 -rotate-45 text-muted transition-transform group-hover:rotate-0 group-hover:text-accent" />
                   </Link>
-                </motion.div>
+                </m.div>
               ))}
               <div className="grid gap-6 border-b border-line py-6 sm:grid-cols-2">
                 <div>
@@ -344,7 +344,7 @@ export function Header({ brandName, cartCount, messages, emptyHrefs = [] }: { br
               </div>
             </nav>
             <div className="flag-line h-1.5" />
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

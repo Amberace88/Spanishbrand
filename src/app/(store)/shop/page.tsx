@@ -345,7 +345,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
                 </>
               )}
             </nav>
-            <p className="kicker mt-6 flex items-center gap-2 text-gold">
+            <p className="kicker mt-6 flex items-center gap-2 text-gold-ink">
               <span className="flag-line inline-block h-[3px] w-6 rounded-full" />
               {countLabel}
             </p>
@@ -407,6 +407,8 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         <Container className="pt-8">
           {shown.length ? (
             <>
+              {/* outline: the cards' h3 titles need an h2 between them and the page h1 */}
+              <h2 className="sr-only">{en ? "Products" : "Productos"}</h2>
               <ProductGrid products={shown} labels={labels} />
               <div className="mt-14 flex flex-col items-center gap-4">
                 <div className="h-1 w-48 overflow-hidden rounded-full bg-surface-2" aria-hidden>
@@ -436,7 +438,7 @@ function ShopHero({ eyebrow, title, sub }: { eyebrow: string; title: string; sub
       <div className="azulejo-line pointer-events-none absolute inset-y-0 right-0 hidden w-[42%] opacity-[0.5] [mask-image:linear-gradient(to_left,black,transparent)] md:block" aria-hidden />
       <Container className="relative py-10 sm:py-16">
         <Reveal>
-          <p className="kicker flex items-center gap-2 text-gold">
+          <p className="kicker flex items-center gap-2 text-gold-ink">
             <span className="flag-line inline-block h-[3px] w-6 rounded-full" />
             {eyebrow}
           </p>
