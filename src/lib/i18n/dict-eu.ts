@@ -432,7 +432,7 @@ export const eu: Dict = {
   "audience.mujer.sub": "Emakume-ebakiak, izerdi-oihal laburrak eta etxeko klasikoak bere tailan. Lehoi koroaduna, inoiz eraman ez duzun bezala.",
   "audience.hombre.sub": "Kamisetak, izerdi-oihalak eta txanoak betiko diseinuekin: lehoia, bandera eta etxeko harrotasuna.",
   "audience.ninos.sub": "Haurrentzako kamisetak eta izerdi-oihalak ur-oinarriko tintekin, leunak azalarentzat. Lehoi txikiak 2 urtetik aurrera.",
-  "audience.bebes.sub": "Body leunak botoiekin eta maitasun handiz egindako diseinuak. Bere lehen harrotasuna, Europan egina.",
+  "audience.bebes.sub": "Body leunak botoiekin, 2-5 urteko kamisetak eta sehaskarako mantak, maitasun handiz egindako diseinuekin. Bere lehen harrotasuna, Europan egina.",
   "audience.abuelos.sub": "Espainiako aitonarik onena, urrezko amona eta dena erakutsi ziguten haientzako opariak.",
   "audience.allTypes": "Dena",
   "audience.count": "{n} pieza",

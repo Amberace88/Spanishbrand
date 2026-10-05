@@ -56,7 +56,7 @@ export function familyDesigns(): Design[] {
       line: "El león coronado de la casa en tamaño peque: valiente, noble y un poco travieso.",
       tone: "light",
       layers: [img("lion-crowned", 0.34, 0.66), txt("PEQUEÑO", "sans", R, 0.662, 0.03), txt("LEÓN", "sport", INK, 0.774, 0.12)],
-      products: ["kids", "toddler", "baby", "kidshoodie"],
+      products: ["kids", "toddler", "baby", "kidshoodie", "blanket"],
       tags: ["ninos", "bebes", "leon", "familia"],
     },
     {
@@ -88,7 +88,7 @@ export function familyDesigns(): Design[] {
       line: "El sello de origen más bonito: hecho en España, con mucho amor.",
       tone: "light",
       layers: [img("spain-red", 0.28, 0.6), txt("HECHO EN ESPAÑA", "serif", INK, 0.54, 0.045), txt("con mucho amor", "script", R, 0.62, 0.05), img("lion-crowned", 0.76, 0.16)],
-      products: ["baby", "toddler"],
+      products: ["baby", "toddler", "blanket"],
       tags: ["bebes", "regalo", "leon", "familia"],
     },
   ];

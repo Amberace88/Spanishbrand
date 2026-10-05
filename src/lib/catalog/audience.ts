@@ -34,7 +34,11 @@ export function audiencesOf(p: AudienceInput): Audience[] {
   const tags = p.tags ?? [];
   if (/^WOMENS?_/.test(type) || /\b(mujer|women'?s?)\b/.test(noun)) out.add("mujer");
   else if (BABY_TYPES.has(type) || /\b(beb[eé]s?|baby)(?![a-z])/.test(noun)) out.add("bebes");
-  else if (KIDS_TYPES.has(type) || p.categoryCode === "KIDS" || /infantil|\bpeque\b|youth|kids|toddler/.test(noun)) out.add("ninos");
+  else if (KIDS_TYPES.has(type) || p.categoryCode === "KIDS" || /infantil|\bpeque\b|youth|kids|toddler/.test(noun)) {
+    out.add("ninos");
+    // 2–5 year tees are for the little ones too: Bebés covers 0–5 (bodies + toddler tees)
+    if (type === "TODDLER_TSHIRT" || /\bpeque\b|toddler/.test(noun)) out.add("bebes");
+  }
   else if (UNISEX_TYPES.has(type) || (ADULT_CATEGORIES.has(p.categoryCode ?? "") && type !== "PATCH")) {
     out.add("hombre");
     out.add("mujer");
@@ -53,7 +57,7 @@ export const AUDIENCE_GARMENTS: Record<Audience, BlueprintKey[]> = {
   mujer: ["womtee", "womcrop", "womsweat"],
   hombre: ["tee", "hoodie", "sweat"],
   ninos: ["kids", "kidshoodie", "toddler"],
-  bebes: ["baby"],
+  bebes: ["baby", "toddler"],
   abuelos: [],
 };
 
@@ -71,7 +75,7 @@ export const AUDIENCE_EXTRAS: Partial<Record<BlueprintKey, string[]>> = {
 };
 
 /** Display order of product types inside an audience landing (sub-category chips). */
-export const AUDIENCE_TYPE_ORDER = ["WOMENS_TSHIRT", "TSHIRT", "WOMENS_HOODIE", "HOODIE", "WOMENS_SWEATSHIRT", "SWEATSHIRT", "KIDS_TSHIRT", "TODDLER_TSHIRT", "KIDS_HOODIE", "BABY_BODYSUIT", "CAP", "BEANIE", "MUG", "TOTE", "APRON", "PILLOW", "POSTER"];
+export const AUDIENCE_TYPE_ORDER = ["WOMENS_TSHIRT", "TSHIRT", "WOMENS_HOODIE", "HOODIE", "WOMENS_SWEATSHIRT", "SWEATSHIRT", "KIDS_TSHIRT", "TODDLER_TSHIRT", "KIDS_HOODIE", "BABY_BODYSUIT", "BLANKET", "CAP", "BEANIE", "MUG", "TOTE", "APRON", "PILLOW", "POSTER"];
 
 type L = { es: string; en: string; de: string };
 const TYPE_LABELS: Record<string, L> = {
@@ -85,6 +89,7 @@ const TYPE_LABELS: Record<string, L> = {
   TODDLER_TSHIRT: { es: "De 2 a 5 años", en: "Toddler (2–5)", de: "Kleinkind (2–5)" },
   KIDS_HOODIE: { es: "Sudaderas infantiles", en: "Kids' hoodies", de: "Kinder-Hoodies" },
   BABY_BODYSUIT: { es: "Bodies", en: "Bodysuits", de: "Bodys" },
+  BLANKET: { es: "Mantas", en: "Blankets", de: "Decken" },
   CAP: { es: "Gorras", en: "Caps", de: "Caps" },
   BEANIE: { es: "Gorros", en: "Beanies", de: "Mützen" },
   MUG: { es: "Tazas", en: "Mugs", de: "Tassen" },

@@ -10,7 +10,7 @@ describe("audience (Para quién)", () => {
     expect(audiencesOf(p("WOMENS_TSHIRT", "León Coronado — Camiseta de mujer"))).toEqual(["mujer"]);
     expect(audiencesOf(p("TSHIRT", "La Firma — Camiseta"))).toEqual(["mujer", "hombre"]);
     expect(audiencesOf(p("KIDS_TSHIRT", "Pequeño León — Camiseta infantil", [], "KIDS"))).toEqual(["ninos"]);
-    expect(audiencesOf(p("TODDLER_TSHIRT", "Pequeño León — Camiseta de peque", [], "KIDS"))).toEqual(["ninos"]);
+    expect(audiencesOf(p("TODDLER_TSHIRT", "Pequeño León — Camiseta de peque", [], "KIDS"))).toEqual(["ninos", "bebes"]);
     expect(audiencesOf(p("BABY_BODYSUIT", "Hecho en España · Bebé — Body de bebé", ["bebes"], "KIDS"))).toEqual(["bebes"]);
     expect(audiencesOf(p("TSHIRT", "El Mejor Abuelo de España — Camiseta", ["abuelos"]))).toEqual(["mujer", "hombre", "abuelos"]);
     expect(audiencesOf(p("MUG", "Abuela de Oro — Taza", ["abuelos"], "DRINKWARE"))).toEqual(["abuelos"]);

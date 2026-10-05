@@ -136,9 +136,16 @@ export function kidsLead(p: PublicProduct, want?: "girl" | "boy"): PublicProduct
   if (!isKids(p)) return p;
   const girl = p.images.find((im) => im.model === "girl");
   const boy = p.images.find((im) => im.model === "boy");
-  const pick = want === "girl" ? girl : want === "boy" ? boy : stable(p.slug) % 2 ? (boy ?? girl) : (girl ?? boy);
-  if (!pick || p.images[0]?.url === pick.url) return p;
-  return { ...p, images: [pick, ...p.images.filter((im) => im.url !== pick.url)] };
+  // asked for one and the product has no such photo: lead with a neutral shot (flat / ghost), never the other child
+  const neutral = p.images.find((im) => !im.model);
+  const pick = want === "girl" ? (girl ?? neutral) : want === "boy" ? (boy ?? neutral) : stable(p.slug) % 2 ? (boy ?? girl) : (girl ?? boy);
+  if (!pick) return p;
+  const rest = p.images.filter((im) => im.url !== pick.url);
+  // the hover photo (images[1]) never shows the other child when the shopper filtered by girl / boy
+  const other = want === "girl" ? "boy" : want === "boy" ? "girl" : null;
+  const ordered = other ? [...rest.filter((im) => im.model !== other), ...rest.filter((im) => im.model === other)] : rest;
+  if (p.images[0]?.url === pick.url && ordered.every((im, i) => im === p.images[i + 1])) return p;
+  return { ...p, images: [pick, ...ordered] };
 }
 
 /** FNV-1a: a stable per-product number. */

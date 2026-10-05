@@ -432,7 +432,7 @@ export const ca: Dict = {
   "audience.mujer.sub": "Talls de dona, dessuadores curtes i els clàssics de la casa a la seva talla. El lleó coronat, com mai l'havies portat.",
   "audience.hombre.sub": "Samarretes, dessuadores i gorres amb els dissenys de sempre: el lleó, la bandera i l'orgull de casa.",
   "audience.ninos.sub": "Samarretes i dessuadores infantils amb tintes a l'aigua, suaus per a la seva pell. Petits lleons des dels 2 anys.",
-  "audience.bebes.sub": "Bodis suaus amb corxets i dissenys fets amb molt d'amor. El seu primer orgull, fabricat a Europa.",
+  "audience.bebes.sub": "Bodis amb corxets, samarretes de 2 a 5 anys i mantes per al bressol, amb dissenys fets amb molt d'amor. El seu primer orgull, fabricat a Europa.",
   "audience.abuelos.sub": "El millor avi d'Espanya, l'àvia d'or i regals per als qui ens ho van ensenyar tot.",
   "audience.allTypes": "Tot",
   "audience.count": "{n} peces",

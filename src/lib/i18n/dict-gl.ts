@@ -432,7 +432,7 @@ export const gl: Dict = {
   "audience.mujer.sub": "Cortes de muller, sudadeiras curtas e os clásicos da casa na súa talla. O león coroado, como nunca o levaras.",
   "audience.hombre.sub": "Camisetas, sudadeiras e gorras cos deseños de sempre: o león, a bandeira e o orgullo da casa.",
   "audience.ninos.sub": "Camisetas e sudadeiras infantís con tintas á auga, suaves para a súa pel. Pequenos leóns desde os 2 anos.",
-  "audience.bebes.sub": "Bodies suaves con broches e deseños feitos con moito amor. O seu primeiro orgullo, fabricado en Europa.",
+  "audience.bebes.sub": "Bodies con broches, camisetas de 2 a 5 anos e mantas para o berce, con deseños feitos con moito amor. O seu primeiro orgullo, fabricado en Europa.",
   "audience.abuelos.sub": "O mellor avó de España, a avoa de ouro e agasallos para quen nolo ensinou todo.",
   "audience.allTypes": "Todo",
   "audience.count": "{n} pezas",

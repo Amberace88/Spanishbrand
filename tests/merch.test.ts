@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PublicProduct } from "@/lib/products/queries";
-import { colourOf, familyOf, heroOptions, merchandise, merchandiseDetailed, merchandiseUnique, qualityOf, seriesFor, withHero } from "@/lib/catalog/merch";
+import { colourOf, familyOf, heroOptions, kidsLead, merchandise, merchandiseDetailed, merchandiseUnique, qualityOf, seriesFor, withHero } from "@/lib/catalog/merch";
 
 let seq = 0;
 function prod(o: { design: string | null; tags: string[]; type?: string; colours?: string[]; collection?: string; images?: { url: string; color: string | null; kind?: string }[]; featured?: boolean }): PublicProduct {
@@ -193,5 +193,30 @@ describe("merch: interleave constraints", () => {
     const rail = merchandiseUnique(list, 12);
     expect(rail).toHaveLength(12);
     expect(new Set(rail.map((p) => familyOf(p))).size).toBe(12);
+  });
+});
+
+describe("kidsLead", () => {
+  const kid = (models: (("girl" | "boy") | undefined)[]) => {
+    const p = prod({ design: "leon", tags: [], images: models.map((_, i) => ({ url: `/k/${i}.webp`, color: null })) });
+    return { ...p, categoryCode: "KIDS", images: p.images.map((im, i) => ({ ...im, ...(models[i] ? { model: models[i] } : {}) })) } as PublicProduct;
+  };
+  it("leads with the asked-for child and keeps the other child off the hover slot", () => {
+    const p = kid(["girl", "girl", undefined, "boy"]);
+    const b = kidsLead(p, "boy");
+    expect(b.images[0].model).toBe("boy");
+    expect(b.images[1].model).not.toBe("girl");
+    const g = kidsLead(kid(["boy", "girl", "boy", undefined]), "girl");
+    expect(g.images[0].model).toBe("girl");
+    expect(g.images[1].model).toBeUndefined();
+  });
+  it("falls back to a neutral photo, never the other child", () => {
+    const b = kidsLead(kid(["girl", undefined, "girl", undefined]), "boy");
+    expect(b.images[0].model).toBeUndefined();
+    expect(b.images.slice(0, 2).some((im) => im.model === "girl")).toBe(false);
+  });
+  it("leaves adult products alone", () => {
+    const p = prod({ design: "x", tags: [] });
+    expect(kidsLead(p, "boy")).toBe(p);
   });
 });

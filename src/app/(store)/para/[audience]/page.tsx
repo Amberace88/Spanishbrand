@@ -51,13 +51,13 @@ const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; 
     garments: ["kids", "kidshoodie", "toddler"],
   },
   bebes: {
-    seoTitle: "Bodies de bebé con orgullo español: regalos para recién nacidos",
-    seoDesc: "Bodies de bebé Hecho en España, Pequeño León y Mi Primer Mundial. Algodón suave con corchetes, fabricado bajo pedido en Europa.",
+    seoTitle: "Ropa de bebé con orgullo español: bodies, camisetas de 2 a 5 años y mantas",
+    seoDesc: "Bodies de bebé, camisetas para peques de 2 a 5 años y mantas: Hecho en España, Pequeño León y Mi Primer Mundial. Algodón suave, fabricado bajo pedido en Europa.",
     word: "BEBÉ",
     accent: "#d98b96",
     photos: ["/lifestyle/kids-2.webp", "campaign:familia"],
     tag: "bebes",
-    garments: ["baby"],
+    garments: ["baby", "toddler"],
   },
   abuelos: {
     seoTitle: "Regalos para abuelos: El mejor abuelo de España, Abuela de oro",
