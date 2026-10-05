@@ -108,7 +108,10 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   const kidsAudience = a === "ninos" || a === "bebes";
   const g = kidsAudience && (sp.g === "nina" || sp.g === "nino") ? sp.g : undefined;
   const want = g === "nina" ? "girl" : g === "nino" ? "boy" : undefined;
-  const products = merchandise(type ? own.filter((x) => x.productType === type) : own, { boost }).map((p) => (kidsAudience ? kidsLead(p, want) : p));
+  const curated = merchandise(type ? own.filter((x) => x.productType === type) : own, { boost }).map((p) => (kidsAudience ? kidsLead(p, want) : p));
+  // Niña / Niño: pieces photographed on that child first, then neutral shots; photos not yet tagged go last
+  const rank = (p: PublicProduct) => (p.images.some((im) => im.model === want) ? 0 : p.images.some((im) => im.model) ? 1 : 2);
+  const products = want ? [0, 1, 2].flatMap((r) => curated.filter((p) => rank(p) === r)) : curated;
   const page = Math.max(1, Math.min(40, Number(sp.page) || 1));
   const shown = products.slice(0, page * PAGE_SIZE);
   const designs = designsFor(a);
