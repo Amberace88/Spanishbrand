@@ -553,7 +553,7 @@ const es = {
   "sab.customise": "Personalizar",
   "sab.night": "Noche",
   // designer v2 (catálogo completo + herramientas pro)
-  "designer.sub2": "Camisetas, sudaderas, ropa de mujer y de peques, tazas, cojines, pósters, fundas y gorras bordadas: elige el producto, escribe con nuestras tipografías, usa una plantilla o sube tu imagen. Lo fabricamos bajo pedido para ti.",
+  "designer.sub2": "Elige la prenda, escribe con nuestras tipografías, usa una plantilla, nuestro arte o tu imagen. Lo fabricamos bajo pedido para ti.",
   "designer.pick.title": "Elige tu producto",
   "designer.pick.sub": "{n} productos para diseñar · precio final con personalización",
   "designer.pick.search": "Buscar producto…",
@@ -1308,7 +1308,7 @@ const en: Dict = {
   "sab.customise": "Customise",
   "sab.night": "Night",
   // designer v2
-  "designer.sub2": "T-shirts, sweatshirts, women's and kids' wear, mugs, cushions, posters, phone cases and embroidered caps: pick the product, type with our fonts, use a template or upload your image. We make it to order for you.",
+  "designer.sub2": "Pick the garment, write with our typefaces, use a template, our art or your own image. We make it to order for you.",
   "designer.pick.title": "Choose your product",
   "designer.pick.sub": "{n} products to design · final price including personalisation",
   "designer.pick.search": "Search products…",

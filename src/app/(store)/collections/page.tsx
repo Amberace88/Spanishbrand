@@ -12,6 +12,14 @@ import { Reveal } from "@/components/ui/Reveal";
 export const metadata: Metadata = { title: "Colecciones", description: "España, Heritage, Mediterráneo, Motor, fútbol, pádel, fiestas, playa, tapas y Camino: colecciones con diseños originales de identidad española.", alternates: { canonical: "/collections" } };
 export const revalidate = 300;
 
+/** The last tile widens to close the row, so the grid never ends on an empty slot (2 columns on tablets, 3 on desktop). */
+function fill(i: number, n: number) {
+  if (i !== n - 1) return "";
+  const sm = n % 2 === 1 ? "sm:col-span-2 sm:aspect-[16/10]" : "";
+  const lg = n % 3 === 2 ? "lg:col-span-2 lg:aspect-auto" : n % 3 === 1 ? "lg:col-span-3 lg:aspect-[21/9]" : sm ? "lg:col-span-1 lg:aspect-[4/5]" : "";
+  return `${sm} ${lg}`;
+}
+
 export default async function CollectionsPage() {
   const [t, dbCollections, products, site, locale] = await Promise.all([getT(), getCollections(), getPublishedProducts({ limit: 5000 }), listSiteImages(), getLocale()]);
   const en = locale === "en";
@@ -29,7 +37,7 @@ export default async function CollectionsPage() {
               const own = products.filter((p) => p.collection?.slug === c.slug);
               const look = lookFor(c.slug);
               return (
-                <Reveal key={c.slug} delay={(i % 3) * 0.05} className="aspect-[4/5]">
+                <Reveal key={c.slug} delay={(i % 3) * 0.05} className={`aspect-[4/5] ${fill(i, collections.length)}`}>
                   <EditorialTile
                     href={`/collections/${c.slug}`}
                     title={c.name}

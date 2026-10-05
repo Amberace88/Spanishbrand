@@ -6,6 +6,7 @@ import { getPublishedProducts } from "@/lib/products/queries";
 import { GIFT_AMOUNTS } from "@/lib/payments/gift-cards";
 import { GiftCardForm } from "@/components/forms/GrowthForms";
 import { ProductCard } from "@/components/product/ProductCard";
+import { merchandiseUnique } from "@/lib/catalog/merch";
 import { Container, PageHero, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import { BrandLogo } from "@/components/brand/Wordmark";
@@ -32,8 +33,9 @@ export default async function GiftsPage({ searchParams }: { searchParams: Promis
     if (max && p.price > max) return false;
     switch (rec) {
       case "el":
+        return (p.categoryCode === "APPAREL" || p.categoryCode === "HEADWEAR") && !/mujer|wom/.test(`${p.slug} ${p.tags.join(" ")}`);
       case "ella":
-        return p.categoryCode === "APPAREL" || p.categoryCode === "HEADWEAR";
+        return p.categoryCode === "APPAREL" && /mujer|womtee|womcrop|womsweat/.test(`${p.slug} ${p.tags.join(" ")}`);
       case "futbol":
         return p.collection?.slug === "futbol";
       case "casa":
@@ -46,6 +48,8 @@ export default async function GiftsPage({ searchParams }: { searchParams: Promis
         return true;
     }
   });
+  // one piece per design family, best first, so the ideas mix lines and products instead of 24 variants of one series
+  const ideas = merchandiseUnique(filtered, 24);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const href = (nr?: string, nb?: string) => {
     const q = new URLSearchParams();
@@ -82,9 +86,9 @@ export default async function GiftsPage({ searchParams }: { searchParams: Promis
 
           <div className="mt-10">
             <SectionHead eyebrow={c.kicker} title={c.results} />
-            {filtered.length ? (
+            {ideas.length ? (
               <div className="grid grid-cols-2 gap-x-3 gap-y-10 lg:grid-cols-4">
-                {filtered.slice(0, 24).map((p, i) => (
+                {ideas.map((p, i) => (
                   <Reveal key={p.id} delay={(i % 4) * 0.05}>
                     <ProductCard p={p} labels={labels} />
                   </Reveal>

@@ -198,7 +198,7 @@ export function EditorialTile({
       <div className={`${L.text} ${L.pad} z-10`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {title && <h3 className={`mega break-words ${L.title} ${photo ? "[text-shadow:0_1px_18px_rgba(0,0,0,.35)]" : ""}`}>{title}</h3>}
+            {title && <h3 className={`mega break-words hyphens-auto ${L.title} ${photo ? "[text-shadow:0_1px_18px_rgba(0,0,0,.35)]" : ""}`}>{title}</h3>}
             {kicker && (
               <p className={`mt-1.5 min-w-0 text-[13px] font-medium sm:text-sm ${photo ? "[text-shadow:0_1px_10px_rgba(0,0,0,.45)]" : ""}`} style={{ color: T.fg, opacity: 0.86 }}>
                 {/* small tiles on phones: the first part only ("120 diseños") */}

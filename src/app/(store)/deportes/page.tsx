@@ -4,6 +4,7 @@ import { getCollectionsBySlugs, getPublishedProducts } from "@/lib/products/quer
 import { listSiteImages } from "@/lib/site-images";
 import { SPORT_SLUGS } from "@/lib/themes";
 import { lookFor } from "@/lib/catalog/tones";
+import { merchandise } from "@/lib/catalog/merch";
 import { tileCards, tileCount, tilePhoto } from "@/lib/catalog/tiles";
 import { EditorialTile } from "@/components/merch/EditorialTile";
 import { PersoBanner } from "@/components/home/ShopSections";
@@ -22,7 +23,8 @@ export const revalidate = 300;
 export default async function SportsPage() {
   const [t, allCols, all, site, locale] = await Promise.all([getT(), getCollectionsBySlugs(SPORT_SLUGS.length ? ["futbol", "padel", "ciclismo", "motor"] : []), getPublishedProducts({ limit: 5000 }), listSiteImages(), getLocale()]);
   const en = locale === "en";
-  const products = all.filter((p) => p.collection && SPORT_SLUGS.includes(p.collection.slug));
+  // curated order (best colour first, one design family after another) instead of the raw database order
+  const products = merchandise(all.filter((p) => p.collection && SPORT_SLUGS.includes(p.collection.slug)));
   // never link a sport whose collection has nothing left (retired lines); with no listing at all keep the editorial tiles
   const cols = all.length ? allCols.filter((c) => products.some((p) => p.collection?.slug === c.slug)) : allCols;
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
@@ -31,12 +33,12 @@ export default async function SportsPage() {
       <PageHero eyebrow={t("nav.sports")} title={t("sports.title")} sub={t("sports.sub")} />
       <section className="bg-bg py-12 sm:py-16">
         <Container>
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             {cols.map((c, i) => {
               const look = lookFor(c.slug);
               const items = products.filter((p) => p.collection?.slug === c.slug);
               return (
-                <Reveal key={c.slug} delay={i * 0.05} className={cols.length === 1 ? "aspect-[4/5] sm:col-span-2 sm:aspect-[21/9]" : "aspect-[4/5] sm:aspect-[5/4]"}>
+                <Reveal key={c.slug} delay={i * 0.05} className={cols.length === 1 ? "aspect-[4/5] sm:aspect-[16/10] lg:col-span-2 lg:aspect-[21/9]" : "aspect-[4/5] sm:aspect-[16/10] lg:aspect-[5/4]"}>
                   <EditorialTile
                     href={c.slug === "futbol" ? "/futbol" : `/collections/${c.slug}`}
                     title={c.name}

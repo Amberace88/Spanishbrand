@@ -221,7 +221,8 @@ body {
 .bg-gold-metal { background: linear-gradient(135deg, #f7e08a, #d9a93a 40%, #9a7222 70%, #e8c766); }
 .ring-gold-metal { box-shadow: 0 0 0 1px rgb(224 184 74 / 0.55), 0 10px 30px -12px rgb(201 154 30 / 0.5); }
 @keyframes dash { to { stroke-dashoffset: -30; } }
-.text-stroke-fg { color: transparent; -webkit-text-stroke: 1.5px var(--fg); }
+/* fill with the page colour and paint the stroke underneath: the display font's overlapping contours otherwise show as lines through the letters */
+.text-stroke-fg { color: var(--bg); -webkit-text-stroke: 3px var(--fg); paint-order: stroke fill; }
 @keyframes spin-rev { to { transform: rotate(-360deg); } }
 .spin-slow { animation: spin 18s linear infinite; }
 @keyframes lion-float { 0%, 100% { transform: translateY(0) rotate(-0.6deg); } 50% { transform: translateY(-10px) rotate(0.6deg); } }

@@ -38,7 +38,7 @@ export function ProductCard({ p, labels, priority = false }: { p: PublicProduct;
           {labels.madeToOrder}
         </span>
       </div>
-      <div className="mt-3 flex items-start justify-between gap-3 px-0.5">
+      <div className="mt-3 flex flex-col gap-1 px-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0">
           {p.collection && <p className="kicker text-[10px] text-muted">{p.collection.name}</p>}
           <h3 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug">{p.name.replace(/ — /g, " · ")}</h3>
@@ -51,8 +51,9 @@ export function ProductCard({ p, labels, priority = false }: { p: PublicProduct;
             </div>
           )}
         </div>
-        <p className="shrink-0 text-right text-[15px] tabular-nums">
-          {varies && <span className="block text-[11px] text-muted">{labels.from}</span>}
+        {/* phones: the price sits under the name so two-column grids keep the full name */}
+        <p className="shrink-0 text-[15px] tabular-nums sm:text-right">
+          {varies && <span className="mr-1 text-[11px] text-muted sm:mr-0 sm:block">{labels.from}</span>}
           <span className={`font-bold ${onSale ? "text-accent" : ""}`}>{formatMoney(min, p.currency)}</span>
           {onSale && <span className="block text-xs text-muted line-through">{formatMoney(p.compareAt!, p.currency)}</span>}
         </p>

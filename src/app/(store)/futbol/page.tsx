@@ -1,3 +1,4 @@
+import { withHero } from "@/lib/catalog/merch";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
@@ -40,9 +41,12 @@ function swatch(c: FutbolCity) {
   return `linear-gradient(135deg, ${a} 0 72%, ${c.trim} 72% 80%, ${a} 80%)`;
 }
 
+const LEAD_ORDER = ["tee", "hoodie", "sweat", "jersey", "womtee"];
+
 function DesignCard({ d, products, labels, backLabel, soon }: { d: Design; products: PublicProduct[]; labels: Parameters<typeof ProductCard>[0]["labels"]; backLabel: string; soon: string }) {
-  const lead = products.find((p) => p.categoryCode === "APPAREL") ?? products[0];
-  if (lead) return <ProductCard p={lead} labels={labels} />;
+  // the unisex tee represents the design (then hoodie, sweatshirt, jersey, women's tee), in its best colour
+  const lead = LEAD_ORDER.map((bp) => products.find((p) => p.tags.includes(bp))).find(Boolean) ?? products.find((p) => p.categoryCode === "APPAREL") ?? products[0];
+  if (lead) return <ProductCard p={withHero(lead)} labels={labels} />;
   const front = artOf(d, "front"), back = artOf(d, "back");
   const aop = d.products.includes("jersey");
   const city = d.tags?.find((t) => t.startsWith("color-"))?.slice(6);

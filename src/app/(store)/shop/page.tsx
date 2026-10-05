@@ -197,7 +197,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
             <div className="mt-16 sm:mt-20">
               <SectionHead eyebrow={en ? "Categories" : "Categorías"} title={en ? "Find your piece" : "Encuentra tu pieza"} />
-              <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 ${CAT_COLS[cats.length] ?? "lg:grid-cols-5"}`}>
+              <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${cats.length % 3 === 1 ? "sm:grid-cols-2" : "sm:grid-cols-3"} ${CAT_COLS[cats.length] ?? "lg:grid-cols-5"}`}>
                 {cats.map((c, i) => {
                   const look = CATEGORY_LOOKS[c.code] ?? lookFor(c.code);
                   // an odd count in the 4-column grid: the first tile spans two columns so no row ends with a hole

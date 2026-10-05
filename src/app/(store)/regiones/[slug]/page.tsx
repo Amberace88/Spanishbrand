@@ -1,3 +1,4 @@
+import { merchandise } from "@/lib/catalog/merch";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -35,7 +36,7 @@ export default async function RegionPage({ params }: { params: Promise<{ slug: s
   const [t, all, show] = await Promise.all([getT(), getPublishedProducts({ limit: 300 }), getShowcase()]);
   const ctaPhoto = show.byCollection["mi-pueblo"]?.[0] ?? null;
   const keys = new Set([r.slug, r.parent].filter(Boolean) as string[]);
-  const products = all.filter((p) => p.tags.some((tag) => tag.startsWith("region:") && keys.has(tag.slice(7))) || (p.collection && keys.has(p.collection.slug)));
+  const products = merchandise(all.filter((p) => p.tags.some((tag) => tag.startsWith("region:") && keys.has(tag.slice(7))) || (p.collection && keys.has(p.collection.slug))));
   const parent = r.parent ? regionBySlug(r.parent) : null;
   const provs = provincesOf(r.slug).filter((p) => !isRedundantProvince(p));
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };

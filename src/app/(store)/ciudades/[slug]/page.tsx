@@ -1,3 +1,4 @@
+import { withHero } from "@/lib/catalog/merch";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -38,7 +39,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   if (!c) notFound();
   const [t, locale, all] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1000 })]);
   const en = locale === "en";
-  const own = productsForCity(c.slug, all).sort((a, b) => (TYPE_ORDER.indexOf(a.productType) + 99) % 99 - (TYPE_ORDER.indexOf(b.productType) + 99) % 99);
+  const own = productsForCity(c.slug, all).map((p) => withHero(p)).sort((a, b) => (TYPE_ORDER.indexOf(a.productType) + 99) % 99 - (TYPE_ORDER.indexOf(b.productType) + 99) % 99);
   const extras = all.filter((p) => p.tags.includes("calendario") && p.tags.includes("ciudad"));
   const region = regionBySlug(c.region);
   const design = designBySlug(`ciudad-${c.slug}-cartel`);

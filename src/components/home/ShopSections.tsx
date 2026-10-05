@@ -82,7 +82,7 @@ export async function CategoryGrid({ products }: { products: PublicProduct[] }) 
             </Link>
           }
         />
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {tiles.map(({ c, items }, i) => {
             const look = CATEGORY_LOOKS[c.look];
             return (
@@ -406,7 +406,7 @@ export async function BrandPromise() {
   return (
     <section className="bg-bg py-16 sm:py-24">
       <Container>
-        <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:items-center">
           <Reveal>
             <h2 className="headline text-[2.4rem] sm:text-6xl">{t("promise.title")}</h2>
             <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">{t("promise.body")}</p>
