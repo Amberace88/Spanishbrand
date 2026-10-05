@@ -278,6 +278,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (category) products = products.filter((p) => p.categoryCode === category);
   if (colSlug) products = products.filter((p) => p.collection?.slug === colSlug);
   if (onlyPerso) products = products.filter((p) => p.personalization);
+  const beforeAudience = products;
   if (audience) products = products.filter((p) => isFor(p, audience));
   if (theme) products = products.filter(theme.match);
   if (q) products = products.filter((p) => [p.name, p.shortDescription, p.collection?.name, ...p.tags].filter(Boolean).join(" ").toLowerCase().includes(q));
@@ -285,6 +286,10 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const typesHere = [...new Set(beforeType.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
   if (type) products = products.filter((p) => p.productType === type);
   products = sortProducts(products, sort);
+  // Mujer: women's cuts first, then the unisex pieces that also fit (curated order kept inside each group)
+  if (audience === "mujer" && sort === "featured") products = [...products.filter((p) => p.productType.startsWith("WOMENS_")), ...products.filter((p) => !p.productType.startsWith("WOMENS_"))];
+  // quick "Para quién" switch on the page itself (counts before the audience filter; theme / search still apply)
+  const audienceCounts = AUDIENCES.map((x) => ({ a: x, n: beforeAudience.filter((p) => isFor(p, x) && (!theme || theme.match(p))).length })).filter((x) => x.n > 0);
   const shown = products.slice(0, page * PAGE);
   const presentCols = collections.filter((c) => all.some((p) => p.collection?.slug === c.slug && (!category || p.categoryCode === category)));
   const title = q ? `“${sp.q?.trim()}”` : theme ? lx(theme.label) : type ? typeLabel(type, en) : category ? t(`shop.cat.${category}` as never) : onlyPerso ? t("shop.personalize") : audience ? t(`audience.${audience}.title`) : t("shop.title");
@@ -379,6 +384,18 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               </Link>
             )}
           </div>
+          {/* Para quién: one tap separates women's, men's and kids' pieces in any category */}
+          {audienceCounts.length > 1 && (
+            <nav className="no-scrollbar -mx-4 mt-4 flex overflow-x-auto px-4 sm:mx-0 sm:px-0" aria-label={t("audience.title")}>
+              <div className="flex shrink-0 rounded-full border border-line bg-surface p-1">
+                {[{ a: undefined as string | undefined, label: t("audience.all") }, ...audienceCounts.map((x) => ({ a: x.a as string | undefined, label: t(`audience.${x.a}`) }))].map((x) => (
+                  <Link key={x.a ?? "all"} href={href({ a: x.a, page: undefined })} scroll={false} aria-current={audience === x.a ? "true" : undefined} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${audience === x.a ? "bg-fg text-bg" : "text-muted hover:text-fg"}`}>
+                    {x.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
           {/* quick type switch on the page itself when the category has several (the drawer holds the rest) */}
           {typesHere.length > 1 && (
             <nav className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label={en ? "Type" : "Tipo"}>

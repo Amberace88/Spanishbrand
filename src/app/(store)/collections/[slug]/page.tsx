@@ -10,6 +10,7 @@ import { CollectionArt } from "@/components/art/CollectionArt";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { ProductCard } from "@/components/product/ProductCard";
 import { merchandise } from "@/lib/catalog/merch";
+import { AUDIENCES, isAudience, isFor } from "@/lib/catalog/audience";
 import { TrackView } from "@/components/analytics/TrackView";
 import { Container } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -37,7 +38,7 @@ const TAG_COLLECTIONS = new Set(["leon"]);
 
 const TYPES = ["APPAREL", "HEADWEAR", "KIDS", "BAGS", "DRINKWARE", "WALL_ART", "HOME_LIVING", "TECH_ACCESSORIES", "STATIONERY", "PETS"] as const;
 
-export default async function CollectionPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string; d?: string }> }) {
+export default async function CollectionPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string; d?: string; a?: string }> }) {
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
@@ -50,7 +51,20 @@ export default async function CollectionPage({ params, searchParams }: { params:
   if (!own.length && !designs.length) permanentRedirect("/shop");
   const type = TYPES.find((x) => x === sp.c);
   const design = designs.find((d) => d.slug === sp.d);
-  let products = own;
+  // Para quién: Mujer / Hombre / Niños… inside the collection (women's cuts lead on Mujer)
+  const audience = isAudience(sp.a) ? sp.a : undefined;
+  const audienceCounts = AUDIENCES.map((x) => ({ a: x, n: own.filter((p) => isFor(p, x)).length })).filter((x) => x.n > 0);
+  const scoped = audience ? own.filter((p) => isFor(p, audience)) : own;
+  const scopedOrdered = audience === "mujer" ? [...scoped.filter((p) => p.productType.startsWith("WOMENS_")), ...scoped.filter((p) => !p.productType.startsWith("WOMENS_"))] : scoped;
+  const q = (patch: { c?: string; a?: string }) => {
+    const u = new URLSearchParams();
+    const m = { c: type, a: audience, ...patch };
+    if (m.c) u.set("c", m.c);
+    if (m.a) u.set("a", m.a);
+    const str = u.toString();
+    return `/collections/${c.slug}${str ? `?${str}` : ""}#productos`;
+  };
+  let products = scopedOrdered;
   if (type) products = products.filter((p) => p.categoryCode === type);
   if (design) products = products.filter((p) => p.design === design.slug);
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
@@ -58,7 +72,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const look = lookFor(c.slug);
   // sections by design, in curated order (each design led by its best piece)
   const bySlug = new Map<string, (typeof all)[number][]>();
-  for (const p of own) {
+  for (const p of scopedOrdered) {
     const k = p.design ?? "_";
     bySlug.set(k, [...(bySlug.get(k) ?? []), p]);
   }
@@ -121,11 +135,23 @@ export default async function CollectionPage({ params, searchParams }: { params:
           )}
           {own.length > 0 && (
             <nav className="no-scrollbar mb-8 flex gap-2 overflow-x-auto">
-              <Link href={`/collections/${c.slug}#productos`} className={chip(!type && !design)}>
+              {audienceCounts.length > 1 && (
+                <>
+                  <div className="flex shrink-0 rounded-full border border-line bg-surface p-1" role="group" aria-label={t("audience.title")}>
+                    {[{ a: undefined as string | undefined, label: t("audience.all") }, ...audienceCounts.map((x) => ({ a: x.a as string | undefined, label: t(`audience.${x.a}`) }))].map((x) => (
+                      <Link key={x.a ?? "all"} href={q({ a: x.a })} scroll={false} aria-current={audience === x.a ? "true" : undefined} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${audience === x.a ? "bg-fg text-bg" : "text-muted hover:text-fg"}`}>
+                        {x.label}
+                      </Link>
+                    ))}
+                  </div>
+                  <span className="mx-1 w-px shrink-0 self-stretch bg-line" aria-hidden />
+                </>
+              )}
+              <Link href={q({ c: undefined })} className={chip(!type && !design)}>
                 {t("collections.all")}
               </Link>
               {presentTypes.map((x) => (
-                <Link key={x} href={`/collections/${c.slug}?c=${x}#productos`} className={chip(type === x)}>
+                <Link key={x} href={q({ c: x })} className={chip(type === x)}>
                   {t(`shop.cat.${x}` as never)}
                 </Link>
               ))}
