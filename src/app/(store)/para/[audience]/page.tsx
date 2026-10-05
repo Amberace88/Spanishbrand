@@ -24,7 +24,7 @@ export function generateStaticParams() {
 }
 
 /** SEO copy (Spanish storefront) and the visual identity of each landing. */
-const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; accent: string; photos: string[]; tag?: string; garments: BlueprintKey[] }> = {
+const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; accent: string; photos: string[]; photosBy?: { nina: string[]; nino: string[] }; tag?: string; garments: BlueprintKey[] }> = {
   mujer: {
     seoTitle: "Ropa de mujer con orgullo español: camisetas y sudaderas",
     seoDesc: "Camisetas de mujer, sudaderas cortas y sudaderas con el león coronado y diseños de identidad española. Fabricado bajo pedido en Europa.",
@@ -47,6 +47,7 @@ const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; 
     word: "PEQUES",
     accent: "#d4a62a",
     photos: ["/lifestyle/kids-1.webp", "/lifestyle/kids-5.webp", "/lifestyle/kids-3.webp"],
+    photosBy: { nina: ["/lifestyle/kids-1.webp", "/lifestyle/kids-6.webp", "/lifestyle/kids-3.webp"], nino: ["/lifestyle/kids-5.webp", "/lifestyle/kids-3.webp"] },
     tag: "ninos",
     garments: ["kids", "kidshoodie", "toddler"],
   },
@@ -56,6 +57,7 @@ const PAGE: Record<Audience, { seoTitle: string; seoDesc: string; word: string; 
     word: "BEBÉ",
     accent: "#d98b96",
     photos: ["/lifestyle/kids-2.webp", "campaign:familia"],
+    photosBy: { nina: ["/lifestyle/kids-2.webp", "/lifestyle/kids-6.webp"], nino: ["campaign:familia"] },
     tag: "bebes",
     garments: ["baby", "toddler"],
   },
@@ -119,7 +121,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
 
   // hero collage: campaign photos first, then real product photos, then live design previews
-  const photos = [...cfg.photos.map((k) => (k.startsWith("/") ? k : k.startsWith("campaign:") ? campaignPhoto(k.slice(9)) : site[k])).filter(Boolean), ...merchandiseUnique(own, 3, { boost }).map((p) => p.images[0]?.url).filter(Boolean)].slice(0, 3) as string[];
+  const photos = [...((g && cfg.photosBy?.[g]) || cfg.photos).map((k) => (k.startsWith("/") ? k : k.startsWith("campaign:") ? campaignPhoto(k.slice(9)) : site[k])).filter(Boolean), ...(want ? products.filter((p) => p.images[0]?.model === want).slice(0, 3) : merchandiseUnique(own, 3, { boost })).map((p) => p.images[0]?.url).filter(Boolean)].slice(0, 3) as string[];
   const heroDesigns = designs.slice(0, 3 - Math.min(3, photos.length));
   const href = (patch: { t?: string; page?: string; g?: string }) => {
     const q = new URLSearchParams();

@@ -31,6 +31,7 @@ const PAGE = 24;
 /** Product types in display order, with shop labels (es / en). */
 const TYPES: [string, string, string][] = [
   ["TSHIRT", "Camisetas", "T-shirts"],
+  ["SPORTS_JERSEY", "Camisetas deportivas", "Sports jerseys"],
   ["HOODIE", "Sudaderas con capucha", "Hoodies"],
   ["SWEATSHIRT", "Sudaderas", "Sweatshirts"],
   ["KIDS_TSHIRT", "Infantil", "Kids"],
@@ -64,6 +65,8 @@ const TYPES: [string, string, string][] = [
   ["PATCH", "Parches", "Patches"],
   ["POSTCARD", "Postales", "Postcards"],
   ["CALENDAR", "Calendarios", "Calendars"],
+  ["DOORMAT", "Felpudos", "Doormats"],
+  ["PUZZLE", "Puzles", "Puzzles"],
 ];
 const typeLabel = (code: string, en: boolean) => TYPES.find((x) => x[0] === code)?.[en ? 2 : 1] ?? code;
 
@@ -283,7 +286,9 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   if (theme) products = products.filter(theme.match);
   if (q) products = products.filter((p) => [p.name, p.shortDescription, p.collection?.name, ...p.tags].filter(Boolean).join(" ").toLowerCase().includes(q));
   const beforeType = products;
-  const typesHere = [...new Set(beforeType.map((p) => p.productType))].sort((a, b) => TYPES.findIndex((x) => x[0] === a) - TYPES.findIndex((x) => x[0] === b));
+  // type chips follow the audience: on Mujer the women's cuts come first
+  const typeRank = (code: string) => TYPES.findIndex((x) => x[0] === code) - (audience === "mujer" && code.startsWith("WOMENS_") ? 1000 : 0);
+  const typesHere = [...new Set(beforeType.map((p) => p.productType))].sort((a, b) => typeRank(a) - typeRank(b));
   if (type) products = products.filter((p) => p.productType === type);
   products = sortProducts(products, sort);
   // Mujer: women's cuts first, then the unisex pieces that also fit (curated order kept inside each group)

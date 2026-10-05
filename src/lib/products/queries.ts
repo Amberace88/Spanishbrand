@@ -217,6 +217,45 @@ function compactVariants(p: PublicProduct): PublicProduct {
   return { ...p, images, variants, description: null, story: null, sizeGuide: null };
 }
 
+const KIDS_TYPES = new Set(["KIDS_TSHIRT", "KIDS_HOODIE", "TODDLER_TSHIRT", "BABY_BODYSUIT"]);
+
+/**
+ * The lean listing RPC carries neither photo alts nor photos past the 4th, so kids' cards could not know which
+ * photo shows a girl or a boy (the Niña / Niño filter). One extra read: the first girl and first boy model photo
+ * of every kids' product (tagged " — niña" / " — niño" in the alt by the catalog builder), merged in.
+ */
+async function withKidsModels(sb: NonNullable<ReturnType<typeof dbOrNull>>, rows: PublicProduct[]): Promise<PublicProduct[]> {
+  const kids = rows.filter((p) => KIDS_TYPES.has(p.productType) || p.categoryCode === "KIDS");
+  if (!kids.length) return rows;
+  try {
+    const tagged: { product_id: string; url: string; kind: string; sort: number; alt: string }[] = [];
+    for (let i = 0; i < kids.length; i += 100) {
+      const ids = kids.slice(i, i + 100).map((p) => p.id);
+      for (const tag of ["niña", "niño"]) {
+        const { data } = await sb.from("product_images").select("product_id, url, kind, sort, alt").in("product_id", ids).like("alt", `%— ${tag}`).order("sort");
+        tagged.push(...((data ?? []) as typeof tagged));
+      }
+    }
+    const byProduct = new Map<string, typeof tagged>();
+    for (const t of tagged) byProduct.set(t.product_id, [...(byProduct.get(t.product_id) ?? []), t]);
+    return rows.map((p) => {
+      const list = byProduct.get(p.id);
+      if (!list) return p;
+      const images = [...p.images];
+      for (const model of ["girl", "boy"] as const) {
+        const hit = list.filter((t) => modelOf(t.alt).model === model).sort((a, b) => a.sort - b.sort)[0];
+        if (!hit) continue;
+        const at = images.findIndex((im) => im.url === hit.url);
+        if (at >= 0) images[at] = { ...images[at], model };
+        else images.push({ url: hit.url, alt: null, kind: hit.kind, color: images[0]?.color ?? null, model });
+      }
+      return { ...p, images };
+    });
+  } catch {
+    return rows;
+  }
+}
+
 async function loadListing(): Promise<PublicProduct[]> {
   // local design previews without a database (never in production): LISTING_FIXTURE=/abs/path/products.json
   if (process.env.LISTING_FIXTURE && process.env.NODE_ENV !== "production") {
@@ -227,7 +266,7 @@ async function loadListing(): Promise<PublicProduct[]> {
   if (!sb) return [];
   // one round trip: the DB builds the lean listing (first images, one variant per colour) — see migration listing_products
   const rpc = await sb.rpc("listing_products", { p_brand: env.brandId() });
-  if (!rpc.error && Array.isArray(rpc.data)) return (rpc.data as Row[]).map((r) => compactVariants(mapProduct(r)));
+  if (!rpc.error && Array.isArray(rpc.data)) return withKidsModels(sb, (rpc.data as Row[]).map((r) => mapProduct(r))).then((rows) => rows.map(compactVariants));
   // fallback (function not deployed yet): small pages in sequence
   const PAGE = 120;
   const out: PublicProduct[] = [];
@@ -256,8 +295,8 @@ const cachedListingCount = unstable_cache(async () => {
   const n = (await loadListingShared()).length;
   if (!n) throw new Error("LISTING_EMPTY"); // never pin an empty catalogue in the shared cache
   return n;
-},["listing-count-v1"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
-const cachedListingChunk = unstable_cache(async (i: number) => (await loadListingShared()).slice(i * LISTING_CHUNK, (i + 1) * LISTING_CHUNK), ["listing-chunk-v1"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
+},["listing-count-v2"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
+const cachedListingChunk = unstable_cache(async (i: number) => (await loadListingShared()).slice(i * LISTING_CHUNK, (i + 1) * LISTING_CHUNK), ["listing-chunk-v2"], { revalidate: LISTING_REVALIDATE, tags: ["listing"] });
 
 async function loadListingCached(): Promise<PublicProduct[]> {
   try {
