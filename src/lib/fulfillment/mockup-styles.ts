@@ -91,3 +91,8 @@ export function orderKidsImages<T extends StyledImage>(images: T[], designSlug: 
   }
   return [...out, ...rest];
 }
+
+/** Readable model tag appended to a photo's alt text (" — niña" / " — niño"); listings read it back (styleFromAlt). */
+export function altStyleTag(style: MockupStyle | undefined): string | null {
+  return style === "girl" ? "niña" : style === "boy" ? "niño" : null;
+}

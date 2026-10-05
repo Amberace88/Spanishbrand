@@ -8,7 +8,7 @@ import { listSiteImages } from "@/lib/site-images";
 import { AUDIENCES, AUDIENCE_COVER, AUDIENCE_LOCAL, AUDIENCE_EXTRAS, AUDIENCE_TYPE_ORDER, audienceTypeLabel, isAudience, isFor, type Audience } from "@/lib/catalog/audience";
 import { ACTIVE_DESIGNS, artUrl, type BlueprintKey, type Design } from "@/lib/catalog/designs";
 import { ProductCard } from "@/components/product/ProductCard";
-import { merchandise, merchandiseUnique } from "@/lib/catalog/merch";
+import { kidsLead, merchandise, merchandiseUnique } from "@/lib/catalog/merch";
 import { DesignArt } from "@/components/catalog/DesignArt";
 import { Container, SectionHead } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
@@ -91,7 +91,7 @@ function designsFor(a: Audience): Design[] {
   return list.sort((x, y) => Number(Boolean(y.tags?.includes("familia"))) - Number(Boolean(x.tags?.includes("familia"))) || Number(Boolean(y.tags?.includes("leon"))) - Number(Boolean(x.tags?.includes("leon")))).slice(0, 6);
 }
 
-export default async function AudiencePage({ params, searchParams }: { params: Promise<{ audience: string }>; searchParams: Promise<{ t?: string; page?: string }> }) {
+export default async function AudiencePage({ params, searchParams }: { params: Promise<{ audience: string }>; searchParams: Promise<{ t?: string; page?: string; g?: string }> }) {
   const [{ audience }, sp] = await Promise.all([params, searchParams]);
   if (!isAudience(audience)) notFound();
   const a = audience;
@@ -104,7 +104,11 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   const typeIdx = (code: string) => (AUDIENCE_TYPE_ORDER.indexOf(code) + 999) % 999;
   const types = [...new Set(own.map((p) => p.productType))].sort((x, y) => typeIdx(x) - typeIdx(y));
   const type = types.find((x) => x === sp.t);
-  const products = merchandise(type ? own.filter((x) => x.productType === type) : own, { boost });
+  // kids: "Para niña" / "Para niño" show the girl / boy model photo first (the garments themselves are unisex)
+  const kidsAudience = a === "ninos" || a === "bebes";
+  const g = kidsAudience && (sp.g === "nina" || sp.g === "nino") ? sp.g : undefined;
+  const want = g === "nina" ? "girl" : g === "nino" ? "boy" : undefined;
+  const products = merchandise(type ? own.filter((x) => x.productType === type) : own, { boost }).map((p) => (kidsAudience ? kidsLead(p, want) : p));
   const page = Math.max(1, Math.min(40, Number(sp.page) || 1));
   const shown = products.slice(0, page * PAGE_SIZE);
   const designs = designsFor(a);
@@ -114,10 +118,11 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   // hero collage: campaign photos first, then real product photos, then live design previews
   const photos = [...cfg.photos.map((k) => (k.startsWith("/") ? k : k.startsWith("campaign:") ? campaignPhoto(k.slice(9)) : site[k])).filter(Boolean), ...merchandiseUnique(own, 3, { boost }).map((p) => p.images[0]?.url).filter(Boolean)].slice(0, 3) as string[];
   const heroDesigns = designs.slice(0, 3 - Math.min(3, photos.length));
-  const href = (patch: { t?: string; page?: string }) => {
+  const href = (patch: { t?: string; page?: string; g?: string }) => {
     const q = new URLSearchParams();
-    const merged = { t: type, ...patch };
+    const merged = { t: type, g, ...patch };
     if (merged.t) q.set("t", merged.t);
+    if (merged.g) q.set("g", merged.g);
     if (merged.page) q.set("page", merged.page);
     const s = q.toString();
     return `/para/${a}${s ? `?${s}` : ""}#productos`;
@@ -205,10 +210,24 @@ export default async function AudiencePage({ params, searchParams }: { params: P
 
       {/* ───────── products ───────── */}
       <section id="productos" className="scroll-mt-24 bg-bg pb-20">
-        {types.length > 1 && (
+        {(types.length > 1 || kidsAudience) && (
           <div className="sticky top-[calc(env(safe-area-inset-top)+64px)] z-20 border-b border-line bg-surface/90 backdrop-blur-xl">
             <Container>
-              <nav className="no-scrollbar flex gap-2 overflow-x-auto py-3">
+              <nav className="no-scrollbar flex items-center gap-2 overflow-x-auto py-3">
+                {kidsAudience && (
+                  <>
+                    <span className="sr-only">{locale === "en" ? "Show photos for" : "Ver fotos para"}</span>
+                    <div className="flex shrink-0 rounded-full border border-line bg-bg p-1" role="group">
+                      {([[undefined, locale === "en" ? "All" : "Todos"], ["nina", locale === "en" ? "Girls" : "Niña"], ["nino", locale === "en" ? "Boys" : "Niño"]] as const).map(([v, label]) => (
+                        <Link key={label} href={href({ g: v ?? "", page: undefined })} scroll={false} aria-current={g === v ? "true" : undefined} className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${g === v ? "bg-fg text-bg" : "text-muted hover:text-fg"}`}>
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                    {types.length > 1 && <span className="mx-1 h-6 w-px shrink-0 bg-line" aria-hidden />}
+                  </>
+                )}
+                {types.length > 1 && <>
                 <Link href={href({ t: undefined, page: undefined })} className={chip(!type)} scroll={false}>
                   {t("audience.allTypes")}
                 </Link>
@@ -217,6 +236,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
                     {audienceTypeLabel(x, locale)}
                   </Link>
                 ))}
+                </>}
               </nav>
             </Container>
           </div>

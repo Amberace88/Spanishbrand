@@ -10,7 +10,7 @@ import { createMockupTask, getMockupTask, getPrintfiles } from "@/lib/fulfillmen
 import { isProviderError } from "@/lib/fulfillment/errors";
 import { uploadObject } from "@/lib/personalization/storage";
 import { mockupPending, type PendingImage, type TaskMockup } from "@/lib/fulfillment/catalog-builder";
-import { isKidsBlueprint, KIDS_BLUEPRINTS, pickOptionGroups } from "@/lib/fulfillment/mockup-styles";
+import { altStyleTag, isKidsBlueprint, KIDS_BLUEPRINTS, pickOptionGroups } from "@/lib/fulfillment/mockup-styles";
 import { createHash } from "node:crypto";
 
 /**
@@ -186,7 +186,7 @@ async function stepImages(row: Row, productKey: string): Promise<RefreshResult> 
     if (!r.ok) throw new Error(`mockup download ${r.status}`);
     const buf = await sharp(Buffer.from(await r.arrayBuffer())).resize({ width: 1400, height: 1400, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 5 }).toBuffer();
     const url = await uploadObject(`catalog/media/${st.slug}/${st.productId!.slice(0, 8)}-${st.mediaVer}-${n}.webp`, buf, "image/webp", { immutable: true });
-    uploaded.push({ url, alt: [product?.name, img.color !== "_" ? img.color : null, img.title || null].filter(Boolean).join(" — "), kind: img.kind, color: img.color });
+    uploaded.push({ url, alt: [product?.name, img.color !== "_" ? img.color : null, img.title || null, altStyleTag(img.style)].filter(Boolean).join(" — "), kind: img.kind, color: img.color });
   }
   const done = (st.done ?? 0) + batch.length;
   const next: Phase = done >= (st.pending ?? []).length ? "swap" : "images";

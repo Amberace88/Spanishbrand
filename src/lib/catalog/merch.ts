@@ -128,9 +128,29 @@ const isKids = (p: PublicProduct) => p.categoryCode === "KIDS" || /infantil|-peq
  */
 export const keepsBuiltOrder = (p: PublicProduct) => isKids(p) || p.tags.includes("jersey");
 
+/**
+ * Kids' garments: which model photo leads the card. "girl" / "boy" pick that model when the product has one;
+ * without a choice girls and boys take turns across products (stable per product), so a kids grid shows both.
+ */
+export function kidsLead(p: PublicProduct, want?: "girl" | "boy"): PublicProduct {
+  if (!isKids(p)) return p;
+  const girl = p.images.find((im) => im.model === "girl");
+  const boy = p.images.find((im) => im.model === "boy");
+  const pick = want === "girl" ? girl : want === "boy" ? boy : stable(p.slug) % 2 ? (boy ?? girl) : (girl ?? boy);
+  if (!pick || p.images[0]?.url === pick.url) return p;
+  return { ...p, images: [pick, ...p.images.filter((im) => im.url !== pick.url)] };
+}
+
+/** FNV-1a: a stable per-product number. */
+function stable(s: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+  return h >>> 0;
+}
+
 export function withHero(p: PublicProduct, hero: HeroOption | undefined = heroOptions(p)[0]): PublicProduct {
   if (!hero) return p;
-  if (keepsBuiltOrder(p)) return p;
+  if (keepsBuiltOrder(p)) return kidsLead(p);
   const lead: Img = p.images.find((im) => im.url === hero.url) ?? { url: hero.url, alt: null, color: hero.colourName, kind: "MOCKUP" };
   const hover = hoverFor(p, hero);
   const rest = p.images.filter((im) => im.url !== lead.url && im.url !== hover?.url);

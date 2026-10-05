@@ -39,7 +39,8 @@ export interface PublicProduct {
   limitedType: string | null;
   limitedUntil: string | null;
   limitedRemaining: number | null; // only when technically enforced (QUANTITY)
-  images: { url: string; alt: string | null; color: string | null; kind: string }[];
+  /** `model`: girl/boy model photo of kids' garments (read from the alt tag the catalog builder writes). */
+  images: { url: string; alt: string | null; color: string | null; kind: string; model?: "girl" | "boy" }[];
   variants: PublicVariant[];
   /** Library design this product was made from (for "Diseña en este estilo" and "Completa el look"). */
   design: string | null;
@@ -126,7 +127,7 @@ function mapProduct(r: Row): PublicProduct {
     images: (r.product_images ?? [])
       .filter((i) => i.kind !== "PRINT_FILE")
       .sort((a, b) => a.sort - b.sort)
-      .map((i) => ({ url: i.url, alt: i.alt ?? null, kind: i.kind, color: i.color ?? ((i.variant_id && r.product_variants?.find((v) => v.id === i.variant_id)?.color) || null) })),
+      .map((i) => ({ url: i.url, alt: i.alt ?? null, kind: i.kind, color: i.color ?? ((i.variant_id && r.product_variants?.find((v) => v.id === i.variant_id)?.color) || null), ...modelOf(i.alt) })),
     design: ((r.metadata as { catalog?: { design?: string | null } } | null)?.catalog?.design as string) ?? null,
     sizeGuide: toSizeGuide((r.metadata as { size_guide?: unknown } | null)?.size_guide ?? null),
     featured: Boolean(r.featured),
@@ -187,8 +188,19 @@ let snapshot: { at: number; rows: PublicProduct[] } | null = null;
 let inflight: Promise<PublicProduct[]> | null = null;
 
 /** One entry per colour (and per distinct price) for the first 6 colours, plus the price extremes: all a card uses. */
+/** " — niña" / " — niño" at the end of a photo's alt marks a girl / boy model photo. */
+function modelOf(alt: string | null | undefined): { model?: "girl" | "boy" } {
+  if (!alt) return {};
+  if (/— niña$/.test(alt)) return { model: "girl" };
+  if (/— niño$/.test(alt)) return { model: "boy" };
+  return {};
+}
+
 function compactVariants(p: PublicProduct): PublicProduct {
-  const images = p.images.filter((im, i) => i < 2 || (im.kind === "LIFESTYLE" && p.images.findIndex((x) => x.kind === "LIFESTYLE") === i)).map((im) => ({ ...im, alt: null }));
+  // first two photos, the first lifestyle shot, and for kids' wear the first girl and first boy model photo
+  const firstGirl = p.images.findIndex((x) => x.model === "girl");
+  const firstBoy = p.images.findIndex((x) => x.model === "boy");
+  const images = p.images.filter((im, i) => i < 2 || i === firstGirl || i === firstBoy || (im.kind === "LIFESTYLE" && p.images.findIndex((x) => x.kind === "LIFESTYLE") === i)).map((im) => ({ ...im, alt: null }));
   // personalisable bases feed the designer / Personaliza, which need every size variant
   if (p.personalization) return { ...p, images, description: null, story: null, sizeGuide: null };
   const seen = new Set<string>();

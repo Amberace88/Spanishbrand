@@ -31,7 +31,7 @@ import { FUTBOL_AOP, FUTBOL_CITIES } from "@/lib/catalog/futbol-pro";
 import { mockupArtUrl } from "@/lib/catalog/mockup-art";
 import { designVersion, effectiveLayers } from "@/lib/catalog/print-safety";
 import VERSION_BASELINE from "@/lib/catalog/design-version-baseline.json";
-import { isKidsBlueprint, orderKidsImages, pickOptionGroups, styleOf, type MockupStyle } from "@/lib/fulfillment/mockup-styles";
+import { altStyleTag, isKidsBlueprint, orderKidsImages, pickOptionGroups, styleOf, type MockupStyle } from "@/lib/fulfillment/mockup-styles";
 
 /* ───────────────────────── plan ───────────────────────── */
 
@@ -1169,7 +1169,7 @@ async function stepImages(job: JobRow): Promise<StepResult> {
     if (!r.ok) throw new Error(`mockup download ${r.status}`);
     const url = await uploadObject(`catalog/media/${st.slug}/${(job.product_id ?? "").slice(0, 8)}-${mediaVer(job)}-${n}.webp`, await webp(Buffer.from(await r.arrayBuffer())), "image/webp", { immutable: true });
     const variant = (pvars ?? []).find((v) => (v.color ?? "_") === img.color) ?? null;
-    await addImage(product!.id, url, [product!.name, img.color !== "_" ? img.color : null, img.title || null].filter(Boolean).join(" — "), n, variant?.id ?? null, img.kind);
+    await addImage(product!.id, url, [product!.name, img.color !== "_" ? img.color : null, img.title || null, altStyleTag(img.style)].filter(Boolean).join(" — "), n, variant?.id ?? null, img.kind);
     // first image of each colour becomes that colour's variant image
     if (variant && !variant.image) {
       const q = sb.from("product_variants").update({ image: url }).eq("product_id", product!.id);
