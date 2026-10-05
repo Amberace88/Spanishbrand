@@ -15,7 +15,9 @@ export function CountUp({ to, from = 0, duration = 1.4, format = (n: number) => 
   }, [inView, reduce, from, to, duration]);
   return (
     <span ref={ref} className={`tabular-nums ${className ?? ""}`}>
-      {format(v)}
+      {/* the real figure for screen readers, crawlers and no-JS; the animated one is decoration */}
+      <span className="sr-only">{format(to)}</span>
+      <span aria-hidden>{format(v)}</span>
     </span>
   );
 }
