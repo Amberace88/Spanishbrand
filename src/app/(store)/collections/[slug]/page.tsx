@@ -81,7 +81,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
       const d = designs.find((x) => x.slug === key);
       return { key, title: d?.name ?? c.name, line: d?.line ?? "", items };
     });
-  const presentTypes = TYPES.filter((x) => own.some((p) => p.categoryCode === x));
+  const presentTypes = TYPES.filter((x) => scoped.some((p) => p.categoryCode === x));
   const chip = (active: boolean) => `shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${active ? "border-fg bg-fg text-bg" : "border-line bg-surface hover:border-fg/40"}`;
 
   return (

@@ -243,7 +243,9 @@ async function withKidsModels(sb: NonNullable<ReturnType<typeof dbOrNull>>, rows
       if (!list) return p;
       const images = [...p.images];
       for (const model of ["girl", "boy"] as const) {
-        const hit = list.filter((t) => modelOf(t.alt).model === model).sort((a, b) => a.sort - b.sort)[0];
+        // a straight-on photo reads best on a card: side angles ("Right Front", "Left Front"…) only as a fallback
+        const angled = (alt: string) => (/— (left|right|back|side)\b/i.test(alt) ? 1 : 0);
+        const hit = list.filter((t) => modelOf(t.alt).model === model).sort((a, b) => angled(a.alt) - angled(b.alt) || a.sort - b.sort)[0];
         if (!hit) continue;
         const at = images.findIndex((im) => im.url === hit.url);
         if (at >= 0) images[at] = { ...images[at], model };
