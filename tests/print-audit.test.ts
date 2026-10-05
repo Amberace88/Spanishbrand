@@ -30,7 +30,7 @@ describe("art ink manifest", () => {
     }
     const orphans = Object.keys(INK).filter((n) => !files.includes(`${n}.png`));
     expect({ stale, orphans }).toEqual({ stale: [], orphans: [] });
-  });
+  }, 60_000); // hashes every art PNG: slow when the whole suite runs in parallel
 });
 
 describe("every active design prints inside its safe zones", () => {
