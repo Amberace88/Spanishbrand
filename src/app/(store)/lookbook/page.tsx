@@ -36,7 +36,7 @@ const GROUPS: { design: string; es: string; en: string; sub: [string, string] }[
 ];
 
 export default async function LookbookPage() {
-  const [locale, t, all] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 1000 })]);
+  const [locale, t, all] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 5000 })]);
   const en = locale === "en";
   const labels = { madeToOrder: t("product.madeToOrder"), from: t("common.from"), limited: t("product.limitedTime") };
   const groups = GROUPS.map((g) => ({ ...g, items: all.filter((p) => p.design === g.design) })).filter((g) => g.items.length);

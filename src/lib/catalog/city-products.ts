@@ -1,3 +1,4 @@
+import { withHero } from "@/lib/catalog/merch";
 import "server-only";
 import { CITIES } from "./cities";
 import { designBySlug } from "./designs";
@@ -14,7 +15,9 @@ export function cityCards(all: PublicProduct[]) {
   return CITIES.map((c) => {
     const own = productsForCity(c.slug, all);
     const d = designBySlug(`ciudad-${c.slug}-cartel`); // the poster line (the old coordinate badge is retired)
-    const tee = own.find((p) => p.productType === "TSHIRT" && p.images[0]) ?? own.find((p) => p.images[0]);
+    // the unisex tee (then hoodie, any tee, anything) in its best colour represents the city
+    const pick = own.find((p) => p.tags.includes("tee") && p.images[0]) ?? own.find((p) => p.tags.includes("hoodie") && p.images[0]) ?? own.find((p) => p.productType === "TSHIRT" && p.images[0]) ?? own.find((p) => p.images[0]);
+    const tee = pick ? withHero(pick) : undefined;
     return {
       slug: c.slug,
       label: c.label,

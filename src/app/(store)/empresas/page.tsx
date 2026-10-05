@@ -5,6 +5,7 @@ import { B2BForm } from "@/components/forms/GrowthForms";
 import { Container, PageHero } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 import Image from "next/image";
+import { campaignPhoto } from "@/lib/campaign";
 import { Mockup } from "@/components/art/Mockup";
 import { getShowcase } from "@/lib/products/queries";
 
@@ -18,7 +19,8 @@ export default async function BusinessPage() {
     de: { kicker: "Firmen & Events", title: "Für Verein, Bar oder Firma", sub: "Vereinsshirts, Uniformen, Schürzen, Firmengeschenke und Event-Merch. Mit deinem Logo oder unseren Designs, schon ab kleinen Mengen.", u1: "Bars & Restaurants", u1b: "Schürzen, Team-Shirts und Tassen mit deiner Marke.", u2: "Fiestas & Peñas", u2b: "Gruppenshirts für Fallas, Hogueras, Ferias und Dorffeste.", u3: "Sportvereine", u3b: "Fan-Ausrüstung, Hoodies und Caps für Verein oder Schule.", u4: "Firmen & Events", u4b: "Firmengeschenke, Hochzeiten, Kongresse und Messen.", how: "So arbeiten wir", h1: "Du sagst uns, was du brauchst", h2: "Angebot innerhalb von 48 h", h3: "Design freigeben – wir produzieren", h4: "Lieferung in Spanien und der EU", formTitle: "Angebot anfragen", company: "Firma / Verein", contact: "Ansprechpartner", phone: "Telefon", type: "Art", type_BAR_RESTAURANT: "Bar / Restaurant", type_FIESTA_PENA: "Fiesta-Gruppe", type_SPORTS_CLUB: "Sportverein", type_COMPANY: "Firma", type_EVENT: "Event / Hochzeit", type_SCHOOL: "Schule / Verein", type_OTHER: "Sonstiges", quantity: "Ungefähre Menge", products: "Produkte", productsPh: "T-Shirts, Hoodies, Schürzen…", deadline: "Termin", message: "Erzähl uns deine Idee", privacy: "Ich akzeptiere die Datenschutzerklärung, damit ihr mich zu dieser Anfrage kontaktiert.", submit: "Anfrage senden", error: "Bitte Pflichtfelder prüfen.", doneTitle: "Anfrage gesendet!", doneBody: "Wir antworten innerhalb von 48 Werktagsstunden." },
   });
   const show = await getShowcase();
-  const uses = [[c.u1, c.u1b, "tote", show.byType.APRON ?? show.byType.TOTE], [c.u2, c.u2b, "tee", show.byType.TSHIRT], [c.u3, c.u3b, "hoodie", show.byType.HOODIE ?? show.byType.CAP], [c.u4, c.u4b, "mug", show.byType.MUG]] as const;
+  // lifestyle photos of each use (bar, fiesta, grada, oficio), product photos as fallback
+  const uses = [[c.u1, c.u1b, "tote", campaignPhoto("tapas") ?? show.byType.APRON ?? show.byType.TOTE], [c.u2, c.u2b, "tee", campaignPhoto("fiestas") ?? show.byType.TSHIRT], [c.u3, c.u3b, "hoodie", campaignPhoto("futbol") ?? show.byType.HOODIE ?? show.byType.CAP], [c.u4, c.u4b, "mug", campaignPhoto("profesiones") ?? show.byType.MUG]] as const;
   return (
     <>
       <PageHero eyebrow={c.kicker} title={c.title} sub={c.sub} />
@@ -29,7 +31,7 @@ export default async function BusinessPage() {
               <Reveal key={t} delay={i * 0.05}>
                 <div className="h-full overflow-hidden rounded-3xl bg-surface-2 p-6">
                   {photo ? (
-                    <div className="relative -mx-6 -mt-6 aspect-[4/3] overflow-hidden">
+                    <div className="relative -mx-6 -mt-6 aspect-[4/3] overflow-hidden bg-[#0b0b0b]">
                       <Image src={photo} alt={t} fill sizes="(min-width:1024px) 25vw, 50vw" className="object-cover" />
                     </div>
                   ) : (

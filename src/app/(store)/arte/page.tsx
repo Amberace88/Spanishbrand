@@ -33,7 +33,7 @@ const rankType = (p: PublicProduct) => {
 };
 
 export default async function ArtePage() {
-  const [locale, t, all, site] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 1500 }), listSiteImages()]);
+  const [locale, t, all, site] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 5000 }), listSiteImages()]);
   const looks = ([["look-flamenca-mujer", "La Flamenca", "art-flamenca"], ["look-toro-hombre", "Toro Bravo", "art-toro"], ["look-quijote-hombre", "Quijote y Sancho", "art-quijote"], ["look-faro-pareja", "El Faro", "art-faro"], ["look-barca-nino", "La Barca", "art-barca"]] as const).filter(([k]) => site[k]);
   const en = locale === "en";
   const from = t("common.from");

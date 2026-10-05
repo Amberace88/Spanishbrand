@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CitiesPage() {
-  const [locale, all] = await Promise.all([getLocale(), getPublishedProducts({ limit: 1000 })]);
+  const [locale, all] = await Promise.all([getLocale(), getPublishedProducts({ limit: 5000 })]);
   const en = locale === "en";
   const cards = cityCards(all).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "es"));
   return (

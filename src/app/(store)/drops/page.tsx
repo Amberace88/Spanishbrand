@@ -1,3 +1,5 @@
+import { campaignPhoto } from "@/lib/campaign";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { IconArrow } from "@/components/ui/Icons";
 import Link from "next/link";
@@ -5,7 +7,6 @@ import { getDrops } from "@/lib/products/queries";
 import { getT } from "@/lib/i18n/server";
 import { CollectionArt } from "@/components/art/CollectionArt";
 import { Countdown } from "@/components/home/Countdown";
-import { Newsletter } from "@/components/home/Newsletter";
 import { Container, PageHero } from "@/components/ui/Section";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -21,10 +22,17 @@ export default async function DropsPage() {
       <section className="bg-bg py-20">
         <Container>
           {drops.length === 0 ? (
-            <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <p className="headline text-3xl sm:text-4xl">{t("drops.empty")}</p>
-              <Newsletter source="drops" />
-            </div>
+<Link href="/club" className="group relative grid overflow-hidden rounded-[2rem] bg-[#0b0b0b] text-white sm:grid-cols-[1.1fr_1fr]">
+              <div className="relative order-2 p-8 sm:order-1 sm:p-12">
+                <p className="headline text-3xl leading-tight sm:text-4xl">{t("drops.empty")}</p>
+                <p className="mt-4 max-w-md text-[16px] leading-relaxed text-white/70">Drop 001: Heritage. Camiseta, sudadera, gorra, póster, taza y funda con una sola identidad visual. Los socios del club lo ven antes que nadie.</p>
+                <span className="btn btn-light press mt-8">Acceso anticipado <IconArrow className="h-4 w-4" /></span>
+              </div>
+              <div className="relative order-1 aspect-[16/10] sm:order-2 sm:aspect-auto sm:min-h-[340px]">
+                {campaignPhoto("heritage") && <Image src={campaignPhoto("heritage")!} alt="" fill sizes="(min-width:640px) 45vw, 100vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.04]" />}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0b] via-transparent to-transparent max-sm:bg-gradient-to-t" />
+              </div>
+            </Link>
           ) : (
             <div className="space-y-6">
               {drops.map((d) => (

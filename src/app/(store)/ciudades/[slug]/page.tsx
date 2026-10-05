@@ -37,7 +37,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const c = CITIES.find((x) => x.slug === slug);
   if (!c) notFound();
-  const [t, locale, all] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1000 })]);
+  const [t, locale, all] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 5000 })]);
   const en = locale === "en";
   const own = productsForCity(c.slug, all).map((p) => withHero(p)).sort((a, b) => (TYPE_ORDER.indexOf(a.productType) + 99) % 99 - (TYPE_ORDER.indexOf(b.productType) + 99) % 99);
   const extras = all.filter((p) => p.tags.includes("calendario") && p.tags.includes("ciudad"));

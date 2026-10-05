@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     if (moved) permanentRedirect(moved);
   }
   if (!p) notFound();
-  const [brand, t, rating, all, donation] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 2000 }), getDonation()]);
+  const [brand, t, rating, all, donation] = await Promise.all([getBrand(), getT(), realRating(p.id), getPublishedProducts({ limit: 5000 }), getDonation()]);
   const design = p.design ? designBySlug(p.design) : null;
   const sameDesign = design ? all.filter((x) => x.design === design.slug && x.id !== p.id).slice(0, 4) : [];
   const related = all.filter((x) => x.collection?.slug === p.collection?.slug && x.id !== p.id && x.design !== p.design).slice(0, 4);

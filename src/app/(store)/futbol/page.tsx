@@ -63,7 +63,7 @@ function DesignCard({ d, products, labels, backLabel, soon }: { d: Design; produ
 }
 
 export default async function FutbolPage({ searchParams }: { searchParams: Promise<{ ciudad?: string }> }) {
-  const [t, all, sp] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 }), searchParams]);
+  const [t, all, sp] = await Promise.all([getT(), getPublishedProducts({ limit: 5000 }), searchParams]);
   const designs = DESIGNS.filter((d) => d.tags?.includes("futbol-pro"));
   const products = all.filter((p) => p.tags.includes("futbol-pro"));
   const byDesign = new Map<string, PublicProduct[]>();

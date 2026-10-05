@@ -96,7 +96,7 @@ export default async function AudiencePage({ params, searchParams }: { params: P
   if (!isAudience(audience)) notFound();
   const a = audience;
   const cfg = PAGE[a];
-  const [t, locale, all, site] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 1500 }), listSiteImages()]);
+  const [t, locale, all, site] = await Promise.all([getT(), getLocale(), getPublishedProducts({ limit: 5000 }), listSiteImages()]);
 
   // curated order (lib/catalog/merch.ts) with this landing's own bonus: audience-specific pieces lead
   const boost = (p: PublicProduct) => (cfg.tag && p.tags.includes(cfg.tag) ? 3 : 0) + (a === "mujer" && p.productType.startsWith("WOMENS_") ? 2.5 : 0) + (p.tags.includes("leon") ? 1 : 0);

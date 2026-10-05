@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import { campaignPhoto } from "@/lib/campaign";
 import { getLocale } from "@/lib/i18n/server";
 import { pick } from "@/lib/i18n/pick";
 import { CreatorForm } from "@/components/forms/GrowthForms";
@@ -20,15 +22,22 @@ export default async function CreatorsPage() {
       <section className="bg-bg py-12 sm:py-16">
         <Container>
           <div className="grid gap-3 sm:grid-cols-3">
-            {[[c.a, c.ab], [c.b, c.bb], [c.cT, c.cb]].map(([t, b], i) => (
-              <Reveal key={t} delay={i * 0.05}>
-                <div className={`h-full rounded-3xl p-7 ${i === 0 ? "bg-[#0b0b0b] text-[#f5f1e8]" : i === 1 ? "bg-accent text-white" : "bg-gold text-black"}`}>
-                  <p className="mega text-6xl">{String(i + 1).padStart(2, "0")}</p>
-                  <p className="headline mt-5 text-2xl">{t}</p>
-                  <p className="mt-2 opacity-80">{b}</p>
-                </div>
-              </Reveal>
-            ))}
+            {([[c.a, c.ab, "arte"], [c.b, c.bb, "ciudades"], [c.cT, c.cb, "statement"]] as const).map(([t, b, key], i) => {
+              const photo = campaignPhoto(key);
+              return (
+                <Reveal key={t} delay={i * 0.05} className="h-full">
+                  <div className="h-full overflow-hidden rounded-3xl bg-surface-2 ring-1 ring-line">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-[#0b0b0b]">
+                      {photo && <Image src={photo} alt="" fill sizes="(min-width:640px) 33vw, 100vw" className="object-cover" />}
+                    </div>
+                    <div className="p-6 sm:p-7">
+                      <p className="headline text-2xl">{t}</p>
+                      <p className="mt-2 text-[15px] leading-relaxed text-muted">{b}</p>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
           <div className="mx-auto mt-14 max-w-3xl rounded-[2rem] border border-line p-6 sm:p-10">
             <p className="headline text-3xl">{c.formTitle}</p>

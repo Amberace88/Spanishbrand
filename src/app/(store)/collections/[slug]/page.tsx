@@ -41,7 +41,7 @@ export default async function CollectionPage({ params, searchParams }: { params:
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const c = await getCollectionBySlug(slug);
   if (!c) notFound();
-  const [t, all, site] = await Promise.all([getT(), getPublishedProducts({ limit: 1500 }), listSiteImages()]);
+  const [t, all, site] = await Promise.all([getT(), getPublishedProducts({ limit: 5000 }), listSiteImages()]);
   const byTag = TAG_COLLECTIONS.has(c.slug);
   // curated order (quality × diversity × hero colour): lib/catalog/merch.ts
   const own = merchandise(all.filter((p) => p.collection?.slug === c.slug || (byTag && p.tags.includes(c.slug))));

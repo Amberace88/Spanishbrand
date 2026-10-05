@@ -47,7 +47,7 @@ const rankType = (p: PublicProduct) => {
 };
 
 export default async function SabiduriaPage() {
-  const [locale, t, all] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 1500 })]);
+  const [locale, t, all] = await Promise.all([getLocale(), getT(), getPublishedProducts({ limit: 5000 })]);
   const en = locale === "en";
   const from = t("common.from");
   const byDesign = new Map<string, PublicProduct[]>();

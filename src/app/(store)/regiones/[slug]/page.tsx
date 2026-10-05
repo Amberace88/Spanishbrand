@@ -33,7 +33,7 @@ export default async function RegionPage({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const r = regionBySlug(slug);
   if (!r || isRedundantProvince(r)) notFound();
-  const [t, all, show] = await Promise.all([getT(), getPublishedProducts({ limit: 300 }), getShowcase()]);
+  const [t, all, show] = await Promise.all([getT(), getPublishedProducts({ limit: 5000 }), getShowcase()]);
   const ctaPhoto = show.byCollection["mi-pueblo"]?.[0] ?? null;
   const keys = new Set([r.slug, r.parent].filter(Boolean) as string[]);
   const products = merchandise(all.filter((p) => p.tags.some((tag) => tag.startsWith("region:") && keys.has(tag.slice(7))) || (p.collection && keys.has(p.collection.slug))));
