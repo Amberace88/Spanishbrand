@@ -1,0 +1,55 @@
+// Cloudflare Workers config for ROJO Y GUALDA (branch `cloudflare`). See docs/CLOUDFLARE_MIGRATION.md.
+// No secrets here: runtime secrets are set with `wrangler secret put` / the dashboard, NEXT_PUBLIC_* at build time.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rojoygualda",
+  // Custom entry: wraps the OpenNext handler (.open-next/worker.js), adds the cron `scheduled()` handler and
+  // the WASM image codecs that replace sharp on Workers.
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  // Image work (designer uploads, catalog builder, print files) is CPU heavy: allow up to 5 min CPU per
+  // invocation (Workers Paid only; the free plan ignores/refuses this and caps CPU at 10 ms).
+  "limits": {
+    "cpu_ms": 300000,
+  },
+  // Replaces netlify/functions/scheduler.mts (*/15) and catalog-runner.mts (*/10). UTC.
+  // Cron changes take a few minutes to propagate after a deploy.
+  "triggers": {
+    "crons": ["*/10 * * * *", "*/15 * * * *"],
+  },
+  "services": [
+    {
+      // Self-reference for ISR revalidation (memory queue). Must match "name".
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "rojoygualda",
+    },
+  ],
+  "r2_buckets": [
+    {
+      // Incremental cache (ISR + unstable_cache). Create once: npx wrangler r2 bucket create rojoygualda-opennext-cache
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "rojoygualda-opennext-cache",
+    },
+  ],
+  "d1_databases": [
+    {
+      // Tag cache (revalidateTag / revalidatePath). Create once: npx wrangler d1 create rojoygualda-tag-cache
+      // and paste the printed database_id here (or let `wrangler deploy` auto-provision it).
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "rojoygualda-tag-cache",
+    },
+  ],
+  // next/image optimisation. Without this binding /_next/image returns the original file unchanged.
+  // Cloudflare Images: 5,000 unique transformations / month free, then $0.50 per 1,000 (see migration doc).
+  "images": {
+    "binding": "IMAGES",
+  },
+}

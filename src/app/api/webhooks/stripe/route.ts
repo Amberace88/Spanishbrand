@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { env, isConfigured } from "@/lib/env";
-import { stripe } from "@/lib/payments/stripe";
+import { stripe, webhookCryptoProvider } from "@/lib/payments/stripe";
 import { recordWebhook, markWebhook } from "@/lib/webhooks/idempotency";
 import { handleChargeRefunded, handleCheckoutExpired, handleCheckoutPaid, handlePaymentFailed } from "@/lib/payments/stripe-webhook";
 import { log } from "@/lib/logger";
@@ -18,8 +18,9 @@ export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
   let event: Stripe.Event;
   try {
-    // constructEvent also enforces the timestamp tolerance (replay protection).
-    event = stripe().webhooks.constructEvent(raw, sig ?? "", env.stripeWebhookSecret()!);
+    // constructEventAsync also enforces the timestamp tolerance (replay protection). Async so the same code runs
+    // on Cloudflare Workers, where signatures are verified with WebCrypto (SubtleCryptoProvider).
+    event = await stripe().webhooks.constructEventAsync(raw, sig ?? "", env.stripeWebhookSecret()!, undefined, webhookCryptoProvider());
   } catch (e) {
     log.warn("SECURITY", "stripe signature invalid", { msg: e instanceof Error ? e.message : String(e) });
     return NextResponse.json({ error: "invalid signature" }, { status: 400 });

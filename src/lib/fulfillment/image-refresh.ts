@@ -1,5 +1,5 @@
 import "server-only";
-import sharp from "sharp";
+import { imageOps } from "@/lib/image";
 import { db } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { BLUEPRINTS } from "@/lib/catalog/blueprints";
@@ -184,7 +184,7 @@ async function stepImages(row: Row, productKey: string): Promise<RefreshResult> 
     const n = (st.done ?? 0) + j;
     const r = await fetch(img.url);
     if (!r.ok) throw new Error(`mockup download ${r.status}`);
-    const buf = await sharp(Buffer.from(await r.arrayBuffer())).resize({ width: 1400, height: 1400, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 5 }).toBuffer();
+    const buf = (await (await imageOps()).fitInside(Buffer.from(await r.arrayBuffer()), { maxSide: 1400, withoutEnlargement: true }, { format: "webp", quality: 80, effort: 5 })).data;
     const url = await uploadObject(`catalog/media/${st.slug}/${st.productId!.slice(0, 8)}-${st.mediaVer}-${n}.webp`, buf, "image/webp", { immutable: true });
     uploaded.push({ url, alt: [product?.name, img.color !== "_" ? img.color : null, img.title || null, altStyleTag(img.style)].filter(Boolean).join(" — "), kind: img.kind, color: img.color });
   }

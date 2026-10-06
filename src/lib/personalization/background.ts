@@ -1,5 +1,5 @@
 import "server-only";
-import sharp from "sharp";
+import { imageOps } from "@/lib/image";
 
 /**
  * Automatic background removal for customer artwork with a solid / near-solid background
@@ -9,8 +9,8 @@ import sharp from "sharp";
  */
 export async function removeSolidBackground(input: Buffer, opts: { maxSide?: number } = {}) {
   const maxSide = opts.maxSide ?? 2400;
-  const { data, info } = await sharp(input).rotate().resize({ width: maxSide, height: maxSide, fit: "inside", withoutEnlargement: true }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const { width: W, height: H } = info;
+  const ops = await imageOps();
+  const { data, width: W, height: H } = await ops.toRawRGBA(input, { rotate: true, maxSide });
   const px = (i: number) => i * 4;
 
   // 1) sample the border
@@ -83,6 +83,6 @@ export async function removeSolidBackground(input: Buffer, opts: { maxSide?: num
     for (let c = 0; c < 3; c++) out[p + c] = Math.max(0, Math.min(255, Math.round((data[p + c] - bg[c] * (1 - a)) / a)));
     out[p + 3] = Math.round(data[p + 3] * a);
   }
-  const png = await sharp(out, { raw: { width: W, height: H, channels: 4 } }).png({ compressionLevel: 9 }).toBuffer();
+  const png = await ops.rawToPng({ data: out, width: W, height: H }, { compressionLevel: 9 });
   return { detected: true as const, png, width: W, height: H, background: `#${bg.map((v) => v.toString(16).padStart(2, "0")).join("")}`, removed };
 }
