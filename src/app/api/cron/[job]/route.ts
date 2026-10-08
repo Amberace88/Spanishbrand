@@ -10,6 +10,7 @@ import { applyProviderSnapshot } from "@/lib/orders/fulfillment-engine";
 import { getBrand } from "@/lib/brand";
 import { log } from "@/lib/logger";
 import { runCatalogBatch } from "@/lib/fulfillment/catalog-builder";
+import { isWorkersImageRuntime } from "@/lib/image/limits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +35,8 @@ async function systemStaff() {
 
 const JOBS: Record<string, () => Promise<unknown>> = {
   /** Every minute: advance the catalog builder server-side (safe next to the admin page runner). */
-  catalog: async () => runCatalogBatch(await systemStaff(), { budgetMs: 20_000, workers: 4 }),
+  // Cloudflare Workers: one job at a time — every image step shares the isolate's 128 MB (4 in parallel on Node)
+  catalog: async () => runCatalogBatch(await systemStaff(), { budgetMs: 20_000, workers: isWorkersImageRuntime() ? 1 : 4 }),
   /** Daily: catalog sync for configured providers (never publishes). */
   "catalog-sync": async () => {
     const out: Record<string, unknown> = {};

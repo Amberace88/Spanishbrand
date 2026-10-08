@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { assetBase } from "@/lib/catalog/assets";
 import { ImageResponse } from "next/og";
+import { assertFitsRuntime } from "@/lib/image/limits";
 import { Artwork, PRINT_FONTS } from "./artwork";
 import { PRINT_CANVAS, type FontKey, type Personalization } from "./types";
 
@@ -68,6 +69,7 @@ async function inlineImages(value: Personalization): Promise<Map<string, string>
 
 /** Render a transparent PNG print file for one placement. */
 export async function renderPrintFile(value: Personalization, opts: { ink?: string; font?: FontKey; width?: number; height?: number } = {}): Promise<Buffer> {
+  assertFitsRuntime(opts.width ?? PRINT_CANVAS.width, opts.height ?? PRINT_CANVAS.height, "print render"); // Workers memory; no-op on Node
   const [fonts, images] = await Promise.all([loadFonts(), inlineImages(value)]);
   // Provider print-file size when known (same 3:4 layout, exact pixels), else the default canvas.
   const width = opts.width ?? PRINT_CANVAS.width;

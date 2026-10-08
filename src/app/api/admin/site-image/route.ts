@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import sharp from "sharp";
+import { imageOps } from "@/lib/image";
 import { getStaffSession, hasRole } from "@/lib/auth/rbac";
 import { uploadObject as uploadOnce } from "@/lib/personalization/storage";
 import { audit } from "@/lib/audit";
@@ -47,11 +47,13 @@ async function handle(req: Request) {
   if (!m) return NextResponse.json({ error: "BAD_IMAGE" }, { status: 400 });
   const buf = Buffer.from(m[2], "base64");
   if (buf.length > 12 * 1024 * 1024) return NextResponse.json({ error: "TOO_LARGE" }, { status: 413 });
-  const meta = await sharp(buf).metadata().catch(() => null);
+  const ops = await imageOps();
+  const meta = await ops.metadata(buf).catch(() => null);
   if (!meta?.width) return NextResponse.json({ error: "BAD_IMAGE" }, { status: 400 });
   if (body?.kind === "art") {
     // brand illustration generated on a green screen → transparent, despilled, trimmed print art (site-art/<name>.png)
-    const { data, info } = await sharp(buf).rotate().ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const raw = await ops.toRawRGBA(buf, { rotate: true });
+    const data = raw.data;
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i + 1], b = data[i + 2];
       const m = Math.max(r, b), gr = g - m;
@@ -60,13 +62,14 @@ async function handle(req: Request) {
       if (gr > 0) data[i + 1] = m; // despill
       if (data[i + 3] < 8) data[i + 3] = 0;
     }
-    const png = await sharp(data, { raw: info }).trim({ threshold: 1 }).resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: false, kernel: "lanczos3" }).png({ compressionLevel: 9 }).toBuffer({ resolveWithObject: true });
+    const trimmed = await ops.trimFitPng(raw, 1600);
+    const png = { data: trimmed.data, info: { width: trimmed.width, height: trimmed.height } };
     const url = await uploadObject(`site-art/${name}.png`, png.data, "image/png");
     const aspect = +(png.info.height / png.info.width).toFixed(4);
     await audit({ action: "site.image", actorId: s.userId, actorEmail: s.email, entityType: "site-art", entityId: name, after: { aspect } }).catch(() => null);
     return NextResponse.json({ ok: true, url, aspect, width: png.info.width, height: png.info.height });
   }
-  const out = await sharp(buf).rotate().resize({ width: 1800, height: 1800, fit: "inside", withoutEnlargement: true }).webp({ quality: 84 }).toBuffer();
+  const out = (await ops.fitInside(buf, { maxSide: 1800, rotate: true, withoutEnlargement: true }, { format: "webp", quality: 84 })).data;
   const url = await uploadObject(`site/${name}.webp`, out, "image/webp");
   revalidateTag(SITE_IMAGES_TAG, { expire: 0 }); // the cached site/ listing carries the ?v= cache-buster
   await audit({ action: "site.image", actorId: s.userId, actorEmail: s.email, entityType: "site", entityId: name, after: { bytes: out.length, width: meta.width, height: meta.height } }).catch(() => null);

@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import { assertFitsRuntime } from "@/lib/image/limits";
 import { Artwork, PRINT_FONTS, fitFontSize } from "@/lib/personalization/artwork";
 import { loadFonts } from "@/lib/personalization/render";
 import type { Layer } from "@/lib/personalization/types";
@@ -106,6 +107,7 @@ export type RenderMode = "print" | "mug" | "poster" | "sticker" | "fill" | "emb"
  */
 export async function renderDesign(input: Pick<Design, "layers" | "posterBg" | "tone">, opts: { width: number; height: number; mode: RenderMode }) {
   const { width: W, height: H, mode } = opts;
+  assertFitsRuntime(W, H, "design render"); // Workers memory (print files at provider resolution); no-op on Node
   const [fonts, art] = await Promise.all([loadFonts(), inlineArt(input.layers)]);
   // imported art may carry a placeholder aspect: use the real one from the file, keeping the layer's height budget
   const design = {

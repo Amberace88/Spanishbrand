@@ -42,3 +42,8 @@ next-env.d.ts
 
 !.env.example
 ATSLEGAS.txt
+
+# Cloudflare (OpenNext / wrangler)
+/.open-next/
+/.wrangler/
+.dev.vars*

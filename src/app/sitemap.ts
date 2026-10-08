@@ -4,7 +4,9 @@ import type { MetadataRoute } from "next";
 import { getCollections, getPublishedProducts } from "@/lib/products/queries";
 import { REGIONS, isRedundantProvince } from "@/lib/regions";
 
-export const revalidate = 3600;
+// Built on request (and cached by the CDN/R2 incremental cache), not at build time: loading every
+// product during `next build` regularly exceeded Next's 60 s static-generation limit.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";

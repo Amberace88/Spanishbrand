@@ -1,6 +1,6 @@
 import { assetBase } from "@/lib/catalog/assets";
 import "server-only";
-import sharp from "sharp";
+import { imageOps } from "@/lib/image";
 import { db } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { slugify } from "@/lib/format";
@@ -891,7 +891,7 @@ function priceFor(target: number, cost: number | null) {
 
 async function webp(buf: Buffer, width = 1400) {
   // q80 + effort 5: ~15 % smaller than q84 with no visible difference on product photos (storage + egress)
-  return sharp(buf).resize({ width, height: width, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 5 }).toBuffer();
+  return (await (await imageOps()).fitInside(buf, { maxSide: width, withoutEnlargement: true }, { format: "webp", quality: 80, effort: 5 })).data;
 }
 
 /** Short content hash for content-addressed storage paths. */
@@ -929,7 +929,8 @@ async function posterSource(spec: Spec, printfile: { width: number; height: numb
 /** Lifestyle-style scenes for posters (Gelato has no mockup API): framed on a wall + flat detail. */
 async function posterScenes(poster: Buffer, opts: { frame?: string | null; mat?: boolean } = { frame: "#141414", mat: true }) {
   const W = 1600, H = 2000;
-  const meta = await sharp(poster).metadata();
+  const ops = await imageOps();
+  const meta = await ops.metadata(poster);
   const ratio = meta.width && meta.height ? meta.height / meta.width : 4 / 3;
   const pw = 820, ph = Math.round(pw * ratio);
   const frame = opts.frame ? 26 : 0, mat = opts.mat ? 64 : 0;
@@ -944,15 +945,15 @@ async function posterScenes(poster: Buffer, opts: { frame?: string | null; mat?:
       ${opts.mat ? `<rect x="${fx + frame}" y="${fy + frame}" width="${fw - 2 * frame}" height="${fh - 2 * frame}" fill="#fbfaf7"/><rect x="${fx + frame + mat - 3}" y="${fy + frame + mat - 3}" width="${pw + 6}" height="${ph + 6}" fill="#e7e2d8"/>` : ""}
       ${!opts.frame && !opts.mat ? `<rect x="${fx + pw}" y="${fy + 6}" width="14" height="${ph}" fill="#000" opacity="0.18"/>` : ""}</svg>`,
   );
-  const art = await sharp(poster).resize(pw, ph).png().toBuffer();
-  const scene = await sharp(wall).composite([{ input: art, left: fx + frame + mat, top: fy + frame + mat }]).webp({ quality: 84 }).toBuffer();
+  const art = await ops.resizePng(poster, pw, ph);
+  const scene = await ops.svgCompositeWebp(wall, [{ input: art, left: fx + frame + mat, top: fy + frame + mat }], 84);
 
   const dw = 1000, dh = Math.round(dw * ratio), dW = 1400, dH = dh + 420;
   const bg = Buffer.from(
     `<svg width="${dW}" height="${dH}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="s"><feGaussianBlur stdDeviation="18"/></filter></defs><rect width="${dW}" height="${dH}" fill="#ece8e1"/><rect x="${(dW - dw) / 2 + 10}" y="${(dH - dh) / 2 + 22}" width="${dw}" height="${dh}" fill="#000" opacity="0.25" filter="url(#s)"/></svg>`,
   );
-  const art2 = await sharp(poster).resize(dw, dh).png().toBuffer();
-  const flat = await sharp(bg).composite([{ input: art2, left: (dW - dw) / 2, top: (dH - dh) / 2 }]).webp({ quality: 84 }).toBuffer();
+  const art2 = await ops.resizePng(poster, dw, dh);
+  const flat = await ops.svgCompositeWebp(bg, [{ input: art2, left: (dW - dw) / 2, top: (dH - dh) / 2 }], 84);
   return [scene, flat];
 }
 
@@ -981,7 +982,7 @@ async function stepMockup(job: JobRow): Promise<StepResult> {
       const preset = PRESETS[t.template];
       png = await renderPrintFile({ mode: "fields", template: t.template, values: t.sample }, { ink: preset.ink, font: preset.font });
       placement = preset.placement;
-      png = await sharp(png).resize(width, height, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+      png = await (await imageOps()).resizePng(png, width, height, "contain");
     } else {
       png = await renderDesign(spec.kind === "blank" ? design : PLACEHOLDER, { width, height, mode: bp.renderMode });
     }

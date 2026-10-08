@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import sharp from "sharp";
+import { imageOps } from "@/lib/image";
 import { db } from "@/lib/supabase/admin";
 import { RETURNS_BUCKET, throttle } from "@/lib/returns/service";
 import { clientIp } from "../_ip";
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   let out: Buffer;
   try {
     // rotate() applies EXIF orientation; output has no metadata (location etc. removed)
-    out = await sharp(buf, { limitInputPixels: 60_000_000 }).rotate().resize(2000, 2000, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+    out = (await (await imageOps()).fitInside(buf, { maxSide: 2000, rotate: true, withoutEnlargement: true, limitInputPixels: 60_000_000 }, { format: "jpeg", quality: 82, mozjpeg: true })).data;
   } catch {
     return NextResponse.json({ error: kind === "heic" ? "HEIC" : "TYPE" }, { status: 415 });
   }

@@ -1,5 +1,5 @@
 import "server-only";
-import sharp from "sharp";
+import { assertFitsRuntime, imageOps } from "@/lib/image";
 import { renderPrintFile } from "./render";
 import { KINDS, aspectOf, type PrintLayout } from "./kinds";
 import type { Layer, PersoConfig, Personalization, Placement } from "./types";
@@ -58,7 +58,7 @@ export async function composePrintFiles(value: Personalization, config: PersoCon
     let png = await renderPrintFile(value, { ...(fields ? { ink: fields.ink, font: fields.font } : {}), ...(fit ?? {}) });
     if (canvas && fit && (fit.width !== canvas.width || fit.height !== canvas.height)) {
       const left = Math.floor((canvas.width - fit.width) / 2);
-      png = await sharp(png).extend({ top: 0, bottom: canvas.height - fit.height, left, right: canvas.width - fit.width - left, background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+      png = await (await imageOps()).extendPng(png, { top: 0, bottom: canvas.height - fit.height, left, right: canvas.width - fit.width - left });
     }
     return [{ placement, png }];
   }
@@ -72,6 +72,10 @@ export async function composePrintFiles(value: Personalization, config: PersoCon
   if (value.back?.length) sides.push({ placement: "back", layers: value.back });
   const background = layout === "fill" || layout === "wrap" ? (value.background ?? null) : null;
 
+  // Cloudflare Workers (128 MB isolate): refuse print files too large to hold in memory before rendering them,
+  // so the order is held for review (PERSONALIZATION_FAILED) instead of the isolate crashing. No-op on Node.
+  assertFitsRuntime(C.width, C.height, "print file");
+  const ops = await imageOps();
   const out: ComposedFile[] = [];
   for (const side of sides) {
     const boxes = placementBoxes(layout, aspect, C);
@@ -79,10 +83,7 @@ export async function composePrintFiles(value: Personalization, config: PersoCon
     const png =
       boxes.length === 1 && boxes[0].width === C.width && boxes[0].height === C.height
         ? art
-        : await sharp({ create: { width: C.width, height: C.height, channels: 4, background: rgba(background) } })
-            .composite(boxes.map((b) => ({ input: art, left: b.left, top: b.top })))
-            .png()
-            .toBuffer();
+        : await ops.canvasPng({ width: C.width, height: C.height, background: rgba(background) }, boxes.map((b) => ({ input: art, left: b.left, top: b.top })));
     out.push({ placement: side.placement, png });
   }
   return out;

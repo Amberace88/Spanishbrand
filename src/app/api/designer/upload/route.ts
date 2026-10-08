@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
-import sharp from "sharp";
+import { imageOps } from "@/lib/image";
 import { isConfigured } from "@/lib/env";
 import { uploadObject } from "@/lib/personalization/storage";
 import { removeSolidBackground } from "@/lib/personalization/background";
@@ -46,10 +46,11 @@ export async function POST(req: Request) {
   if (!sniff(buf)) return NextResponse.json({ error: "BAD_TYPE" }, { status: 415 });
 
   try {
-    const img = sharp(buf, { limitInputPixels: 60_000_000 }).rotate();
-    const meta = await img.metadata();
+    const ops = await imageOps();
+    const meta = await ops.metadata(buf);
     if (!meta.width || !meta.height) return NextResponse.json({ error: "BAD_IMAGE" }, { status: 415 });
-    const out = await img.resize({ width: MAX_SIDE, height: MAX_SIDE, fit: "inside", withoutEnlargement: true }).png({ compressionLevel: 9 }).toBuffer({ resolveWithObject: true });
+    const fitted = await ops.fitInside(buf, { maxSide: MAX_SIDE, rotate: true, withoutEnlargement: true, limitInputPixels: 60_000_000 }, { format: "png", compressionLevel: 9 });
+    const out = { data: fitted.data, info: { width: fitted.width, height: fitted.height } };
     const id = randomUUID();
     const path = `uploads/${id}.png`;
     const url = await uploadObject(path, out.data, "image/png");
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
       const r = await removeSolidBackground(out.data, { maxSide: 2400 });
       if (r.detected) {
         const npath = `uploads/${id}-nobg.png`;
-        const png = r.width === width ? r.png : await sharp(r.png).resize(width, height).png().toBuffer();
+        const png = r.width === width ? r.png : await ops.resizePng(r.png, width, height);
         nobg = { path: npath, url: await uploadObject(npath, png, "image/png"), background: r.background };
       }
     } catch (e) {
