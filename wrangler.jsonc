@@ -23,7 +23,8 @@
   // Replaces netlify/functions/scheduler.mts (*/15) and catalog-runner.mts (*/10). UTC.
   // Cron changes take a few minutes to propagate after a deploy.
   "triggers": {
-    "crons": ["*/10 * * * *", "*/15 * * * *"],
+    // Paused while there are no live users; to re-enable: ["*/10 * * * *", "*/15 * * * *"]
+    "crons": [],
   },
   "services": [
     {
